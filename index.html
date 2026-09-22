@@ -1,1 +1,1700 @@
-hahaha
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+
+  <title>Black Stag Marketing Studio</title>
+
+  <meta
+    name="description"
+    content="Black Stag Marketing Studio — an AI-powered marketing workspace for brands, campaigns, content, assets, and publishing."
+  />
+
+  <meta name="theme-color" content="#0b0c0c" />
+
+  <meta name="robots" content="noindex,nofollow" />
+
+  <link
+    rel="manifest"
+    href="manifest.webmanifest"
+  />
+
+  <link
+    rel="stylesheet"
+    href="styles.css?v=1"
+  />
+</head>
+
+<body>
+
+  <!-- ========================================
+       APP
+       ======================================== -->
+
+  <div class="app-shell">
+
+    <!-- ========================================
+         DESKTOP SIDEBAR
+         ======================================== -->
+
+    <aside
+      class="sidebar"
+      aria-label="Main navigation"
+    >
+
+      <div class="sidebar-brand">
+
+        <div
+          class="studio-mark"
+          aria-hidden="true"
+        >
+          BS
+        </div>
+
+        <div class="studio-brand-copy">
+          <span class="studio-brand-kicker">
+            Black Stag
+          </span>
+
+          <strong class="studio-brand-name">
+            Marketing Studio
+          </strong>
+        </div>
+
+      </div>
+
+
+      <!-- ACTIVE BRAND -->
+
+      <div class="sidebar-section">
+
+        <span class="sidebar-label">
+          Working Brand
+        </span>
+
+        <button
+          class="brand-switcher"
+          id="brandSwitcher"
+          type="button"
+          aria-haspopup="dialog"
+          aria-controls="brandPickerDialog"
+        >
+
+          <span
+            class="brand-switcher-mark"
+            id="activeBrandMark"
+            aria-hidden="true"
+          >
+            S&amp;S
+          </span>
+
+          <span class="brand-switcher-copy">
+
+            <strong id="activeBrandName">
+              Stag &amp; Stone
+            </strong>
+
+            <small id="activeBrandStage">
+              Pre-opening
+            </small>
+
+          </span>
+
+          <span
+            class="brand-switcher-chevron"
+            aria-hidden="true"
+          >
+            ▾
+          </span>
+
+        </button>
+
+      </div>
+
+
+      <!-- NAVIGATION -->
+
+      <nav class="sidebar-nav">
+
+        <button
+          class="nav-button is-active"
+          type="button"
+          data-view="dashboard"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            ◈
+          </span>
+
+          <span>Dashboard</span>
+        </button>
+
+
+        <button
+          class="nav-button"
+          type="button"
+          data-view="brands"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            ◆
+          </span>
+
+          <span>Brands</span>
+        </button>
+
+
+        <button
+          class="nav-button"
+          type="button"
+          data-view="campaigns"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            ◇
+          </span>
+
+          <span>Campaigns</span>
+        </button>
+
+
+        <button
+          class="nav-button"
+          type="button"
+          data-view="studio"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            ✦
+          </span>
+
+          <span>Content Studio</span>
+        </button>
+
+
+        <button
+          class="nav-button"
+          type="button"
+          data-view="calendar"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            □
+          </span>
+
+          <span>Calendar</span>
+        </button>
+
+
+        <button
+          class="nav-button"
+          type="button"
+          data-view="vault"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            ▣
+          </span>
+
+          <span>Asset Vault</span>
+        </button>
+
+      </nav>
+
+
+      <div class="sidebar-footer">
+
+        <button
+          class="nav-button"
+          type="button"
+          data-view="settings"
+        >
+          <span
+            class="nav-icon"
+            aria-hidden="true"
+          >
+            ⚙
+          </span>
+
+          <span>Settings</span>
+        </button>
+
+      </div>
+
+    </aside>
+
+
+    <!-- ========================================
+         MAIN AREA
+         ======================================== -->
+
+    <div class="app-main">
+
+      <!-- MOBILE / TABLET HEADER -->
+
+      <header class="topbar">
+
+        <div class="topbar-brand">
+
+          <div
+            class="studio-mark studio-mark-small"
+            aria-hidden="true"
+          >
+            BS
+          </div>
+
+          <div>
+            <span class="topbar-kicker">
+              Black Stag
+            </span>
+
+            <strong>
+              Marketing Studio
+            </strong>
+          </div>
+
+        </div>
+
+
+        <button
+          class="topbar-settings"
+          type="button"
+          data-view="settings"
+          aria-label="Open settings"
+        >
+          ⚙
+        </button>
+
+      </header>
+
+
+      <!-- ========================================
+           CONTENT
+           ======================================== -->
+
+      <main
+        class="content"
+        id="mainContent"
+      >
+
+        <!-- ====================================
+             DASHBOARD
+             ==================================== -->
+
+        <section
+          class="view is-active"
+          id="view-dashboard"
+          data-view-panel="dashboard"
+        >
+
+          <!-- MOBILE BRAND SWITCHER -->
+
+          <div class="mobile-brand-area">
+
+            <span class="eyebrow">
+              Working Brand
+            </span>
+
+            <button
+              class="brand-switcher brand-switcher-mobile"
+              id="mobileBrandSwitcher"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="brandPickerDialog"
+            >
+
+              <span
+                class="brand-switcher-mark"
+                id="mobileActiveBrandMark"
+                aria-hidden="true"
+              >
+                S&amp;S
+              </span>
+
+              <span class="brand-switcher-copy">
+
+                <strong id="mobileActiveBrandName">
+                  Stag &amp; Stone
+                </strong>
+
+                <small id="mobileActiveBrandStage">
+                  Pre-opening
+                </small>
+
+              </span>
+
+              <span
+                class="brand-switcher-chevron"
+                aria-hidden="true"
+              >
+                ▾
+              </span>
+
+            </button>
+
+          </div>
+
+
+          <!-- DASHBOARD HERO -->
+
+          <header class="view-header dashboard-header">
+
+            <div>
+
+              <span class="eyebrow">
+                Today
+              </span>
+
+              <h1 id="dashboardGreeting">
+                Good evening.
+              </h1>
+
+              <p class="view-intro">
+                Your marketing workspace is ready.
+              </p>
+
+            </div>
+
+
+            <button
+              class="primary-button desktop-create-button"
+              type="button"
+              data-open-quick-create
+            >
+              <span aria-hidden="true">✦</span>
+              Quick Create
+            </button>
+
+          </header>
+
+
+          <!-- OVERVIEW -->
+
+          <section
+            class="dashboard-section"
+            aria-labelledby="overviewHeading"
+          >
+
+            <div class="section-heading-row">
+
+              <div>
+                <span class="eyebrow">
+                  Overview
+                </span>
+
+                <h2 id="overviewHeading">
+                  Today's Work
+                </h2>
+              </div>
+
+            </div>
+
+
+            <div class="stat-grid">
+
+              <button
+                class="stat-card"
+                type="button"
+                data-view="studio"
+                data-content-filter="review"
+              >
+
+                <span
+                  class="stat-number"
+                  id="reviewDraftCount"
+                >
+                  0
+                </span>
+
+                <span class="stat-label">
+                  Drafts Awaiting Review
+                </span>
+
+              </button>
+
+
+              <button
+                class="stat-card"
+                type="button"
+                data-view="calendar"
+              >
+
+                <span
+                  class="stat-number"
+                  id="upcomingContentCount"
+                >
+                  0
+                </span>
+
+                <span class="stat-label">
+                  Upcoming Content
+                </span>
+
+              </button>
+
+
+              <button
+                class="stat-card"
+                type="button"
+                data-view="campaigns"
+                data-campaign-filter="active"
+              >
+
+                <span
+                  class="stat-number"
+                  id="activeCampaignCount"
+                >
+                  0
+                </span>
+
+                <span class="stat-label">
+                  Active Campaigns
+                </span>
+
+              </button>
+
+            </div>
+
+          </section>
+
+
+          <!-- QUICK CREATE -->
+
+          <section
+            class="dashboard-section"
+            aria-labelledby="quickCreateHeading"
+          >
+
+            <div class="section-heading-row">
+
+              <div>
+                <span class="eyebrow">
+                  Create
+                </span>
+
+                <h2 id="quickCreateHeading">
+                  Quick Create
+                </h2>
+              </div>
+
+            </div>
+
+
+            <div class="quick-create-grid">
+
+              <button
+                class="quick-create-card"
+                type="button"
+                data-create-type="social-post"
+              >
+                <span
+                  class="quick-create-icon"
+                  aria-hidden="true"
+                >
+                  ◈
+                </span>
+
+                <span>
+                  <strong>Social Post</strong>
+                  <small>
+                    Create platform-ready copy.
+                  </small>
+                </span>
+              </button>
+
+
+              <button
+                class="quick-create-card"
+                type="button"
+                data-create-type="story"
+              >
+                <span
+                  class="quick-create-icon"
+                  aria-hidden="true"
+                >
+                  ◇
+                </span>
+
+                <span>
+                  <strong>Story</strong>
+                  <small>
+                    Build short-form story content.
+                  </small>
+                </span>
+              </button>
+
+
+              <button
+                class="quick-create-card"
+                type="button"
+                data-create-type="reel"
+              >
+                <span
+                  class="quick-create-icon"
+                  aria-hidden="true"
+                >
+                  ▷
+                </span>
+
+                <span>
+                  <strong>Reel / Video</strong>
+                  <small>
+                    Write a concept and script.
+                  </small>
+                </span>
+              </button>
+
+
+              <button
+                class="quick-create-card"
+                type="button"
+                data-create-type="graphic"
+              >
+                <span
+                  class="quick-create-icon"
+                  aria-hidden="true"
+                >
+                  ▣
+                </span>
+
+                <span>
+                  <strong>Graphic</strong>
+                  <small>
+                    Develop a promotional visual.
+                  </small>
+                </span>
+              </button>
+
+
+              <button
+                class="quick-create-card"
+                type="button"
+                data-create-type="email"
+              >
+                <span
+                  class="quick-create-icon"
+                  aria-hidden="true"
+                >
+                  ✉
+                </span>
+
+                <span>
+                  <strong>Email</strong>
+                  <small>
+                    Draft marketing email content.
+                  </small>
+                </span>
+              </button>
+
+
+              <button
+                class="quick-create-card"
+                type="button"
+                data-create-type="campaign"
+              >
+                <span
+                  class="quick-create-icon"
+                  aria-hidden="true"
+                >
+                  ✦
+                </span>
+
+                <span>
+                  <strong>Campaign</strong>
+                  <small>
+                    Build a coordinated campaign.
+                  </small>
+                </span>
+              </button>
+
+            </div>
+
+          </section>
+
+
+          <!-- UPCOMING -->
+
+          <section
+            class="dashboard-section"
+            aria-labelledby="upcomingHeading"
+          >
+
+            <div class="section-heading-row">
+
+              <div>
+                <span class="eyebrow">
+                  Calendar
+                </span>
+
+                <h2 id="upcomingHeading">
+                  Upcoming
+                </h2>
+              </div>
+
+
+              <button
+                class="text-button"
+                type="button"
+                data-view="calendar"
+              >
+                View Calendar
+              </button>
+
+            </div>
+
+
+            <div
+              class="content-panel"
+              id="dashboardUpcoming"
+            >
+
+              <div class="empty-state">
+
+                <span
+                  class="empty-state-icon"
+                  aria-hidden="true"
+                >
+                  ◌
+                </span>
+
+                <h3>
+                  Nothing scheduled yet.
+                </h3>
+
+                <p>
+                  Approved content will appear here
+                  once it has a publishing date.
+                </p>
+
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-open-quick-create
+                >
+                  Create Something
+                </button>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        </section>
+
+
+        <!-- ====================================
+             BRANDS
+             ==================================== -->
+
+        <section
+          class="view"
+          id="view-brands"
+          data-view-panel="brands"
+          hidden
+        >
+
+          <header class="view-header">
+
+            <div>
+              <span class="eyebrow">
+                Brand Brain
+              </span>
+
+              <h1>
+                Brands
+              </h1>
+
+              <p class="view-intro">
+                Manage the identity, voice, facts,
+                assets, audience, and marketing
+                memory for every brand.
+              </p>
+            </div>
+
+
+            <button
+              class="primary-button"
+              type="button"
+              id="addBrandButton"
+            >
+              + Add Brand
+            </button>
+
+          </header>
+
+
+          <div
+            class="brand-grid"
+            id="brandGrid"
+          >
+
+            <div class="empty-state full-width">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ◆
+              </span>
+
+              <h3>
+                Your brands will live here.
+              </h3>
+
+              <p>
+                Once connected to the Brand Brain,
+                this view will contain each business
+                and its marketing identity.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ====================================
+             CAMPAIGNS
+             ==================================== -->
+
+        <section
+          class="view"
+          id="view-campaigns"
+          data-view-panel="campaigns"
+          hidden
+        >
+
+          <header class="view-header">
+
+            <div>
+              <span class="eyebrow">
+                Strategy
+              </span>
+
+              <h1>
+                Campaigns
+              </h1>
+
+              <p class="view-intro">
+                Plan coordinated marketing around
+                launches, promotions, milestones,
+                events, and ongoing goals.
+              </p>
+            </div>
+
+
+            <button
+              class="primary-button"
+              type="button"
+              data-create-type="campaign"
+            >
+              ✦ Create Campaign
+            </button>
+
+          </header>
+
+
+          <div
+            class="filter-tabs"
+            role="tablist"
+            aria-label="Campaign filters"
+          >
+
+            <button
+              class="filter-tab is-active"
+              type="button"
+              data-campaign-filter="all"
+            >
+              All
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-campaign-filter="active"
+            >
+              Active
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-campaign-filter="draft"
+            >
+              Drafts
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-campaign-filter="completed"
+            >
+              Completed
+            </button>
+
+          </div>
+
+
+          <div
+            class="content-panel"
+            id="campaignList"
+          >
+
+            <div class="empty-state">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ✦
+              </span>
+
+              <h3>
+                No campaigns yet.
+              </h3>
+
+              <p>
+                Your first campaign can be as simple
+                as introducing a product or as broad
+                as an entire opening campaign.
+              </p>
+
+              <button
+                class="secondary-button"
+                type="button"
+                data-create-type="campaign"
+              >
+                Create First Campaign
+              </button>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ====================================
+             CONTENT STUDIO
+             ==================================== -->
+
+        <section
+          class="view"
+          id="view-studio"
+          data-view-panel="studio"
+          hidden
+        >
+
+          <header class="view-header">
+
+            <div>
+              <span class="eyebrow">
+                Create
+              </span>
+
+              <h1>
+                Content Studio
+              </h1>
+
+              <p class="view-intro">
+                Turn real brand information into
+                marketing content without losing
+                the brand's voice.
+              </p>
+            </div>
+
+          </header>
+
+
+          <div class="studio-tool-grid">
+
+            <button
+              class="studio-tool-card"
+              type="button"
+              data-create-type="social-post"
+            >
+              <span aria-hidden="true">◈</span>
+              <strong>Social Post</strong>
+              <small>
+                Facebook, Instagram, and more.
+              </small>
+            </button>
+
+
+            <button
+              class="studio-tool-card"
+              type="button"
+              data-create-type="story"
+            >
+              <span aria-hidden="true">◇</span>
+              <strong>Story</strong>
+              <small>
+                Short, visual-first content.
+              </small>
+            </button>
+
+
+            <button
+              class="studio-tool-card"
+              type="button"
+              data-create-type="reel"
+            >
+              <span aria-hidden="true">▷</span>
+              <strong>Reel / Video Script</strong>
+              <small>
+                Concepts, hooks, shots, and scripts.
+              </small>
+            </button>
+
+
+            <button
+              class="studio-tool-card"
+              type="button"
+              data-create-type="email"
+            >
+              <span aria-hidden="true">✉</span>
+              <strong>Email</strong>
+              <small>
+                Announcements and campaigns.
+              </small>
+            </button>
+
+
+            <button
+              class="studio-tool-card"
+              type="button"
+              data-create-type="website-copy"
+            >
+              <span aria-hidden="true">Aa</span>
+              <strong>Website Copy</strong>
+              <small>
+                Pages, sections, and calls to action.
+              </small>
+            </button>
+
+
+            <button
+              class="studio-tool-card"
+              type="button"
+              data-create-type="graphic"
+            >
+              <span aria-hidden="true">▣</span>
+              <strong>Promotional Graphic</strong>
+              <small>
+                Build visual concepts from brand assets.
+              </small>
+            </button>
+
+          </div>
+
+
+          <section class="dashboard-section">
+
+            <div class="section-heading-row">
+
+              <div>
+                <span class="eyebrow">
+                  Workflow
+                </span>
+
+                <h2>
+                  Content Library
+                </h2>
+              </div>
+
+            </div>
+
+
+            <div
+              class="filter-tabs"
+              role="tablist"
+              aria-label="Content filters"
+            >
+
+              <button
+                class="filter-tab is-active"
+                type="button"
+                data-content-filter="all"
+              >
+                All
+              </button>
+
+              <button
+                class="filter-tab"
+                type="button"
+                data-content-filter="draft"
+              >
+                Drafts
+              </button>
+
+              <button
+                class="filter-tab"
+                type="button"
+                data-content-filter="review"
+              >
+                Review
+              </button>
+
+              <button
+                class="filter-tab"
+                type="button"
+                data-content-filter="approved"
+              >
+                Approved
+              </button>
+
+              <button
+                class="filter-tab"
+                type="button"
+                data-content-filter="scheduled"
+              >
+                Scheduled
+              </button>
+
+              <button
+                class="filter-tab"
+                type="button"
+                data-content-filter="published"
+              >
+                Published
+              </button>
+
+            </div>
+
+
+            <div
+              class="content-panel"
+              id="contentLibrary"
+            >
+
+              <div class="empty-state">
+
+                <span
+                  class="empty-state-icon"
+                  aria-hidden="true"
+                >
+                  ◈
+                </span>
+
+                <h3>
+                  No content yet.
+                </h3>
+
+                <p>
+                  Create your first piece of content
+                  and it will enter the review workflow here.
+                </p>
+
+              </div>
+
+            </div>
+
+          </section>
+
+        </section>
+
+
+        <!-- ====================================
+             CALENDAR
+             ==================================== -->
+
+        <section
+          class="view"
+          id="view-calendar"
+          data-view-panel="calendar"
+          hidden
+        >
+
+          <header class="view-header">
+
+            <div>
+              <span class="eyebrow">
+                Publishing
+              </span>
+
+              <h1>
+                Calendar
+              </h1>
+
+              <p class="view-intro">
+                See what is planned, approved,
+                scheduled, and already published.
+              </p>
+            </div>
+
+          </header>
+
+
+          <div
+            class="calendar-shell"
+            id="calendarShell"
+          >
+
+            <div class="empty-state">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                □
+              </span>
+
+              <h3>
+                Your calendar is empty.
+              </h3>
+
+              <p>
+                Schedule approved content and it
+                will appear here.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ====================================
+             ASSET VAULT
+             ==================================== -->
+
+        <section
+          class="view"
+          id="view-vault"
+          data-view-panel="vault"
+          hidden
+        >
+
+          <header class="view-header">
+
+            <div>
+              <span class="eyebrow">
+                Library
+              </span>
+
+              <h1>
+                Asset Vault
+              </h1>
+
+              <p class="view-intro">
+                Keep approved brand visuals together
+                so AI can work with the right assets.
+              </p>
+            </div>
+
+
+            <button
+              class="primary-button"
+              type="button"
+              id="uploadAssetButton"
+            >
+              + Add Asset
+            </button>
+
+          </header>
+
+
+          <div
+            class="filter-tabs"
+            role="tablist"
+            aria-label="Asset filters"
+          >
+
+            <button
+              class="filter-tab is-active"
+              type="button"
+              data-asset-filter="all"
+            >
+              All
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-asset-filter="logos"
+            >
+              Logos
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-asset-filter="photos"
+            >
+              Photos
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-asset-filter="generated"
+            >
+              Generated Artwork
+            </button>
+
+            <button
+              class="filter-tab"
+              type="button"
+              data-asset-filter="brand"
+            >
+              Brand Assets
+            </button>
+
+          </div>
+
+
+          <div
+            class="asset-grid"
+            id="assetGrid"
+          >
+
+            <div class="empty-state full-width">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ▣
+              </span>
+
+              <h3>
+                The vault is empty.
+              </h3>
+
+              <p>
+                Logos, photography, generated artwork,
+                and reusable brand assets will live here.
+              </p>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- ====================================
+             SETTINGS
+             ==================================== -->
+
+        <section
+          class="view"
+          id="view-settings"
+          data-view-panel="settings"
+          hidden
+        >
+
+          <header class="view-header">
+
+            <div>
+              <span class="eyebrow">
+                Configuration
+              </span>
+
+              <h1>
+                Settings
+              </h1>
+
+              <p class="view-intro">
+                Manage AI, publishing connections,
+                and studio preferences.
+              </p>
+            </div>
+
+          </header>
+
+
+          <div class="settings-grid">
+
+            <button
+              class="settings-card"
+              type="button"
+              data-settings-section="ai"
+            >
+              <span aria-hidden="true">✦</span>
+
+              <div>
+                <strong>AI</strong>
+                <small>
+                  Generation behavior and model settings.
+                </small>
+              </div>
+            </button>
+
+
+            <button
+              class="settings-card"
+              type="button"
+              data-settings-section="social"
+            >
+              <span aria-hidden="true">◎</span>
+
+              <div>
+                <strong>Social Accounts</strong>
+                <small>
+                  Connect publishing destinations.
+                </small>
+              </div>
+            </button>
+
+
+            <button
+              class="settings-card"
+              type="button"
+              data-settings-section="publishing"
+            >
+              <span aria-hidden="true">▷</span>
+
+              <div>
+                <strong>Publishing</strong>
+                <small>
+                  Approval and scheduling behavior.
+                </small>
+              </div>
+            </button>
+
+
+            <button
+              class="settings-card"
+              type="button"
+              data-settings-section="preferences"
+            >
+              <span aria-hidden="true">⚙</span>
+
+              <div>
+                <strong>App Preferences</strong>
+                <small>
+                  Studio behavior and display options.
+                </small>
+              </div>
+            </button>
+
+          </div>
+
+        </section>
+
+      </main>
+
+
+      <!-- ========================================
+           MOBILE BOTTOM NAV
+           ======================================== -->
+
+      <nav
+        class="bottom-nav"
+        aria-label="Mobile navigation"
+      >
+
+        <button
+          class="bottom-nav-button is-active"
+          type="button"
+          data-view="dashboard"
+        >
+          <span aria-hidden="true">◈</span>
+          <small>Home</small>
+        </button>
+
+
+        <button
+          class="bottom-nav-button"
+          type="button"
+          data-view="brands"
+        >
+          <span aria-hidden="true">◆</span>
+          <small>Brands</small>
+        </button>
+
+
+        <button
+          class="bottom-nav-button"
+          type="button"
+          data-view="studio"
+        >
+          <span aria-hidden="true">✦</span>
+          <small>Studio</small>
+        </button>
+
+
+        <button
+          class="bottom-nav-button"
+          type="button"
+          data-view="campaigns"
+        >
+          <span aria-hidden="true">◇</span>
+          <small>Campaigns</small>
+        </button>
+
+
+        <button
+          class="bottom-nav-button"
+          type="button"
+          data-view="calendar"
+        >
+          <span aria-hidden="true">□</span>
+          <small>Calendar</small>
+        </button>
+
+
+        <button
+          class="bottom-nav-button"
+          type="button"
+          data-view="vault"
+        >
+          <span aria-hidden="true">▣</span>
+          <small>Vault</small>
+        </button>
+
+      </nav>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================
+       BRAND PICKER
+       ======================================== -->
+
+  <dialog
+    class="app-dialog brand-picker-dialog"
+    id="brandPickerDialog"
+  >
+
+    <div class="dialog-header">
+
+      <div>
+        <span class="eyebrow">
+          Marketing Studio
+        </span>
+
+        <h2>
+          Choose a Brand
+        </h2>
+      </div>
+
+
+      <button
+        class="dialog-close"
+        id="closeBrandPickerButton"
+        type="button"
+        aria-label="Close brand picker"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div
+      class="brand-picker-list"
+      id="brandPickerList"
+    >
+
+      <div class="empty-state">
+
+        <p>
+          Brands will appear here once the
+          Brand Brain is connected.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    <button
+      class="secondary-button full-button"
+      id="brandPickerAddButton"
+      type="button"
+    >
+      + Add Brand
+    </button>
+
+  </dialog>
+
+
+  <!-- ========================================
+       QUICK CREATE DIALOG
+       ======================================== -->
+
+  <dialog
+    class="app-dialog create-dialog"
+    id="quickCreateDialog"
+  >
+
+    <div class="dialog-header">
+
+      <div>
+        <span class="eyebrow">
+          AI Content Studio
+        </span>
+
+        <h2 id="quickCreateDialogTitle">
+          Quick Create
+        </h2>
+      </div>
+
+
+      <button
+        class="dialog-close"
+        id="closeQuickCreateButton"
+        type="button"
+        aria-label="Close quick create"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form
+      class="create-form"
+      id="quickCreateForm"
+    >
+
+      <input
+        type="hidden"
+        id="createContentType"
+        name="contentType"
+        value="social-post"
+      />
+
+
+      <label class="field">
+
+        <span>
+          Working Brand
+        </span>
+
+        <select
+          id="createBrand"
+          name="brand"
+        >
+          <option value="">
+            No brands connected yet
+          </option>
+        </select>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          What are we marketing?
+        </span>
+
+        <textarea
+          id="createPrompt"
+          name="prompt"
+          rows="6"
+          placeholder="Tell the studio what is happening. For example: We just installed the Stag & Stone sign and I want to build anticipation around the progress."
+        ></textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Goal
+        </span>
+
+        <select
+          id="createGoal"
+          name="goal"
+        >
+          <option value="awareness">
+            Build Awareness
+          </option>
+
+          <option value="anticipation">
+            Build Anticipation
+          </option>
+
+          <option value="engagement">
+            Encourage Engagement
+          </option>
+
+          <option value="traffic">
+            Drive Website Traffic
+          </option>
+
+          <option value="leads">
+            Generate Leads
+          </option>
+
+          <option value="sales">
+            Promote a Product or Service
+          </option>
+        </select>
+
+      </label>
+
+
+      <div class="form-actions">
+
+        <button
+          class="secondary-button"
+          id="cancelQuickCreateButton"
+          type="button"
+        >
+          Cancel
+        </button>
+
+        <button
+          class="primary-button"
+          type="submit"
+        >
+          <span aria-hidden="true">✦</span>
+          Create with AI
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+
+  <!-- ========================================
+       STATUS / TOAST
+       ======================================== -->
+
+  <div
+    class="toast-region"
+    id="toastRegion"
+    aria-live="polite"
+    aria-atomic="true"
+  ></div>
+
+
+  <!-- ========================================
+       SCRIPTS
+       ======================================== -->
+
+  <script src="config.js?v=1"></script>
+  <script src="app.js?v=1"></script>
+
+</body>
+</html>
