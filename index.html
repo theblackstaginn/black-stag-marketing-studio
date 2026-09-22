@@ -1693,8 +1693,25 @@
        SCRIPTS
        ======================================== -->
 
-  <script src="config.js?v=1"></script>
-  <script src="app.js?v=1"></script>
+  <!--
+    Browser-safe configuration.
+    Contains the Supabase Project URL and Publishable Key.
+  -->
+  <script src="config.js?v=3"></script>
+
+  <!--
+    Official Supabase JavaScript browser client.
+
+    This must load AFTER config.js and BEFORE app.js.
+  -->
+  <script
+    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"
+  ></script>
+
+  <!--
+    Black Stag Marketing Studio application.
+  -->
+  <script src="app.js?v=3"></script>
 
 </body>
 </html>
