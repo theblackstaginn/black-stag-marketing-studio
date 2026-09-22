@@ -319,7 +319,7 @@ const APP_DATA = {
   content: [],
   calendar: [],
   assets: [],
-  assetFolders: [],
+  assetFolders: []
 };
 
 
