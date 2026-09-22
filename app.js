@@ -11819,13 +11819,33 @@ function setAssetFilter(
 
 
 /* =========================================================
-   ADD ASSET PLACEHOLDER
+   ASSET UPLOAD
    ========================================================= */
 
 function handleAddAsset() {
   const brand =
     getActiveBrand();
 
+  if (!brand) {
+    showToast(
+      "Choose a working brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+  openAssetUploadDialog();
+}
+
+
+/* =========================================================
+   ASSET UPLOAD DIALOG
+   ========================================================= */
+
+function openAssetUploadDialog() {
+  const brand =
+    getActiveBrand();
 
   if (!brand) {
     showToast(
@@ -11837,10 +11857,828 @@ function handleAddAsset() {
   }
 
 
-  showToast(
-    `Asset uploads for ${brand.shortName} are next on the build list.`,
-    "success"
+  let dialog =
+    $("#assetUploadDialog");
+
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
+      );
+
+    dialog.id =
+      "assetUploadDialog";
+
+    dialog.className =
+      "app-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+  }
+
+
+  dialog.innerHTML = `
+    <div
+      class="dialog-shell"
+      style="
+        width:min(620px, calc(100vw - 28px));
+        max-height:min(820px, calc(100vh - 28px));
+        overflow:auto;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:20px;
+          margin-bottom:22px;
+        "
+      >
+
+        <div>
+          <span class="eyebrow">
+            Asset Vault
+          </span>
+
+          <h2
+            style="
+              margin:5px 0 5px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-weight:400;
+            "
+          >
+            Add Asset
+          </h2>
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.78rem;
+              line-height:1.55;
+            "
+          >
+            Add a reusable asset to
+            ${escapeHtml(
+              brand.name
+            )}.
+          </p>
+        </div>
+
+
+        <button
+          type="button"
+          class="icon-button"
+          data-close-asset-upload
+          aria-label="Close asset upload"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="assetUploadForm"
+        autocomplete="off"
+      >
+
+        <div class="form-grid">
+
+
+          <label
+            style="
+              grid-column:1 / -1;
+            "
+          >
+            <span>
+              File
+            </span>
+
+            <input
+              id="assetUploadFile"
+              name="assetFile"
+              type="file"
+              required
+              accept="
+                image/*,
+                application/pdf,
+                .svg
+              "
+            />
+          </label>
+
+
+          <label>
+            <span>
+              Asset Name
+            </span>
+
+            <input
+              id="assetUploadName"
+              name="assetName"
+              type="text"
+              maxlength="160"
+              placeholder="Primary Logo"
+              required
+            />
+          </label>
+
+
+          <label>
+            <span>
+              Type
+            </span>
+
+            <select
+              id="assetUploadCategory"
+              name="assetCategory"
+              required
+            >
+              <option value="logo">
+                Logo
+              </option>
+
+              <option value="photo">
+                Photo
+              </option>
+
+              <option value="generated_artwork">
+                Generated Artwork
+              </option>
+
+              <option value="brand_asset">
+                Brand Asset
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+            </select>
+          </label>
+
+
+          <label
+            style="
+              grid-column:1 / -1;
+            "
+          >
+            <span>
+              Description
+            </span>
+
+            <textarea
+              id="assetUploadDescription"
+              name="assetDescription"
+              rows="3"
+              placeholder="What this asset is and when it should be used."
+            ></textarea>
+          </label>
+
+
+          <label
+            style="
+              grid-column:1 / -1;
+            "
+          >
+            <span>
+              Alt Text
+            </span>
+
+            <input
+              id="assetUploadAltText"
+              name="assetAltText"
+              type="text"
+              maxlength="300"
+              placeholder="Describe the image for accessibility."
+            />
+          </label>
+
+
+          <label
+            style="
+              grid-column:1 / -1;
+            "
+          >
+            <span>
+              Tags
+            </span>
+
+            <input
+              id="assetUploadTags"
+              name="assetTags"
+              type="text"
+              placeholder="logo, primary, dark background"
+            />
+
+            <small
+              style="
+                display:block;
+                margin-top:5px;
+                color:var(--muted);
+                font-size:.68rem;
+              "
+            >
+              Separate tags with commas.
+            </small>
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:9px;
+              cursor:pointer;
+            "
+          >
+            <input
+              id="assetApprovedForAi"
+              name="approvedForAi"
+              type="checkbox"
+            />
+
+            <span>
+              Approved for AI
+            </span>
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:9px;
+              cursor:pointer;
+            "
+          >
+            <input
+              id="assetApprovedForMarketing"
+              name="approvedForMarketing"
+              type="checkbox"
+            />
+
+            <span>
+              Approved for Marketing
+            </span>
+          </label>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:24px;
+          "
+        >
+
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-asset-upload
+          >
+            Cancel
+          </button>
+
+          <button
+            id="assetUploadSubmitButton"
+            type="submit"
+            class="primary-button"
+          >
+            Upload Asset
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  dialog
+    .querySelectorAll(
+      "[data-close-asset-upload]"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            safeDialogClose(
+              dialog
+            );
+          }
+        );
+      }
+    );
+
+
+  dialog
+    .querySelector(
+      "#assetUploadFile"
+    )
+    ?.addEventListener(
+      "change",
+      event => {
+        const file =
+          event.target.files?.[0];
+
+        const nameField =
+          dialog.querySelector(
+            "#assetUploadName"
+          );
+
+        if (
+          file &&
+          nameField &&
+          !nameField.value.trim()
+        ) {
+          nameField.value =
+            file.name
+              .replace(
+                /\.[^.]+$/,
+                ""
+              )
+              .replace(
+                /[-_]+/g,
+                " "
+              )
+              .replace(
+                /\s+/g,
+                " "
+              )
+              .trim();
+        }
+      }
+    );
+
+
+  dialog
+    .querySelector(
+      "#assetUploadForm"
+    )
+    ?.addEventListener(
+      "submit",
+      handleAssetUploadSubmit
+    );
+
+
+  dialog.addEventListener(
+    "click",
+    event => {
+      if (
+        event.target ===
+        dialog
+      ) {
+        safeDialogClose(
+          dialog
+        );
+      }
+    },
+    {
+      once: true
+    }
   );
+
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+/* =========================================================
+   ASSET FILE HELPERS
+   ========================================================= */
+
+function sanitizeAssetFileName(
+  fileName
+) {
+  const original =
+    String(
+      fileName ||
+      "asset"
+    );
+
+
+  const extensionMatch =
+    original.match(
+      /\.([a-zA-Z0-9]+)$/
+    );
+
+
+  const extension =
+    extensionMatch
+      ? `.${extensionMatch[1]
+          .toLowerCase()}`
+      : "";
+
+
+  const base =
+    original
+      .replace(
+        /\.[^.]+$/,
+        ""
+      )
+      .toLowerCase()
+      .trim()
+      .replace(
+        /[^a-z0-9]+/g,
+        "-"
+      )
+      .replace(
+        /^-+|-+$/g,
+        ""
+      ) ||
+    "asset";
+
+
+  return `${base}${extension}`;
+}
+
+
+function createAssetStoragePath(
+  file,
+  brand
+) {
+  const userId =
+    APP_STATE.user?.id;
+
+
+  if (!userId) {
+    throw new Error(
+      "Your authenticated user could not be identified."
+    );
+  }
+
+
+  const safeFileName =
+    sanitizeAssetFileName(
+      file.name
+    );
+
+
+  const brandSlug =
+    makeSlug(
+      brand.slug ||
+      brand.shortName ||
+      brand.name ||
+      brand.id
+    ) ||
+    "brand";
+
+
+  const uniquePart =
+    (
+      window.crypto &&
+      typeof window.crypto.randomUUID ===
+        "function"
+    )
+      ? window.crypto
+          .randomUUID()
+      : `${Date.now()}-${Math.random()
+          .toString(36)
+          .slice(2, 10)}`;
+
+
+  return [
+    userId,
+    brandSlug,
+    uniquePart,
+    safeFileName
+  ].join("/");
+}
+
+
+/* =========================================================
+   ASSET UPLOAD SUBMIT
+   ========================================================= */
+
+async function handleAssetUploadSubmit(
+  event
+) {
+  event.preventDefault();
+
+
+  const dialog =
+    $("#assetUploadDialog");
+
+
+  const form =
+    event.currentTarget;
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (
+    !dialog ||
+    !form ||
+    !brand
+  ) {
+    showToast(
+      "Asset upload could not start.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const file =
+    $("#assetUploadFile", dialog)
+      ?.files?.[0];
+
+
+  const name =
+    $("#assetUploadName", dialog)
+      ?.value
+      ?.trim();
+
+
+  const category =
+    $("#assetUploadCategory", dialog)
+      ?.value ||
+    "other";
+
+
+  const description =
+    nullableText(
+      $("#assetUploadDescription", dialog)
+        ?.value
+    );
+
+
+  const altText =
+    nullableText(
+      $("#assetUploadAltText", dialog)
+        ?.value
+    );
+
+
+  const tags =
+    textToArray(
+      $("#assetUploadTags", dialog)
+        ?.value
+    );
+
+
+  const approvedForAi =
+    Boolean(
+      $("#assetApprovedForAi", dialog)
+        ?.checked
+    );
+
+
+  const approvedForMarketing =
+    Boolean(
+      $("#assetApprovedForMarketing", dialog)
+        ?.checked
+    );
+
+
+  if (!file) {
+    showToast(
+      "Choose a file to upload.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (!name) {
+    showToast(
+      "Give the asset a name.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (!APP_STATE.user?.id) {
+    showToast(
+      "Your login session is unavailable.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const submitButton =
+    $("#assetUploadSubmitButton", dialog);
+
+
+  if (submitButton) {
+    submitButton.disabled =
+      true;
+
+    submitButton.textContent =
+      "Uploading…";
+  }
+
+
+  let storagePath =
+    null;
+
+
+  const storageBucket =
+    "brand-assets";
+
+
+  try {
+
+    storagePath =
+      createAssetStoragePath(
+        file,
+        brand
+      );
+
+
+    const {
+      error: uploadError
+    } =
+      await supabaseClient
+        .storage
+        .from(
+          storageBucket
+        )
+        .upload(
+          storagePath,
+          file,
+          {
+            cacheControl:
+              "3600",
+
+            upsert:
+              false,
+
+            contentType:
+              file.type ||
+              undefined
+          }
+        );
+
+
+    if (uploadError) {
+      throw uploadError;
+    }
+
+
+    const payload = {
+      user_id:
+        APP_STATE.user.id,
+
+      brand_id:
+        brand.id,
+
+      name,
+
+      category,
+
+      description,
+
+      storage_bucket:
+        storageBucket,
+
+      storage_path:
+        storagePath,
+
+      external_url:
+        null,
+
+      mime_type:
+        file.type ||
+        null,
+
+      alt_text:
+        altText,
+
+      tags,
+
+      approved_for_ai:
+        approvedForAi,
+
+      approved_for_marketing:
+        approvedForMarketing,
+
+      active:
+        true
+    };
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "assets"
+        )
+        .insert(
+          payload
+        )
+        .select(
+          "*"
+        )
+        .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const normalized =
+      normalizeAssetRow(
+        data
+      );
+
+
+    APP_DATA.assets.unshift(
+      normalized
+    );
+
+
+    safeDialogClose(
+      dialog
+    );
+
+
+    renderAssets();
+
+
+    showToast(
+      `${name} added to the Asset Vault.`,
+      "success"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Asset upload failed:",
+      error
+    );
+
+
+    /*
+      If the Storage upload worked but the
+      database insert failed, remove the
+      orphaned Storage object.
+    */
+
+    if (storagePath) {
+      try {
+        await supabaseClient
+          .storage
+          .from(
+            storageBucket
+          )
+          .remove([
+            storagePath
+          ]);
+      } catch (
+        cleanupError
+      ) {
+        console.warn(
+          "Unable to clean up failed asset upload:",
+          cleanupError
+        );
+      }
+    }
+
+
+    showToast(
+      error?.message ||
+      "The asset could not be uploaded.",
+      "error",
+      6000
+    );
+
+  } finally {
+
+    if (submitButton) {
+      submitButton.disabled =
+        false;
+
+      submitButton.textContent =
+        "Upload Asset";
+    }
+  }
 }
 
 
