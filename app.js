@@ -1554,12 +1554,16 @@ async function loadAppData() {
 
 
     APP_DATA.assets =
-      (
-        assetsResult.data ||
-        []
-      ).map(
-        normalizeAsset
-      );
+  (
+    assetsResult.data ||
+    []
+  ).map(
+    normalizeAsset
+  );
+
+await hydrateAssetSignedUrls(
+  APP_DATA.assets
+);
 
 
     ensureValidActiveBrand();
@@ -11477,10 +11481,91 @@ function assetMatchesFilter(
 /* =========================================================
    ASSET CARD
    ========================================================= */
+async function hydrateAssetSignedUrls(
+  assets
+) {
+  if (
+    !supabaseClient ||
+    !Array.isArray(assets)
+  ) {
+    return assets || [];
+  }
+
+  await Promise.all(
+    assets.map(
+      async asset => {
+        if (!asset) {
+          return;
+        }
+
+        /*
+         * Assets that already have an
+         * external URL don't need a
+         * Supabase signed URL.
+         */
+        if (asset.externalUrl) {
+          asset.signedUrl =
+            asset.externalUrl;
+
+          return;
+        }
+
+        if (
+          !asset.storageBucket ||
+          !asset.storagePath
+        ) {
+          asset.signedUrl = "";
+          return;
+        }
+
+        try {
+          const {
+            data,
+            error
+          } =
+            await supabaseClient
+              .storage
+              .from(
+                asset.storageBucket
+              )
+              .createSignedUrl(
+                asset.storagePath,
+                60 * 60
+              );
+
+          if (error) {
+            throw error;
+          }
+
+          asset.signedUrl =
+            data?.signedUrl || "";
+        } catch (error) {
+          console.warn(
+            "Could not create signed asset URL:",
+            asset.name,
+            error
+          );
+
+          asset.signedUrl = "";
+        }
+      }
+    )
+  );
+
+  return assets;
+}
+
 function getAssetDisplayUrl(asset) {
   if (!asset) {
     return "";
   }
+
+  return (
+    asset.signedUrl ||
+    asset.externalUrl ||
+    ""
+  );
+}
 
   if (asset.externalUrl) {
     return asset.externalUrl;
@@ -13046,7 +13131,9 @@ async function handleAssetUploadSubmit(
   normalizeAsset(
     data
   );
-
+await hydrateAssetSignedUrls(
+  [normalized]
+);
 
     APP_DATA.assets.unshift(
       normalized
