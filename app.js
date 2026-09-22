@@ -359,7 +359,10 @@ const APP_STATE = {
     "all",
 
   assetFilter:
-    "all",
+  "all",
+
+activeAssetFolderId:
+  null,
 
   createType:
     "social-post",
@@ -12473,7 +12476,28 @@ function renderAssetFolderCard(
   `;
 }
 
+function openAssetFolderById(folderId) {
+  const folder =
+    APP_DATA.assetFolders.find(
+      item =>
+        String(item.id) ===
+        String(folderId)
+    );
 
+  if (!folder) {
+    showToast(
+      "Asset folder could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+  APP_STATE.activeAssetFolderId =
+    folder.id;
+
+  renderApp();
+}
 function openCreateAssetFolderDialog() {
   const brand =
     getActiveBrand();
@@ -16583,7 +16607,32 @@ function handleGlobalClick(
   /*
     Asset empty-state button
   */
+const openAssetFolder =
+  event.target.closest(
+    "[data-open-asset-folder]"
+  );
 
+if (openAssetFolder) {
+  const folderId =
+    openAssetFolder.dataset
+      .openAssetFolder;
+
+  openAssetFolderById(
+    folderId
+  );
+
+  return;
+}
+
+const createAssetFolder =
+  event.target.closest(
+    "[data-create-asset-folder]"
+  );
+
+if (createAssetFolder) {
+  openCreateAssetFolderDialog();
+  return;
+}
   const addAsset =
     event.target.closest(
       "[data-add-asset]"
