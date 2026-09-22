@@ -1,24 +1,26 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    app.js
-   v2
+   v3
 
-   Application shell:
+   Supabase-connected application shell:
+   - Authentication
+   - Persistent authenticated session
+   - Supabase Brand Brain loading
+   - Supabase content persistence
+   - Campaign loading
+   - Calendar loading
+   - Asset metadata loading
    - Navigation
    - Brand switching
-   - Starter brand architecture
    - Quick Create
    - Manual ChatGPT AI workflow
    - AI brief generation
    - Copy-to-clipboard
    - Paste-result workflow
-   - Draft creation
    - Filters
    - Dialogs
    - Toasts
-   - Local app state
-
-   Supabase is not connected yet.
 
    V1 AI MODE:
    ChatGPT Manual
@@ -71,75 +73,37 @@ function safeDialogClose(dialog) {
 }
 
 
-function createId(prefix = "item") {
-  if (
-    window.crypto &&
-    typeof window.crypto.randomUUID === "function"
-  ) {
-    return `${prefix}-${window.crypto.randomUUID()}`;
-  }
-
-  return `${prefix}-${Date.now()}-${Math.random()
-    .toString(16)
-    .slice(2)}`;
-}
-
-
 /* =========================================================
    CONFIG
    ========================================================= */
 
 const CONFIG =
-  window.BLACK_STAG_CONFIG || {
-    app: {
-      name:
-        "Black Stag Marketing Studio",
+  window.BLACK_STAG_CONFIG || {};
 
-      version:
-        "0.2.0",
 
-      environment:
-        "development"
-    },
+const SUPABASE_CONFIG =
+  CONFIG.supabase || {};
 
-    ai: {
-      mode:
-        "manual-chatgpt",
 
-      providers: {
-        manualChatGPT: {
-          enabled:
-            true,
+const SUPABASE_URL =
+  SUPABASE_CONFIG.url || "";
 
-          label:
-            "ChatGPT — Manual"
-        },
 
-        openAI: {
-          enabled:
-            false,
-
-          label:
-            "OpenAI API — Automatic",
-
-          endpoint:
-            ""
-        }
-      }
-    },
-
-    publishing: {
-      enabled:
-        false,
-
-      requireApproval:
-        true
-    }
-  };
+const SUPABASE_KEY =
+  SUPABASE_CONFIG.publishableKey ||
+  SUPABASE_CONFIG.anonKey ||
+  "";
 
 
 /* =========================================================
-   STORAGE
+   LOCAL PREFERENCES
+
+   Supabase now stores business/content data.
+
+   localStorage is only used for harmless UI preferences:
+   - selected brand
+   - selected view
+
    ========================================================= */
 
 const STORAGE_KEYS = {
@@ -147,10 +111,7 @@ const STORAGE_KEYS = {
     "blackStagMarketingStudio.activeBrand",
 
   lastView:
-    "blackStagMarketingStudio.lastView",
-
-  content:
-    "blackStagMarketingStudio.content"
+    "blackStagMarketingStudio.lastView"
 };
 
 
@@ -192,316 +153,95 @@ function writeStorage(
 }
 
 
-function readJsonStorage(
-  key,
-  fallback
-) {
-  try {
-    const raw =
-      window.localStorage.getItem(key);
-
-    if (!raw) {
-      return fallback;
-    }
-
-    return JSON.parse(raw);
-  } catch (error) {
-    console.warn(
-      "Unable to read JSON storage:",
-      error
-    );
-
-    return fallback;
-  }
-}
-
-
-function writeJsonStorage(
-  key,
-  value
-) {
-  try {
-    window.localStorage.setItem(
-      key,
-      JSON.stringify(value)
-    );
-  } catch (error) {
-    console.warn(
-      "Unable to write JSON storage:",
-      error
-    );
-  }
-}
-
-
 /* =========================================================
-   STARTER BRAND DATA
-
-   Temporary seed data.
-
-   Supabase will eventually become the source of truth.
-
+   SUPABASE CLIENT
    ========================================================= */
 
-const STARTER_BRANDS = [
-
-  {
-    id:
-      "stag-and-stone",
-
-    name:
-      "Stag & Stone Coffee and Bakehouse",
-
-    shortName:
-      "Stag & Stone",
-
-    mark:
-      "S&S",
-
-    website:
-      "https://stagandstonecoffee.com",
-
-    businessType:
-      "Coffeehouse & Bakehouse",
-
-    stage:
-      "pre-opening",
-
-    stageLabel:
-      "Pre-opening",
-
-    primaryGoal:
-      "Build awareness, familiarity, curiosity, and anticipation before opening.",
-
-    campaignPhase:
-      "early-ramp",
-
-    openingDate:
-      null,
-
-    openingDateConfirmed:
-      false,
-
-    identity: {
-
-      tagline:
-        "Crafted for the morning ritual.",
-
-      personality: [
-        "Appalachian",
-        "handcrafted",
-        "warm",
-        "old-world",
-        "slightly mysterious",
-        "atmospheric"
-      ]
-
-    },
-
-    marketingStrategy: [
-      "Build familiarity before asking for a sale.",
-      "Make local followers feel like they are watching the business come into existence.",
-      "Use real progress as marketing material.",
-      "Favor storytelling, previews, behind-the-scenes content, food and drink reveals, community building, and milestones.",
-      "Progress naturally from mystery to identity to story to visible progress to product reveals to community to opening details to countdown."
-    ],
-
-    aiRules: [
-      "Never imply the physical cafe is currently open.",
-      "Never invent an opening date.",
-      "Never invent operating hours.",
-      "Never invent prices.",
-      "Never invent menu items.",
-      "Never advertise an unconfirmed item as available.",
-      "Use coming-soon language where appropriate.",
-      "Favor storytelling, previews, progress, and behind-the-scenes content.",
-      "Mystical and folkloric language is appropriate.",
-      "Avoid Halloween clichés and costume-shop witchiness.",
-      "Do not invent facts that were not supplied by the user or Brand Brain."
-    ]
-
-  },
+let supabaseClient =
+  null;
 
 
-  {
-    id:
-      "black-stag-web-design",
-
-    name:
-      "Black Stag Web Design",
-
-    shortName:
-      "Black Stag Web Design",
-
-    mark:
-      "BS",
-
-    website:
-      "https://blackstagweb.com",
-
-    businessType:
-      "Web Design",
-
-    stage:
-      "operating",
-
-    stageLabel:
-      "Operating",
-
-    primaryGoal:
-      "Generate qualified local leads and demonstrate the value of owning a custom-built website.",
-
-    campaignPhase:
-      "ongoing",
-
-    openingDate:
-      null,
-
-    openingDateConfirmed:
-      false,
-
-    identity: {
-
-      tagline:
-        "",
-
-      personality: [
-        "direct",
-        "craft-focused",
-        "independent",
-        "local",
-        "practical",
-        "custom-built"
-      ]
-
-    },
-
-    marketingStrategy: [
-      "Demonstrate practical value rather than relying on agency jargon.",
-      "Show real work and real business problems.",
-      "Explain the benefits of owning a custom-built website.",
-      "Speak clearly to small businesses and local service businesses."
-    ],
-
-    aiRules: [
-      "Do not imply clients rent their websites.",
-      "Emphasize website ownership when relevant.",
-      "Do not invent project results.",
-      "Do not invent client testimonials.",
-      "Do not misrepresent concept work as paid client work.",
-      "Do not invent pricing.",
-      "Avoid generic agency jargon.",
-      "Do not promise services the business does not currently offer.",
-      "Do not invent facts that were not supplied by the user or Brand Brain."
-    ]
-
-  },
-
-
-  {
-    id:
-      "lace-and-leather",
-
-    name:
-      "Lace & Leather",
-
-    shortName:
-      "Lace & Leather",
-
-    mark:
-      "L&L",
-
-    website:
-      "https://laceleatherarcane.com",
-
-    businessType:
-      "Digital Art & Fantasy Assets",
-
-    stage:
-      "operating",
-
-    stageLabel:
-      "Operating",
-
-    primaryGoal:
-      "Grow awareness and sales of digital creative assets while supporting fantasy map commissions.",
-
-    campaignPhase:
-      "ongoing",
-
-    openingDate:
-      null,
-
-    openingDateConfirmed:
-      false,
-
-    identity: {
-
-      tagline:
-        "",
-
-      personality: [
-        "arcane",
-        "textural",
-        "artistic",
-        "aged",
-        "elegant",
-        "fantasy-focused"
-      ]
-
-    },
-
-    marketingStrategy: [
-      "Show the tactile and believable qualities of digital textures.",
-      "Demonstrate practical creative uses.",
-      "Separate digital product marketing from custom commission marketing.",
-      "Favor artistic storytelling over generic digital-product advertising."
-    ],
-
-    aiRules: [
-      "Do not invent products.",
-      "Do not invent product prices.",
-      "Do not invent commission availability.",
-      "Do not describe previews as reusable full-resolution assets.",
-      "Preserve the distinction between digital products and custom commissions.",
-      "Avoid generic fake-grunge language.",
-      "Favor believable material texture and archival fantasy aesthetics.",
-      "Do not invent facts that were not supplied by the user or Brand Brain."
-    ]
-
+function createSupabaseClient() {
+  if (
+    !window.supabase ||
+    typeof window.supabase.createClient !==
+      "function"
+  ) {
+    throw new Error(
+      "The Supabase browser library did not load."
+    );
   }
 
-];
+
+  if (
+    !SUPABASE_URL ||
+    SUPABASE_URL.includes(
+      "PASTE_YOUR_PROJECT_URL_HERE"
+    )
+  ) {
+    throw new Error(
+      "The Supabase Project URL is missing from config.js."
+    );
+  }
+
+
+  if (
+    !SUPABASE_KEY ||
+    SUPABASE_KEY.includes(
+      "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
+    )
+  ) {
+    throw new Error(
+      "The Supabase Publishable Key is missing from config.js."
+    );
+  }
+
+
+  supabaseClient =
+    window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY,
+      {
+        auth: {
+          persistSession:
+            true,
+
+          autoRefreshToken:
+            true,
+
+          detectSessionInUrl:
+            true
+        }
+      }
+    );
+
+
+  return supabaseClient;
+}
 
 
 /* =========================================================
    APP DATA
 
-   We deliberately do not seed fake campaigns,
-   analytics, posts, or assets.
+   Supabase is now the source of truth.
 
    ========================================================= */
 
 const APP_DATA = {
-
   brands:
-    [...STARTER_BRANDS],
+    [],
 
   campaigns:
     [],
 
   content:
-    readJsonStorage(
-      STORAGE_KEYS.content,
-      []
-    ),
+    [],
 
   calendar:
     [],
 
   assets:
     []
-
 };
 
 
@@ -510,7 +250,6 @@ const APP_DATA = {
    ========================================================= */
 
 const APP_STATE = {
-
   activeView:
     readStorage(
       STORAGE_KEYS.lastView,
@@ -520,8 +259,17 @@ const APP_STATE = {
   activeBrandId:
     readStorage(
       STORAGE_KEYS.activeBrand,
-      STARTER_BRANDS[0]?.id ?? null
+      null
     ),
+
+  user:
+    null,
+
+  session:
+    null,
+
+  loading:
+    true,
 
   campaignFilter:
     "all",
@@ -551,7 +299,6 @@ const APP_STATE = {
     prompt:
       null
   }
-
 };
 
 
@@ -571,7 +318,6 @@ const VALID_VIEWS = new Set([
 
 
 const VIEW_TITLES = {
-
   dashboard:
     "Dashboard",
 
@@ -592,114 +338,911 @@ const VIEW_TITLES = {
 
   settings:
     "Settings"
-
 };
 
 
 /* =========================================================
-   CONTENT TYPE DEFINITIONS
+   CONTENT TYPES
    ========================================================= */
 
 const CREATE_TYPES = {
-
   "social-post": {
-
     label:
       "Social Post",
+
+    dbType:
+      "social_post",
 
     instruction:
       "Create a polished social media post.",
 
     defaultGoal:
       "awareness"
-
   },
 
 
   story: {
-
     label:
       "Story",
+
+    dbType:
+      "story",
 
     instruction:
       "Create concise social story content suitable for a short sequence or single story.",
 
     defaultGoal:
       "awareness"
-
   },
 
 
   reel: {
-
     label:
       "Reel / Video Script",
+
+    dbType:
+      "reel_script",
 
     instruction:
       "Create a short-form video or reel concept and script.",
 
     defaultGoal:
       "engagement"
-
   },
 
 
   graphic: {
-
     label:
       "Promotional Graphic",
+
+    dbType:
+      "promotional_graphic",
 
     instruction:
       "Develop the concept, visual direction, headline, supporting copy, and call to action for a promotional graphic.",
 
     defaultGoal:
       "awareness"
-
   },
 
 
   email: {
-
     label:
       "Email",
+
+    dbType:
+      "email",
 
     instruction:
       "Create a marketing email with a subject line, preview text, body copy, and appropriate call to action.",
 
     defaultGoal:
       "awareness"
-
   },
 
 
   campaign: {
-
     label:
       "Campaign",
+
+    dbType:
+      "campaign",
 
     instruction:
       "Develop a coordinated marketing campaign concept with objective, message, content ideas, recommended sequence, and calls to action.",
 
     defaultGoal:
       "awareness"
-
   },
 
 
   "website-copy": {
-
     label:
       "Website Copy",
+
+    dbType:
+      "website_copy",
 
     instruction:
       "Create polished website copy appropriate for the requested page, section, or purpose.",
 
     defaultGoal:
       "traffic"
+  }
+};
 
+
+const DB_TYPE_TO_APP_TYPE = {
+  social_post:
+    "social-post",
+
+  story:
+    "story",
+
+  reel_script:
+    "reel",
+
+  email:
+    "email",
+
+  website_copy:
+    "website-copy",
+
+  promotional_graphic:
+    "graphic",
+
+  campaign:
+    "campaign",
+
+  other:
+    "social-post"
+};
+
+
+/* =========================================================
+   AUTH UI
+   ========================================================= */
+
+function ensureAuthDialog() {
+  let dialog =
+    $("#authDialog");
+
+
+  if (dialog) {
+    return dialog;
   }
 
-};
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "authDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div class="dialog-header">
+
+      <div>
+        <span class="eyebrow">
+          Black Stag
+        </span>
+
+        <h2>
+          Marketing Studio
+        </h2>
+      </div>
+
+    </div>
+
+    <form
+      class="create-form"
+      id="authForm"
+    >
+
+      <p
+        style="
+          margin:0;
+          color:var(--muted);
+          font-size:.82rem;
+          line-height:1.65;
+        "
+      >
+        Sign in to your private marketing workspace.
+      </p>
+
+      <label class="field">
+
+        <span>
+          Email
+        </span>
+
+        <input
+          id="authEmail"
+          type="email"
+          autocomplete="email"
+          required
+        />
+
+      </label>
+
+      <label class="field">
+
+        <span>
+          Password
+        </span>
+
+        <input
+          id="authPassword"
+          type="password"
+          autocomplete="current-password"
+          required
+        />
+
+      </label>
+
+      <p
+        id="authError"
+        style="
+          display:none;
+          margin:0;
+          color:#d8a09a;
+          font-size:.78rem;
+          line-height:1.5;
+        "
+      ></p>
+
+      <button
+        class="primary-button full-button"
+        id="authSubmitButton"
+        type="submit"
+      >
+        Sign In
+      </button>
+
+    </form>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#authForm")
+    ?.addEventListener(
+      "submit",
+      handleSignIn
+    );
+
+
+  dialog.addEventListener(
+    "cancel",
+    event => {
+      if (!APP_STATE.session) {
+        event.preventDefault();
+      }
+    }
+  );
+
+
+  return dialog;
+}
+
+
+function showAuthDialog() {
+  const dialog =
+    ensureAuthDialog();
+
+
+  const error =
+    $("#authError");
+
+
+  if (error) {
+    error.textContent =
+      "";
+
+    error.style.display =
+      "none";
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      $("#authEmail")?.focus();
+    },
+    100
+  );
+}
+
+
+async function handleSignIn(
+  event
+) {
+  event.preventDefault();
+
+
+  if (!supabaseClient) {
+    return;
+  }
+
+
+  const email =
+    $("#authEmail")
+      ?.value
+      ?.trim();
+
+
+  const password =
+    $("#authPassword")
+      ?.value;
+
+
+  const submitButton =
+    $("#authSubmitButton");
+
+
+  const errorElement =
+    $("#authError");
+
+
+  if (
+    !email ||
+    !password
+  ) {
+    return;
+  }
+
+
+  if (submitButton) {
+    submitButton.disabled =
+      true;
+
+    submitButton.textContent =
+      "Signing In…";
+  }
+
+
+  if (errorElement) {
+    errorElement.style.display =
+      "none";
+  }
+
+
+  try {
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth
+        .signInWithPassword({
+          email,
+          password
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    APP_STATE.session =
+      data.session || null;
+
+
+    APP_STATE.user =
+      data.user || null;
+
+
+    safeDialogClose(
+      $("#authDialog")
+    );
+
+
+    await loadAppData();
+
+
+    renderApp();
+
+
+    showToast(
+      "Marketing Studio connected.",
+      "success"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Sign-in failed:",
+      error
+    );
+
+
+    if (errorElement) {
+      errorElement.textContent =
+        error?.message ||
+        "Unable to sign in.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+  } finally {
+
+    if (submitButton) {
+      submitButton.disabled =
+        false;
+
+      submitButton.textContent =
+        "Sign In";
+    }
+
+  }
+}
+
+
+/* =========================================================
+   DATABASE NORMALIZATION
+   ========================================================= */
+
+function normalizeBrand(
+  row
+) {
+  const voice =
+    Array.isArray(
+      row.brand_voice
+    )
+      ? row.brand_voice[0]
+      : row.brand_voice;
+
+
+  const rules =
+    Array.isArray(
+      row.brand_rules
+    )
+      ? row.brand_rules
+      : [];
+
+
+  return {
+    id:
+      row.id,
+
+    slug:
+      row.slug,
+
+    name:
+      row.official_name,
+
+    shortName:
+      row.short_name ||
+      row.official_name,
+
+    mark:
+      row.mark ||
+      "◆",
+
+    website:
+      row.domain ||
+      "",
+
+    businessType:
+      row.business_type ||
+      "",
+
+    stage:
+      row.business_stage ||
+      "",
+
+    stageLabel:
+      row.stage_label ||
+      row.business_stage ||
+      "Brand",
+
+    primaryGoal:
+      row.primary_marketing_goal ||
+      "",
+
+    campaignPhase:
+      row.campaign_phase ||
+      "",
+
+    openingDate:
+      row.opening_date ||
+      null,
+
+    openingDateConfirmed:
+      Boolean(
+        row.opening_date_confirmed
+      ),
+
+    identity: {
+      tagline:
+        row.tagline ||
+        "",
+
+      personality:
+        Array.isArray(
+          voice?.adjectives
+        )
+          ? voice.adjectives
+          : []
+    },
+
+    voice: {
+      emotionalAtmosphere:
+        voice?.emotional_atmosphere ||
+        "",
+
+      writingNotes:
+        voice?.writing_notes ||
+        "",
+
+      phrasesToUse:
+        Array.isArray(
+          voice?.phrases_to_use
+        )
+          ? voice.phrases_to_use
+          : [],
+
+      phrasesToAvoid:
+        Array.isArray(
+          voice?.phrases_to_avoid
+        )
+          ? voice.phrases_to_avoid
+          : [],
+
+      clichesToAvoid:
+        Array.isArray(
+          voice?.cliches_to_avoid
+        )
+          ? voice.cliches_to_avoid
+          : []
+    },
+
+    marketingStrategy:
+      [],
+
+    aiRules:
+      rules
+        .sort(
+          (a, b) =>
+            Number(
+              a.priority || 100
+            ) -
+            Number(
+              b.priority || 100
+            )
+        )
+        .map(
+          rule =>
+            rule.rule_text
+        )
+        .filter(Boolean),
+
+    facts:
+      Array.isArray(
+        row.brand_facts
+      )
+        ? row.brand_facts
+        : [],
+
+    milestones:
+      Array.isArray(
+        row.milestones
+      )
+        ? row.milestones
+        : []
+  };
+}
+
+
+function normalizeCampaign(
+  row
+) {
+  return {
+    id:
+      row.id,
+
+    brandId:
+      row.brand_id,
+
+    name:
+      row.name,
+
+    status:
+      row.status,
+
+    objective:
+      row.objective,
+
+    createdAt:
+      row.created_at,
+
+    updatedAt:
+      row.updated_at
+  };
+}
+
+
+function normalizeContent(
+  row
+) {
+  return {
+    id:
+      row.id,
+
+    brandId:
+      row.brand_id,
+
+    campaignId:
+      row.campaign_id,
+
+    type:
+      DB_TYPE_TO_APP_TYPE[
+        row.content_type
+      ] ||
+      "social-post",
+
+    status:
+      row.status,
+
+    title:
+      row.title,
+
+    body:
+      row.body,
+
+    goal:
+      row.goal,
+
+    originalRequest:
+      row.original_request,
+
+    aiMode:
+      row.ai_mode,
+
+    aiBrief:
+      row.ai_brief,
+
+    publishAt:
+      row.scheduled_for,
+
+    publishedAt:
+      row.published_at,
+
+    createdAt:
+      row.created_at,
+
+    updatedAt:
+      row.updated_at
+  };
+}
+
+
+function normalizeCalendarItem(
+  row
+) {
+  return {
+    id:
+      row.id,
+
+    brandId:
+      row.brand_id,
+
+    title:
+      row.title,
+
+    itemType:
+      row.item_type,
+
+    startAt:
+      row.start_at,
+
+    endAt:
+      row.end_at,
+
+    publishAt:
+      row.start_at,
+
+    createdAt:
+      row.created_at
+  };
+}
+
+
+function normalizeAsset(
+  row
+) {
+  return {
+    id:
+      row.id,
+
+    brandId:
+      row.brand_id,
+
+    name:
+      row.name,
+
+    category:
+      row.category,
+
+    storagePath:
+      row.storage_path,
+
+    createdAt:
+      row.created_at
+  };
+}
+
+
+/* =========================================================
+   DATABASE LOAD
+   ========================================================= */
+
+async function loadAppData() {
+  if (
+    !supabaseClient ||
+    !APP_STATE.user
+  ) {
+    return;
+  }
+
+
+  APP_STATE.loading =
+    true;
+
+
+  try {
+
+    const [
+      brandsResult,
+      campaignsResult,
+      contentResult,
+      calendarResult,
+      assetsResult
+    ] =
+      await Promise.all([
+
+        supabaseClient
+          .from("brands")
+          .select(`
+            *,
+            brand_voice (*),
+            brand_rules (*),
+            brand_facts (*),
+            milestones (*)
+          `)
+          .order(
+            "created_at",
+            {
+              ascending:
+                true
+            }
+          ),
+
+
+        supabaseClient
+          .from("campaigns")
+          .select("*")
+          .order(
+            "created_at",
+            {
+              ascending:
+                false
+            }
+          ),
+
+
+        supabaseClient
+          .from("content_items")
+          .select("*")
+          .order(
+            "created_at",
+            {
+              ascending:
+                false
+            }
+          ),
+
+
+        supabaseClient
+          .from("calendar_items")
+          .select("*")
+          .order(
+            "start_at",
+            {
+              ascending:
+                true
+            }
+          ),
+
+
+        supabaseClient
+          .from("assets")
+          .select("*")
+          .order(
+            "created_at",
+            {
+              ascending:
+                false
+            }
+          )
+
+      ]);
+
+
+    const results = [
+      ["brands", brandsResult],
+      ["campaigns", campaignsResult],
+      ["content", contentResult],
+      ["calendar", calendarResult],
+      ["assets", assetsResult]
+    ];
+
+
+    for (
+      const [
+        label,
+        result
+      ] of results
+    ) {
+      if (result.error) {
+        throw new Error(
+          `${label}: ${result.error.message}`
+        );
+      }
+    }
+
+
+    APP_DATA.brands =
+      (
+        brandsResult.data ||
+        []
+      ).map(
+        normalizeBrand
+      );
+
+
+    APP_DATA.campaigns =
+      (
+        campaignsResult.data ||
+        []
+      ).map(
+        normalizeCampaign
+      );
+
+
+    APP_DATA.content =
+      (
+        contentResult.data ||
+        []
+      ).map(
+        normalizeContent
+      );
+
+
+    APP_DATA.calendar =
+      (
+        calendarResult.data ||
+        []
+      ).map(
+        normalizeCalendarItem
+      );
+
+
+    APP_DATA.assets =
+      (
+        assetsResult.data ||
+        []
+      ).map(
+        normalizeAsset
+      );
+
+
+    ensureValidActiveBrand();
+
+  } finally {
+
+    APP_STATE.loading =
+      false;
+
+  }
+}
 
 
 /* =========================================================
@@ -727,15 +1270,21 @@ function ensureValidActiveBrand() {
   const activeBrand =
     getActiveBrand();
 
+
   if (activeBrand) {
     return activeBrand;
   }
 
+
   const fallback =
-    APP_DATA.brands[0] ?? null;
+    APP_DATA.brands[0] ??
+    null;
+
 
   APP_STATE.activeBrandId =
-    fallback?.id ?? null;
+    fallback?.id ??
+    null;
+
 
   if (fallback) {
     writeStorage(
@@ -743,6 +1292,7 @@ function ensureValidActiveBrand() {
       fallback.id
     );
   }
+
 
   return fallback;
 }
@@ -757,6 +1307,7 @@ function setActiveBrand(
       brandId
     );
 
+
   if (!brand) {
     showToast(
       "That brand could not be found.",
@@ -766,17 +1317,21 @@ function setActiveBrand(
     return;
   }
 
+
   const changed =
     APP_STATE.activeBrandId !==
     brand.id;
 
+
   APP_STATE.activeBrandId =
     brand.id;
+
 
   writeStorage(
     STORAGE_KEYS.activeBrand,
     brand.id
   );
+
 
   renderActiveBrand();
   renderBrandPicker();
@@ -786,6 +1341,7 @@ function setActiveBrand(
   renderContentLibrary();
   renderAssets();
   syncQuickCreateBrand();
+
 
   if (
     changed &&
@@ -807,58 +1363,62 @@ function renderActiveBrand() {
   const brand =
     ensureValidActiveBrand();
 
+
   if (!brand) {
     return;
   }
 
-  const desktopMark =
-    $("#activeBrandMark");
 
-  const desktopName =
-    $("#activeBrandName");
+  const elements = [
+    [
+      "#activeBrandMark",
+      brand.mark
+    ],
 
-  const desktopStage =
-    $("#activeBrandStage");
+    [
+      "#activeBrandName",
+      brand.shortName
+    ],
 
-  const mobileMark =
-    $("#mobileActiveBrandMark");
+    [
+      "#activeBrandStage",
+      brand.stageLabel
+    ],
 
-  const mobileName =
-    $("#mobileActiveBrandName");
+    [
+      "#mobileActiveBrandMark",
+      brand.mark
+    ],
 
-  const mobileStage =
-    $("#mobileActiveBrandStage");
+    [
+      "#mobileActiveBrandName",
+      brand.shortName
+    ],
+
+    [
+      "#mobileActiveBrandStage",
+      brand.stageLabel
+    ]
+  ];
 
 
-  if (desktopMark) {
-    desktopMark.textContent =
-      brand.mark;
-  }
+  elements.forEach(
+    ([
+      selector,
+      value
+    ]) => {
 
-  if (desktopName) {
-    desktopName.textContent =
-      brand.shortName;
-  }
+      const element =
+        $(selector);
 
-  if (desktopStage) {
-    desktopStage.textContent =
-      brand.stageLabel;
-  }
 
-  if (mobileMark) {
-    mobileMark.textContent =
-      brand.mark;
-  }
+      if (element) {
+        element.textContent =
+          value || "";
+      }
 
-  if (mobileName) {
-    mobileName.textContent =
-      brand.shortName;
-  }
-
-  if (mobileStage) {
-    mobileStage.textContent =
-      brand.stageLabel;
-  }
+    }
+  );
 }
 
 
@@ -870,9 +1430,11 @@ function renderBrandPicker() {
   const list =
     $("#brandPickerList");
 
+
   if (!list) {
     return;
   }
+
 
   if (!APP_DATA.brands.length) {
     list.innerHTML = `
@@ -886,12 +1448,11 @@ function renderBrandPicker() {
         </span>
 
         <h3>
-          No brands yet.
+          No brands found.
         </h3>
 
         <p>
-          Add a brand to begin building its
-          Brand Brain.
+          No brands are available for this account.
         </p>
 
       </div>
@@ -900,6 +1461,7 @@ function renderBrandPicker() {
     return;
   }
 
+
   list.innerHTML =
     APP_DATA.brands
       .map(brand => {
@@ -907,6 +1469,7 @@ function renderBrandPicker() {
         const isActive =
           brand.id ===
           APP_STATE.activeBrandId;
+
 
         return `
           <button
@@ -977,6 +1540,7 @@ function renderBrandPicker() {
 
           </button>
         `;
+
       })
       .join("");
 }
@@ -990,9 +1554,11 @@ function renderBrandGrid() {
   const grid =
     $("#brandGrid");
 
+
   if (!grid) {
     return;
   }
+
 
   if (!APP_DATA.brands.length) {
     grid.innerHTML = `
@@ -1008,12 +1574,11 @@ function renderBrandGrid() {
         </span>
 
         <h3>
-          No brands yet.
+          No brands found.
         </h3>
 
         <p>
-          Add a brand to begin building
-          its Brand Brain.
+          No brands are available for this account.
         </p>
 
       </div>
@@ -1022,6 +1587,7 @@ function renderBrandGrid() {
     return;
   }
 
+
   grid.innerHTML =
     APP_DATA.brands
       .map(brand => {
@@ -1029,6 +1595,7 @@ function renderBrandGrid() {
         const isActive =
           brand.id ===
           APP_STATE.activeBrandId;
+
 
         return `
           <article
@@ -1168,6 +1735,7 @@ function renderBrandGrid() {
 
           </article>
         `;
+
       })
       .join("");
 }
@@ -1181,19 +1749,22 @@ function renderQuickCreateBrandOptions() {
   const select =
     $("#createBrand");
 
+
   if (!select) {
     return;
   }
 
+
   if (!APP_DATA.brands.length) {
     select.innerHTML = `
       <option value="">
-        No brands connected yet
+        No brands connected
       </option>
     `;
 
     return;
   }
+
 
   select.innerHTML =
     APP_DATA.brands
@@ -1214,6 +1785,7 @@ function renderQuickCreateBrandOptions() {
       `)
       .join("");
 
+
   syncQuickCreateBrand();
 }
 
@@ -1222,16 +1794,18 @@ function syncQuickCreateBrand() {
   const select =
     $("#createBrand");
 
-  if (!select) {
-    return;
-  }
 
   const activeBrand =
     getActiveBrand();
 
-  if (!activeBrand) {
+
+  if (
+    !select ||
+    !activeBrand
+  ) {
     return;
   }
+
 
   select.value =
     activeBrand.id;
@@ -1246,15 +1820,19 @@ function renderGreeting() {
   const heading =
     $("#dashboardGreeting");
 
+
   if (!heading) {
     return;
   }
 
+
   const hour =
     new Date().getHours();
 
+
   let greeting =
     "Good evening.";
+
 
   if (
     hour >= 5 &&
@@ -1269,6 +1847,7 @@ function renderGreeting() {
     greeting =
       "Good afternoon.";
   }
+
 
   heading.textContent =
     greeting;
@@ -1287,9 +1866,11 @@ function getBrandScopedItems(
     return [];
   }
 
+
   return items.filter(
     item =>
-      item.brandId === brandId
+      item.brandId ===
+      brandId
   );
 }
 
@@ -1302,9 +1883,11 @@ function renderDashboard() {
   const brand =
     getActiveBrand();
 
+
   if (!brand) {
     return;
   }
+
 
   const brandContent =
     getBrandScopedItems(
@@ -1312,53 +1895,32 @@ function renderDashboard() {
       brand.id
     );
 
+
   const brandCampaigns =
     getBrandScopedItems(
       APP_DATA.campaigns,
       brand.id
     );
 
-  const brandCalendar =
-    getBrandScopedItems(
-      APP_DATA.calendar,
-      brand.id
-    );
 
-
-  const reviewCount =
-    brandContent.filter(
-      item =>
-        item.status === "review"
-    ).length;
-
-
-  const activeCampaignCount =
-    brandCampaigns.filter(
-      item =>
-        item.status === "active"
-    ).length;
-
-
-  const now =
-    Date.now();
-
-
-  const upcomingItems =
-    brandCalendar
+  const scheduledContent =
+    brandContent
       .filter(item => {
 
         if (!item.publishAt) {
           return false;
         }
 
+
         const time =
           new Date(
             item.publishAt
           ).getTime();
 
+
         return (
           Number.isFinite(time) &&
-          time >= now
+          time >= Date.now()
         );
 
       })
@@ -1373,11 +1935,29 @@ function renderDashboard() {
       );
 
 
+  const reviewCount =
+    brandContent.filter(
+      item =>
+        item.status ===
+        "review"
+    ).length;
+
+
+  const activeCampaignCount =
+    brandCampaigns.filter(
+      item =>
+        item.status ===
+        "active"
+    ).length;
+
+
   const reviewElement =
     $("#reviewDraftCount");
 
+
   const upcomingElement =
     $("#upcomingContentCount");
+
 
   const campaignElement =
     $("#activeCampaignCount");
@@ -1388,19 +1968,25 @@ function renderDashboard() {
       String(reviewCount);
   }
 
+
   if (upcomingElement) {
     upcomingElement.textContent =
-      String(upcomingItems.length);
+      String(
+        scheduledContent.length
+      );
   }
+
 
   if (campaignElement) {
     campaignElement.textContent =
-      String(activeCampaignCount);
+      String(
+        activeCampaignCount
+      );
   }
 
 
   renderDashboardUpcoming(
-    upcomingItems
+    scheduledContent
   );
 }
 
@@ -1411,9 +1997,11 @@ function renderDashboardUpcoming(
   const panel =
     $("#dashboardUpcoming");
 
+
   if (!panel) {
     return;
   }
+
 
   if (!upcomingItems.length) {
     panel.innerHTML = `
@@ -1431,9 +2019,8 @@ function renderDashboardUpcoming(
         </h3>
 
         <p>
-          Approved content will appear
-          here once it has a publishing
-          date.
+          Approved content will appear here
+          once it has a publishing date.
         </p>
 
         <button
@@ -1449,6 +2036,7 @@ function renderDashboardUpcoming(
 
     return;
   }
+
 
   panel.innerHTML =
     upcomingItems
@@ -1489,6 +2077,7 @@ function formatDateTime(
   const date =
     new Date(value);
 
+
   if (
     Number.isNaN(
       date.getTime()
@@ -1496,6 +2085,7 @@ function formatDateTime(
   ) {
     return "";
   }
+
 
   return new Intl.DateTimeFormat(
     undefined,
@@ -1533,8 +2123,10 @@ function setView(
       "dashboard";
   }
 
+
   APP_STATE.activeView =
     viewName;
+
 
   writeStorage(
     STORAGE_KEYS.lastView,
@@ -1549,8 +2141,10 @@ function setView(
         panel.dataset.viewPanel ===
         viewName;
 
+
       panel.hidden =
         !matches;
+
 
       panel.classList.toggle(
         "is-active",
@@ -1591,6 +2185,7 @@ function setView(
     const main =
       $(".app-main");
 
+
     if (main) {
       main.scrollTo({
         top:
@@ -1602,6 +2197,7 @@ function setView(
             : "smooth"
       });
     }
+
 
     window.scrollTo({
       top:
@@ -1617,7 +2213,7 @@ function setView(
 
 
 /* =========================================================
-   FILTER HELPERS
+   FILTERS
    ========================================================= */
 
 function setFilterButtons(
@@ -1642,13 +2238,16 @@ function setCampaignFilter(
   value
 ) {
   APP_STATE.campaignFilter =
-    value || "all";
+    value ||
+    "all";
+
 
   setFilterButtons(
     "[data-campaign-filter]",
     "campaignFilter",
     APP_STATE.campaignFilter
   );
+
 
   renderCampaigns();
 }
@@ -1658,13 +2257,16 @@ function setContentFilter(
   value
 ) {
   APP_STATE.contentFilter =
-    value || "all";
+    value ||
+    "all";
+
 
   setFilterButtons(
     "[data-content-filter]",
     "contentFilter",
     APP_STATE.contentFilter
   );
+
 
   renderContentLibrary();
 }
@@ -1674,13 +2276,16 @@ function setAssetFilter(
   value
 ) {
   APP_STATE.assetFilter =
-    value || "all";
+    value ||
+    "all";
+
 
   setFilterButtons(
     "[data-asset-filter]",
     "assetFilter",
     APP_STATE.assetFilter
   );
+
 
   renderAssets();
 }
@@ -1694,16 +2299,18 @@ function renderCampaigns() {
   const list =
     $("#campaignList");
 
-  if (!list) {
-    return;
-  }
 
   const brand =
     getActiveBrand();
 
-  if (!brand) {
+
+  if (
+    !list ||
+    !brand
+  ) {
     return;
   }
+
 
   let campaigns =
     getBrandScopedItems(
@@ -1730,6 +2337,7 @@ function renderCampaigns() {
     const filtered =
       APP_STATE.campaignFilter !==
       "all";
+
 
     list.innerHTML = `
       <div class="empty-state">
@@ -1783,13 +2391,16 @@ function renderCampaigns() {
       .map(campaign => `
         <article
           class="content-panel"
+          style="
+            margin-bottom:12px;
+          "
         >
 
           <span class="eyebrow">
             ${
               escapeHtml(
                 campaign.status ||
-                "Draft"
+                "draft"
               )
             }
           </span>
@@ -1802,6 +2413,26 @@ function renderCampaigns() {
               )
             }
           </h3>
+
+          ${
+            campaign.objective
+              ? `
+                <p
+                  style="
+                    color:var(--muted);
+                    font-size:.8rem;
+                    line-height:1.6;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      campaign.objective
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
 
         </article>
       `)
@@ -1817,16 +2448,18 @@ function renderContentLibrary() {
   const library =
     $("#contentLibrary");
 
-  if (!library) {
-    return;
-  }
 
   const brand =
     getActiveBrand();
 
-  if (!brand) {
+
+  if (
+    !library ||
+    !brand
+  ) {
     return;
   }
+
 
   let content =
     getBrandScopedItems(
@@ -1853,6 +2486,7 @@ function renderContentLibrary() {
     const filtered =
       APP_STATE.contentFilter !==
       "all";
+
 
     library.innerHTML = `
       <div class="empty-state">
@@ -1892,7 +2526,10 @@ function renderContentLibrary() {
       .map(item => {
 
         const typeDefinition =
-          CREATE_TYPES[item.type];
+          CREATE_TYPES[
+            item.type
+          ];
+
 
         return `
           <article
@@ -1957,16 +2594,18 @@ function renderAssets() {
   const grid =
     $("#assetGrid");
 
-  if (!grid) {
-    return;
-  }
 
   const brand =
     getActiveBrand();
 
-  if (!brand) {
+
+  if (
+    !grid ||
+    !brand
+  ) {
     return;
   }
+
 
   let assets =
     getBrandScopedItems(
@@ -1993,6 +2632,7 @@ function renderAssets() {
     const filtered =
       APP_STATE.assetFilter !==
       "all";
+
 
     grid.innerHTML = `
       <div
@@ -2059,26 +2699,29 @@ function buildAiBrief({
 }) {
   const definition =
     CREATE_TYPES[type] ||
-    CREATE_TYPES["social-post"];
+    CREATE_TYPES[
+      "social-post"
+    ];
 
 
   const personality =
-    brand.identity?.personality?.length
-      ? brand.identity.personality.join(
-          ", "
-        )
+    brand.identity
+      ?.personality
+      ?.length
+      ? brand.identity.personality
+          .join(", ")
       : "Use the established brand voice.";
 
 
-  const strategy =
-    brand.marketingStrategy?.length
-      ? brand.marketingStrategy
-          .map(
-            item =>
-              `- ${item}`
-          )
-          .join("\n")
-      : "- Follow the established marketing strategy.";
+  const voiceNotes = [
+    brand.voice
+      ?.emotionalAtmosphere,
+
+    brand.voice
+      ?.writingNotes
+  ]
+    .filter(Boolean)
+    .join("\n");
 
 
   const rules =
@@ -2092,10 +2735,40 @@ function buildAiBrief({
       : "- Do not invent business facts.";
 
 
+  const verifiedFacts =
+    brand.facts
+      ?.filter(
+        fact =>
+          fact.status ===
+            "verified" ||
+          fact.status ===
+            "owner_approved"
+      )
+      .map(
+        fact =>
+          `- ${
+            fact.fact_key ||
+            fact.fact_type ||
+            "Fact"
+          }: ${
+            fact.value_text ||
+            fact.value ||
+            ""
+          }`
+      )
+      .filter(
+        line =>
+          !line.endsWith(
+            ": "
+          )
+      )
+      .join("\n") ||
+    "No additional verified facts supplied.";
+
+
   const tagline =
-    brand.identity?.tagline
-      ? brand.identity.tagline
-      : "No official tagline supplied.";
+    brand.identity?.tagline ||
+    "No official tagline supplied.";
 
 
   const recentContent =
@@ -2144,12 +2817,14 @@ BRAND VOICE
 
 ${personality}
 
+${voiceNotes || ""}
+
 
 ==================================================
-MARKETING STRATEGY
+VERIFIED BRAND INFORMATION
 ==================================================
 
-${strategy}
+${verifiedFacts}
 
 
 ==================================================
@@ -2256,7 +2931,10 @@ function getRecentContentForBrief(
             a.createdAt || 0
           ).getTime()
       )
-      .slice(0, 5);
+      .slice(
+        0,
+        5
+      );
 
 
   if (!recent.length) {
@@ -2266,15 +2944,25 @@ function getRecentContentForBrief(
 
   return recent
     .map(
-      (item, index) => {
+      (
+        item,
+        index
+      ) => {
 
         const body =
           String(
             item.body || ""
           )
-            .replace(/\s+/g, " ")
+            .replace(
+              /\s+/g,
+              " "
+            )
             .trim()
-            .slice(0, 300);
+            .slice(
+              0,
+              300
+            );
+
 
         return `${index + 1}. ${
           item.title ||
@@ -2297,10 +2985,13 @@ ${body || "No body text."}`;
    ========================================================= */
 
 function openQuickCreate(
-  createType = "social-post"
+  createType =
+    "social-post"
 ) {
   const type =
-    CREATE_TYPES[createType]
+    CREATE_TYPES[
+      createType
+    ]
       ? createType
       : "social-post";
 
@@ -2316,11 +3007,14 @@ function openQuickCreate(
   const title =
     $("#quickCreateDialogTitle");
 
+
   const hiddenType =
     $("#createContentType");
 
+
   const goal =
     $("#createGoal");
+
 
   const prompt =
     $("#createPrompt");
@@ -2331,10 +3025,12 @@ function openQuickCreate(
       definition.label;
   }
 
+
   if (hiddenType) {
     hiddenType.value =
       type;
   }
+
 
   if (goal) {
     goal.value =
@@ -2377,7 +3073,8 @@ function handleQuickCreateSubmit(
 
 
   const brandId =
-    $("#createBrand")?.value;
+    $("#createBrand")
+      ?.value;
 
 
   const userPrompt =
@@ -2387,12 +3084,14 @@ function handleQuickCreateSubmit(
 
 
   const goal =
-    $("#createGoal")?.value ||
+    $("#createGoal")
+      ?.value ||
     "awareness";
 
 
   const type =
-    $("#createContentType")?.value ||
+    $("#createContentType")
+      ?.value ||
     "social-post";
 
 
@@ -2418,7 +3117,10 @@ function handleQuickCreateSubmit(
       "error"
     );
 
-    $("#createPrompt")?.focus();
+
+    $("#createPrompt")
+      ?.focus();
+
 
     return;
   }
@@ -2452,21 +3154,19 @@ function handleQuickCreateSubmit(
 
   closeQuickCreate();
 
+
   showAiBriefDialog();
 }
 
 
 /* =========================================================
    AI BRIEF DIALOG
-
-   This dialog is created dynamically so the existing
-   index.html does not need to be replaced.
-
    ========================================================= */
 
 function ensureAiBriefDialog() {
   let dialog =
     $("#aiBriefDialog");
+
 
   if (dialog) {
     return dialog;
@@ -2488,7 +3188,6 @@ function ensureAiBriefDialog() {
 
 
   dialog.innerHTML = `
-
     <div class="dialog-header">
 
       <div>
@@ -2514,7 +3213,6 @@ function ensureAiBriefDialog() {
 
     </div>
 
-
     <div class="create-form">
 
       <p
@@ -2531,7 +3229,6 @@ function ensureAiBriefDialog() {
         return here with the finished result.
       </p>
 
-
       <label class="field">
 
         <span>
@@ -2547,7 +3244,6 @@ function ensureAiBriefDialog() {
         ></textarea>
 
       </label>
-
 
       <div
         style="
@@ -2574,7 +3270,6 @@ function ensureAiBriefDialog() {
         </button>
 
       </div>
-
 
       <button
         id="showPasteResultButton"
@@ -2622,11 +3317,14 @@ function ensureAiBriefDialog() {
     ?.addEventListener(
       "click",
       () => {
+
         safeDialogClose(
           dialog
         );
 
+
         showAiResultDialog();
+
       }
     );
 
@@ -2669,6 +3367,7 @@ async function copyCurrentAiBrief() {
   const brief =
     APP_STATE.currentAiBrief;
 
+
   if (!brief) {
     showToast(
       "There is no AI brief to copy.",
@@ -2681,9 +3380,11 @@ async function copyCurrentAiBrief() {
 
   try {
 
-    await navigator.clipboard.writeText(
-      brief
-    );
+    await navigator.clipboard
+      .writeText(
+        brief
+      );
+
 
     showToast(
       "AI brief copied. Paste it into ChatGPT.",
@@ -2695,22 +3396,30 @@ async function copyCurrentAiBrief() {
     const textarea =
       $("#aiBriefText");
 
+
     if (textarea) {
       textarea.focus();
       textarea.select();
 
+
       try {
+
         document.execCommand(
           "copy"
         );
+
 
         showToast(
           "AI brief copied. Paste it into ChatGPT.",
           "success"
         );
 
+
         return;
-      } catch (fallbackError) {
+
+      } catch (
+        fallbackError
+      ) {
         console.warn(
           fallbackError
         );
@@ -2748,6 +3457,7 @@ function ensureAiResultDialog() {
   let dialog =
     $("#aiResultDialog");
 
+
   if (dialog) {
     return dialog;
   }
@@ -2768,7 +3478,6 @@ function ensureAiResultDialog() {
 
 
   dialog.innerHTML = `
-
     <div class="dialog-header">
 
       <div>
@@ -2794,7 +3503,6 @@ function ensureAiResultDialog() {
 
     </div>
 
-
     <form
       id="aiResultForm"
       class="create-form"
@@ -2810,9 +3518,9 @@ function ensureAiResultDialog() {
       >
         Paste the finished ChatGPT response
         below. Marketing Studio will save it
-        as a draft under the correct brand.
+        to Supabase as a draft under the
+        correct brand.
       </p>
-
 
       <label class="field">
 
@@ -2828,7 +3536,6 @@ function ensureAiResultDialog() {
         />
 
       </label>
-
 
       <label class="field">
 
@@ -2847,7 +3554,6 @@ function ensureAiResultDialog() {
 
       </label>
 
-
       <div class="form-actions">
 
         <button
@@ -2859,6 +3565,7 @@ function ensureAiResultDialog() {
         </button>
 
         <button
+          id="saveAiDraftButton"
           class="primary-button"
           type="submit"
         >
@@ -2895,6 +3602,7 @@ function ensureAiResultDialog() {
         safeDialogClose(
           dialog
         );
+
 
         showAiBriefDialog();
 
@@ -2933,7 +3641,8 @@ function showAiResultDialog() {
 
   const definition =
     CREATE_TYPES[
-      APP_STATE.currentAiRequest.type
+      APP_STATE.currentAiRequest
+        .type
     ];
 
 
@@ -2962,10 +3671,10 @@ function showAiResultDialog() {
 
 
 /* =========================================================
-   SAVE AI RESULT AS DRAFT
+   SAVE AI RESULT TO SUPABASE
    ========================================================= */
 
-function handleAiResultSubmit(
+async function handleAiResultSubmit(
   event
 ) {
   event.preventDefault();
@@ -2981,6 +3690,10 @@ function handleAiResultSubmit(
     $("#aiResultTitle")
       ?.value
       ?.trim();
+
+
+  const saveButton =
+    $("#saveAiDraftButton");
 
 
   if (!result) {
@@ -3013,100 +3726,136 @@ function handleAiResultSubmit(
   }
 
 
-  const draft = {
-
-    id:
-      createId(
-        "content"
-      ),
-
-    brandId:
-      brand.id,
-
-    campaignId:
-      null,
-
-    type:
-      request.type,
-
-    status:
-      "draft",
-
-    title:
-      title ||
-      CREATE_TYPES[
-        request.type
-      ]?.label ||
-      "Marketing Draft",
-
-    body:
-      result,
-
-    goal:
-      request.goal,
-
-    originalRequest:
-      request.prompt,
-
-    aiMode:
-      "manual-chatgpt",
-
-    aiBrief:
-      APP_STATE.currentAiBrief,
-
-    createdAt:
-      new Date().toISOString(),
-
-    updatedAt:
-      new Date().toISOString()
-
-  };
+  const typeDefinition =
+    CREATE_TYPES[
+      request.type
+    ] ||
+    CREATE_TYPES[
+      "social-post"
+    ];
 
 
-  APP_DATA.content.unshift(
-    draft
-  );
+  if (saveButton) {
+    saveButton.disabled =
+      true;
+
+    saveButton.textContent =
+      "Saving…";
+  }
 
 
-  saveLocalContent();
+  try {
+
+    const payload = {
+      brand_id:
+        brand.id,
+
+      campaign_id:
+        null,
+
+      content_type:
+        typeDefinition.dbType,
+
+      status:
+        "draft",
+
+      title:
+        title ||
+        typeDefinition.label ||
+        "Marketing Draft",
+
+      body:
+        result,
+
+      goal:
+        request.goal,
+
+      original_request:
+        request.prompt,
+
+      ai_mode:
+        "manual-chatgpt",
+
+      ai_brief:
+        APP_STATE.currentAiBrief
+    };
 
 
-  safeDialogClose(
-    $("#aiResultDialog")
-  );
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "content_items"
+        )
+        .insert(
+          payload
+        )
+        .select()
+        .single();
 
 
-  resetAiWorkflow();
+    if (error) {
+      throw error;
+    }
 
 
-  renderDashboard();
-  renderContentLibrary();
+    APP_DATA.content.unshift(
+      normalizeContent(
+        data
+      )
+    );
 
 
-  setView(
-    "studio"
-  );
+    safeDialogClose(
+      $("#aiResultDialog")
+    );
 
 
-  showToast(
-    "Draft saved to Content Studio.",
-    "success"
-  );
-}
+    resetAiWorkflow();
 
 
-/* =========================================================
-   SAVE LOCAL CONTENT
+    renderDashboard();
+    renderContentLibrary();
 
-   Temporary until Supabase replaces localStorage.
 
-   ========================================================= */
+    setView(
+      "studio"
+    );
 
-function saveLocalContent() {
-  writeJsonStorage(
-    STORAGE_KEYS.content,
-    APP_DATA.content
-  );
+
+    showToast(
+      "Draft saved to Content Studio.",
+      "success"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Unable to save draft:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the draft.",
+      "error",
+      5000
+    );
+
+  } finally {
+
+    if (saveButton) {
+      saveButton.disabled =
+        false;
+
+      saveButton.textContent =
+        "Save Draft";
+    }
+
+  }
 }
 
 
@@ -3166,7 +3915,7 @@ function resetAiWorkflow() {
 
 
 /* =========================================================
-   BRAND BRAIN PLACEHOLDER
+   BRAND BRAIN
    ========================================================= */
 
 function openBrandBrain(
@@ -3193,19 +3942,19 @@ function openBrandBrain(
 
 
   showToast(
-    `${brand.shortName} is selected. The full Brand Brain editor comes with the database layer.`,
+    `${brand.shortName} Brand Brain is connected to Supabase. The editor UI is next.`,
     "success"
   );
 }
 
 
 /* =========================================================
-   ADD BRAND PLACEHOLDER
+   ADD BRAND
    ========================================================= */
 
 function handleAddBrand() {
   showToast(
-    "Custom brand creation will connect with the Brand Brain database.",
+    "The database is ready for new brands. The Add Brand editor is coming next.",
     "success"
   );
 }
@@ -3217,7 +3966,7 @@ function handleAddBrand() {
 
 function handleAddAsset() {
   showToast(
-    "Asset uploads will connect when the vault backend is added.",
+    "The private Asset Vault is connected. Upload controls are coming next.",
     "success"
   );
 }
@@ -3230,15 +3979,18 @@ function handleAddAsset() {
 function handleSettingsSection(
   section
 ) {
-  if (section === "ai") {
-
+  if (
+    section ===
+    "ai"
+  ) {
     const mode =
       CONFIG.ai?.mode ||
       "manual-chatgpt";
 
 
     const label =
-      mode === "manual-chatgpt"
+      mode ===
+      "manual-chatgpt"
         ? "ChatGPT — Manual"
         : "OpenAI API — Automatic";
 
@@ -3248,12 +4000,12 @@ function handleSettingsSection(
       "success"
     );
 
+
     return;
   }
 
 
   const labels = {
-
     social:
       "Social account connections",
 
@@ -3262,7 +4014,6 @@ function handleSettingsSection(
 
     preferences:
       "App preferences"
-
   };
 
 
@@ -3325,6 +4076,7 @@ function showToast(
       toast.style.opacity =
         "0";
 
+
       toast.style.transform =
         "translateY(5px)";
 
@@ -3362,7 +4114,8 @@ function enableBackdropClose(
     event => {
 
       if (
-        event.target === dialog
+        event.target ===
+        dialog
       ) {
         safeDialogClose(
           dialog
@@ -3388,13 +4141,11 @@ function handleGlobalClick(
 
 
   if (viewButton) {
-
     setView(
       viewButton.dataset.view
     );
 
     return;
-
   }
 
 
@@ -3405,14 +4156,12 @@ function handleGlobalClick(
 
 
   if (createButton) {
-
     openQuickCreate(
       createButton.dataset
         .createType
     );
 
     return;
-
   }
 
 
@@ -3423,13 +4172,11 @@ function handleGlobalClick(
 
 
   if (quickCreateButton) {
-
     openQuickCreate(
       "social-post"
     );
 
     return;
-
   }
 
 
@@ -3440,7 +4187,6 @@ function handleGlobalClick(
 
 
   if (selectBrandButton) {
-
     const brandId =
       selectBrandButton.dataset
         .selectBrand;
@@ -3457,7 +4203,6 @@ function handleGlobalClick(
 
 
     return;
-
   }
 
 
@@ -3468,14 +4213,12 @@ function handleGlobalClick(
 
 
   if (openBrandButton) {
-
     openBrandBrain(
       openBrandButton.dataset
         .openBrand
     );
 
     return;
-
   }
 
 
@@ -3486,7 +4229,6 @@ function handleGlobalClick(
 
 
   if (campaignFilterButton) {
-
     setView(
       "campaigns"
     );
@@ -3499,7 +4241,6 @@ function handleGlobalClick(
 
 
     return;
-
   }
 
 
@@ -3510,7 +4251,6 @@ function handleGlobalClick(
 
 
   if (contentFilterButton) {
-
     setView(
       "studio"
     );
@@ -3523,7 +4263,6 @@ function handleGlobalClick(
 
 
     return;
-
   }
 
 
@@ -3534,7 +4273,6 @@ function handleGlobalClick(
 
 
   if (assetFilterButton) {
-
     setAssetFilter(
       assetFilterButton.dataset
         .assetFilter
@@ -3542,7 +4280,6 @@ function handleGlobalClick(
 
 
     return;
-
   }
 
 
@@ -3553,12 +4290,10 @@ function handleGlobalClick(
 
 
   if (settingsButton) {
-
     handleSettingsSection(
       settingsButton.dataset
         .settingsSection
     );
-
   }
 }
 
@@ -3568,7 +4303,6 @@ function handleGlobalClick(
    ========================================================= */
 
 function bindEvents() {
-
   document.addEventListener(
     "click",
     handleGlobalClick
@@ -3611,11 +4345,9 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       () => {
-
         safeDialogClose(
           $("#brandPickerDialog")
         );
-
       }
     );
 
@@ -3686,7 +4418,8 @@ function bindEvents() {
     event => {
 
       if (
-        event.key !== "Escape"
+        event.key !==
+        "Escape"
       ) {
         return;
       }
@@ -3703,7 +4436,6 @@ function bindEvents() {
 
     }
   );
-
 }
 
 
@@ -3712,7 +4444,6 @@ function bindEvents() {
    ========================================================= */
 
 function renderApp() {
-
   ensureValidActiveBrand();
 
   renderGreeting();
@@ -3752,7 +4483,38 @@ function renderApp() {
         true
     }
   );
+}
 
+
+/* =========================================================
+   AUTH SESSION
+   ========================================================= */
+
+async function getInitialSession() {
+  const {
+    data,
+    error
+  } =
+    await supabaseClient.auth
+      .getSession();
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  APP_STATE.session =
+    data.session ||
+    null;
+
+
+  APP_STATE.user =
+    data.session?.user ||
+    null;
+
+
+  return APP_STATE.session;
 }
 
 
@@ -3760,20 +4522,72 @@ function renderApp() {
    BOOT
    ========================================================= */
 
-function init() {
-
+async function init() {
   bindEvents();
 
-  renderApp();
 
+  try {
+
+    createSupabaseClient();
+
+
+    const session =
+      await getInitialSession();
+
+
+    if (!session) {
+      renderGreeting();
+
+      showAuthDialog();
+
+      return;
+    }
+
+
+    await loadAppData();
+
+
+    renderApp();
+
+
+    if (!APP_DATA.brands.length) {
+      showToast(
+        "Connected, but no brands were returned for this account.",
+        "error",
+        6000
+      );
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Marketing Studio startup failed:",
+      error
+    );
+
+
+    renderGreeting();
+
+
+    showToast(
+      error?.message ||
+      "Marketing Studio could not connect to Supabase.",
+      "error",
+      7000
+    );
+
+  }
 }
 
+
+/* =========================================================
+   START
+   ========================================================= */
 
 if (
   document.readyState ===
   "loading"
 ) {
-
   document.addEventListener(
     "DOMContentLoaded",
     init,
@@ -3782,9 +4596,6 @@ if (
         true
     }
   );
-
 } else {
-
   init();
-
 }
