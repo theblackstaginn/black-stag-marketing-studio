@@ -1,125 +1,99 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    config.js
-   v2
 
    Browser-safe application configuration.
 
-   V1 AI MODE:
-   ChatGPT Manual
-
-   Marketing Studio builds a complete AI brief.
-   The user copies that brief into ChatGPT, then pastes
-   the finished result back into Marketing Studio.
-
    IMPORTANT:
-   Never place OpenAI API keys, Supabase service-role keys,
-   social-media secrets, passwords, or other private
-   credentials in this file.
-
-   Future automatic AI requests will run through a secure
-   server-side / Supabase Edge Function layer.
+   - The Supabase Project URL is safe for the browser.
+   - The Supabase Publishable Key is safe for the browser.
+   - NEVER place a Supabase Secret Key here.
+   - NEVER place a service_role key here.
+   - NEVER place an OpenAI API key here.
    ========================================================= */
 
-"use strict";
-
-
 window.BLACK_STAG_CONFIG = {
-
-  /* =======================================================
-     APP
-     ======================================================= */
-
   app: {
-    name:
-      "Black Stag Marketing Studio",
-
-    version:
-      "0.2.0",
-
-    environment:
-      "development"
+    name: "Black Stag Marketing Studio",
+    version: "0.3.0",
+    environment: "development"
   },
-
 
   /* =======================================================
      SUPABASE
-
-     These remain blank until the Supabase project
-     is created.
-
-     Browser-safe values only:
-     - Project URL
-     - Anon / publishable key
-
-     NEVER:
-     - service_role key
      ======================================================= */
 
   supabase: {
-    url:
-      "",
+    /*
+      Paste the Project URL from:
+      Supabase → Settings → Data API
 
-    anonKey:
-      ""
+      Example format:
+      https://xxxxxxxxxxxxxxxxxxxx.supabase.co
+    */
+    url: "PASTE_YOUR_PROJECT_URL_HERE",
+
+    /*
+      Paste ONLY the Publishable key from:
+      Supabase → Settings → API Keys → Publishable key
+
+      It should begin with:
+      sb_publishable_
+
+      DO NOT use anything from the Secret keys section.
+    */
+    publishableKey: "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
   },
-
 
   /* =======================================================
      AI
-
-     Current V1:
-     manual-chatgpt
-
-     Future:
-     openai-api
-
-     No private API key belongs here.
      ======================================================= */
 
   ai: {
-    mode:
-      "manual-chatgpt",
+    /*
+      V1 uses ChatGPT manually.
+
+      Marketing Studio builds the complete Brand Brain prompt.
+      You copy it into ChatGPT, then paste the generated result
+      back into Marketing Studio.
+
+      This keeps V1 free of separate AI API charges.
+    */
+    mode: "manual-chatgpt",
 
     providers: {
-
       manualChatGPT: {
-        enabled:
-          true,
-
-        label:
-          "ChatGPT — Manual"
+        enabled: true,
+        label: "ChatGPT — Manual"
       },
 
+      /*
+        Reserved for a future automatic AI connection.
+
+        Any OpenAI API request will eventually go through a
+        secure server-side Supabase Edge Function.
+
+        An OpenAI secret key must NEVER be stored here.
+      */
       openAI: {
-        enabled:
-          false,
-
-        label:
-          "OpenAI API — Automatic",
-
-        endpoint:
-          ""
+        enabled: false,
+        label: "OpenAI API — Automatic",
+        endpoint: ""
       }
-
     }
   },
 
-
   /* =======================================================
      PUBLISHING
-
-     Nothing publishes automatically in V1.
-
-     Content must move through the approval workflow.
      ======================================================= */
 
   publishing: {
-    enabled:
-      false,
+    enabled: false,
 
-    requireApproval:
-      true
+    /*
+      Content must be explicitly approved before it can
+      eventually move into scheduling/publishing.
+    */
+    requireApproval: true
   }
-
 };
