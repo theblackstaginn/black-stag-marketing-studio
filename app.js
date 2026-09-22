@@ -10790,24 +10790,7 @@ function truncateText(
   );
 }
 
-  /*
-    Open Calendar Entry
-  */
-
-  const calendarEntry =
-    event.target.closest(
-      "[data-open-calendar]"
-    );
-
-
-  if (calendarEntry) {
-    openCalendarEditor(
-      calendarEntry.dataset
-        .openCalendar
-    );
-
-    return;
-  }
+  
 /* =========================================================
    CONTENT FILTERS
    ========================================================= */
