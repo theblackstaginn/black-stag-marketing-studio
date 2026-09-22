@@ -31,7 +31,7 @@ window.BLACK_STAG_CONFIG = {
       Example format:
       https://xxxxxxxxxxxxxxxxxxxx.supabase.co
     */
-    url: "https://lpiquedvloneafegbwih.supabase.co",
+    url: "https://lpjpuedylongafgqbwjh.supabase.co",
 
     /*
       Paste ONLY the Publishable key from:
