@@ -12548,7 +12548,8 @@ async function handleAssetUploadSubmit(
 
       name,
 
-      category,
+      asset_type:
+  category,
 
       description,
 
