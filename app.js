@@ -12964,41 +12964,6 @@ function handleBrandBrainDelegatedClick(
 }
 
 /* =========================================================
-   VIEW DEFINITIONS
-   ========================================================= */
-
-const VIEW_DEFINITIONS = {
-  dashboard: {
-    label: "Dashboard"
-  },
-
-  brands: {
-    label: "Brands"
-  },
-
-  campaigns: {
-    label: "Campaigns"
-  },
-
-  studio: {
-    label: "Content Studio"
-  },
-
-  calendar: {
-    label: "Calendar"
-  },
-
-  vault: {
-    label: "Asset Vault"
-  },
-
-  settings: {
-    label: "Settings"
-  }
-};
-
-
-/* =========================================================
    GLOBAL CLICK HANDLING
    ========================================================= */
 
