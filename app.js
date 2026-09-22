@@ -13872,6 +13872,24 @@ function handleGlobalClick(
     return;
   }
 
+  /*
+    Open Content Editor
+  */
+
+  const contentCard =
+    event.target.closest(
+      "[data-open-content]"
+    );
+
+
+  if (contentCard) {
+    openContentEditor(
+      contentCard.dataset
+        .openContent
+    );
+
+    return;
+  }
 
   /*
     Content filters
