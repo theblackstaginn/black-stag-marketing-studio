@@ -16875,7 +16875,18 @@ if (openAssetFolder) {
 
   return;
 }
+const closeAssetFolder =
+  event.target.closest(
+    "[data-close-asset-folder]"
+  );
 
+if (closeAssetFolder) {
+  safeDialogClose(
+    $("#assetFolderDialog")
+  );
+
+  return;
+}
 const createAssetFolder =
   event.target.closest(
     "[data-create-asset-folder]"
