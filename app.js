@@ -318,7 +318,7 @@ const APP_DATA = {
   campaigns: [],
   content: [],
   calendar: [],
-  assets: []
+  assets: [],
   assetFolders: [],
 };
 
