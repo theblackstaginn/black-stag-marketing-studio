@@ -10852,14 +10852,97 @@ function renderCalendar() {
   }
 
 
-  const items =
+    const calendarItems =
     APP_DATA.calendar
       .filter(
         item =>
           item.brandId ===
           brand.id
+      );
+
+
+  const scheduledContent =
+    APP_DATA.content
+      .filter(
+        item =>
+          item.brandId ===
+            brand.id &&
+          item.status ===
+            "scheduled" &&
+          item.scheduledFor
       )
-      .slice()
+      .map(
+        item => ({
+          id:
+            `content-${item.id}`,
+
+          contentId:
+            item.id,
+
+          brandId:
+            item.brandId,
+
+          type:
+            getContentTypeLabel(
+              item.type
+            ),
+
+          itemType:
+            "scheduled-content",
+
+          title:
+            item.title ||
+            "Scheduled Content",
+
+          description:
+            [
+              item.platform,
+              item.goal
+            ]
+              .filter(Boolean)
+              .join(" · "),
+
+          startsAt:
+            item.scheduledFor,
+
+          endsAt:
+            null,
+
+          startAt:
+            item.scheduledFor,
+
+          endAt:
+            null,
+
+          publishAt:
+            item.scheduledFor,
+
+          allDay:
+            false,
+
+          recurring:
+            false,
+
+          recurrenceRule:
+            "",
+
+          marketingRelevant:
+            true,
+
+          sourceType:
+            "content",
+
+          confirmed:
+            true
+        })
+      );
+
+
+  const items =
+    [
+      ...calendarItems,
+      ...scheduledContent
+    ]
       .sort(
         (a, b) => {
           const aTime =
