@@ -11825,7 +11825,36 @@ function setAssetFilter(
   renderAssets();
 }
 
+/* =========================================================
+   ASSET EDITOR
+   ========================================================= */
 
+function openAssetEditor(
+  assetId
+) {
+  const asset =
+    APP_DATA.assets.find(
+      item =>
+        String(item.id) ===
+        String(assetId)
+    );
+
+
+  if (!asset) {
+    showToast(
+      "Asset could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  showToast(
+    `Opening ${asset.name}`,
+    "success"
+  );
+}
 /* =========================================================
    ASSET UPLOAD
    ========================================================= */
