@@ -1609,13 +1609,16 @@ await hydrateAssetSignedUrls(
 );
 
 
-    ensureValidActiveBrand();
+APP_DATA.assetFolders =
+  (
+    assetFoldersResult.data ||
+    []
+  ).map(
+    normalizeAssetFolder
+  );
 
-  } finally {
-    APP_STATE.loading =
-      false;
-  }
-}
+
+ensureValidActiveBrand();
 
 
 /* =========================================================
