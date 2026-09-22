@@ -11737,17 +11737,244 @@ function setAssetFilter(
 /* =========================================================
    ASSET EDITOR
    ========================================================= */
+function ensureAssetEditorDialog() {
+  let dialog =
+    $("#assetEditorDialog");
 
-function openAssetEditor(
-  assetId
-) {
+  if (dialog) {
+    return dialog;
+  }
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+  dialog.id =
+    "assetEditorDialog";
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(760px,94vw);
+        max-width:100%;
+        max-height:92vh;
+        overflow-y:auto;
+      "
+    >
+      <div class="dialog-header">
+        <div>
+          <span class="eyebrow">
+            Asset Vault
+          </span>
+
+          <h2 id="assetEditorHeading">
+            Edit Asset
+          </h2>
+        </div>
+
+        <button
+          id="closeAssetEditorButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <form
+        id="assetEditorForm"
+        class="create-form"
+      >
+        <input
+          id="assetEditorId"
+          type="hidden"
+        />
+
+        <div
+          id="assetEditorPreview"
+          style="
+            width:100%;
+            min-height:180px;
+            display:grid;
+            place-items:center;
+            overflow:hidden;
+            margin-bottom:16px;
+            padding:12px;
+            border:1px solid var(--line);
+            border-radius:16px;
+            background:rgba(255,255,255,.02);
+          "
+        ></div>
+
+        <label class="field">
+          <span>Name</span>
+
+          <input
+            id="assetEditorName"
+            type="text"
+            required
+          />
+        </label>
+
+        <label class="field">
+          <span>Category</span>
+
+          <select id="assetEditorCategory">
+            <option value="logo">
+              Logo
+            </option>
+
+            <option value="photo">
+              Photo
+            </option>
+
+            <option value="generated_artwork">
+              Generated Artwork
+            </option>
+
+            <option value="brand_asset">
+              Brand Asset
+            </option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Description</span>
+
+          <textarea
+            id="assetEditorDescription"
+            style="min-height:120px;"
+          ></textarea>
+        </label>
+
+        <label class="field">
+          <span>Alt Text</span>
+
+          <input
+            id="assetEditorAltText"
+            type="text"
+          />
+        </label>
+
+        <label class="field">
+          <span>Tags</span>
+
+          <input
+            id="assetEditorTags"
+            type="text"
+            placeholder="logo, coffee, social"
+          />
+        </label>
+
+        <label
+          style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+          "
+        >
+          <input
+            id="assetEditorApprovedAi"
+            type="checkbox"
+          />
+
+          Approved for AI
+        </label>
+
+        <label
+          style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+          "
+        >
+          <input
+            id="assetEditorApprovedMarketing"
+            type="checkbox"
+          />
+
+          Approved for Marketing
+        </label>
+
+        <label
+          style="
+            display:flex;
+            align-items:center;
+            gap:10px;
+          "
+        >
+          <input
+            id="assetEditorActive"
+            type="checkbox"
+          />
+
+          Active
+        </label>
+
+        <div class="form-actions">
+          <button
+            id="cancelAssetEditorButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveAssetEditorButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  document.body.appendChild(
+    dialog
+  );
+
+  $("#closeAssetEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(dialog);
+      }
+    );
+
+  $("#cancelAssetEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(dialog);
+      }
+    );
+
+  $("#assetEditorForm")
+    ?.addEventListener(
+      "submit",
+      saveAssetEditor
+    );
+
+  enableBackdropClose(dialog);
+
+  return dialog;
+}
+
+function openAssetEditor(assetId) {
   const asset =
     APP_DATA.assets.find(
       item =>
         String(item.id) ===
         String(assetId)
     );
-
 
   if (!asset) {
     showToast(
@@ -11758,11 +11985,250 @@ function openAssetEditor(
     return;
   }
 
+  const dialog =
+    ensureAssetEditorDialog();
 
-  showToast(
-    `Opening ${asset.name}`,
-    "success"
-  );
+  $("#assetEditorId").value =
+    asset.id;
+
+  $("#assetEditorName").value =
+    asset.name || "";
+
+  $("#assetEditorCategory").value =
+    asset.category || "";
+
+  $("#assetEditorDescription").value =
+    asset.description || "";
+
+  $("#assetEditorAltText").value =
+    asset.altText || "";
+
+  $("#assetEditorTags").value =
+    Array.isArray(asset.tags)
+      ? asset.tags.join(", ")
+      : "";
+
+  $("#assetEditorApprovedAi").checked =
+    Boolean(asset.approvedForAi);
+
+  $("#assetEditorApprovedMarketing").checked =
+    Boolean(asset.approvedForMarketing);
+
+  $("#assetEditorActive").checked =
+    asset.active !== false;
+
+  const preview =
+    $("#assetEditorPreview");
+
+  if (preview) {
+    if (asset.externalUrl) {
+      preview.innerHTML = `
+        <img
+          src="${escapeHtml(asset.externalUrl)}"
+          alt="${escapeHtml(
+            asset.altText ||
+            asset.name ||
+            "Asset preview"
+          )}"
+          style="
+            display:block;
+            width:100%;
+            max-height:52vh;
+            object-fit:contain;
+            border-radius:14px;
+          "
+        />
+      `;
+    } else {
+      preview.innerHTML = `
+        <div
+          style="
+            min-height:180px;
+            display:grid;
+            place-items:center;
+            color:var(--muted);
+          "
+        >
+          No preview available
+        </div>
+      `;
+    }
+  }
+
+  $("#assetEditorHeading").textContent =
+    asset.name ||
+    "Edit Asset";
+
+  safeDialogOpen(dialog);
+}
+async function saveAssetEditor(event) {
+  event.preventDefault();
+
+  const id =
+    $("#assetEditorId")
+      ?.value;
+
+  const name =
+    $("#assetEditorName")
+      ?.value
+      ?.trim();
+
+  const category =
+    $("#assetEditorCategory")
+      ?.value;
+
+  const description =
+    $("#assetEditorDescription")
+      ?.value
+      ?.trim() || "";
+
+  const altText =
+    $("#assetEditorAltText")
+      ?.value
+      ?.trim() || "";
+
+  const tags =
+    ($("#assetEditorTags")
+      ?.value || "")
+      .split(",")
+      .map(tag => tag.trim())
+      .filter(Boolean);
+
+  const approvedForAi =
+    Boolean(
+      $("#assetEditorApprovedAi")
+        ?.checked
+    );
+
+  const approvedForMarketing =
+    Boolean(
+      $("#assetEditorApprovedMarketing")
+        ?.checked
+    );
+
+  const active =
+    Boolean(
+      $("#assetEditorActive")
+        ?.checked
+    );
+
+  if (!id) {
+    showToast(
+      "Asset ID is missing.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (!name) {
+    showToast(
+      "Give this asset a name.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button =
+    $("#saveAssetEditorButton");
+
+  if (button) {
+    button.disabled = true;
+    button.textContent =
+      "Saving…";
+  }
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("assets")
+        .update({
+          name,
+          asset_type:
+            category,
+          description,
+          alt_text:
+            altText,
+          tags,
+          approved_for_ai:
+            approvedForAi,
+          approved_for_marketing:
+            approvedForMarketing,
+          active
+        })
+        .eq(
+          "id",
+          id
+        );
+
+    if (error) {
+      throw error;
+    }
+
+    const asset =
+      APP_DATA.assets.find(
+        item =>
+          String(item.id) ===
+          String(id)
+      );
+
+    if (asset) {
+      asset.name =
+        name;
+
+      asset.category =
+        category;
+
+      asset.description =
+        description;
+
+      asset.altText =
+        altText;
+
+      asset.tags =
+        tags;
+
+      asset.approvedForAi =
+        approvedForAi;
+
+      asset.approvedForMarketing =
+        approvedForMarketing;
+
+      asset.active =
+        active;
+    }
+
+    safeDialogClose(
+      $("#assetEditorDialog")
+    );
+
+    renderApp();
+
+    showToast(
+      "Asset updated.",
+      "success"
+    );
+  } catch (error) {
+    console.error(
+      "Asset update failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Asset could not be updated.",
+      "error"
+    );
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent =
+        "Save Changes";
+    }
+  }
 }
 /* =========================================================
    ASSET UPLOAD
