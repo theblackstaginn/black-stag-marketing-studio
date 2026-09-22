@@ -12356,6 +12356,373 @@ async function saveAssetEditor(event) {
     }
   }
 }
+
+/* =========================================================
+   ASSET FOLDERS
+   ========================================================= */
+
+function getAssetFoldersForActiveBrand() {
+  const brand =
+    getActiveBrand();
+
+  if (!brand) {
+    return [];
+  }
+
+  return (
+    APP_DATA.assetFolders || []
+  )
+    .filter(
+      folder =>
+        String(folder.brandId) ===
+        String(brand.id)
+    )
+    .sort(
+      (a, b) =>
+        String(a.name || "")
+          .localeCompare(
+            String(b.name || "")
+          )
+    );
+}
+
+
+function renderAssetFolderCard(
+  folder
+) {
+  const assetCount =
+    APP_DATA.assets.filter(
+      asset =>
+        String(
+          asset.folderId || ""
+        ) ===
+        String(folder.id)
+    ).length;
+
+  return `
+    <article
+      class="content-panel"
+      data-open-asset-folder="${
+        escapeHtml(folder.id)
+      }"
+      role="button"
+      tabindex="0"
+      style="
+        min-width:0;
+        cursor:pointer;
+      "
+    >
+      <div
+        style="
+          min-height:145px;
+          display:flex;
+          flex-direction:column;
+          justify-content:space-between;
+          gap:20px;
+        "
+      >
+        <div
+          aria-hidden="true"
+          style="
+            font-size:2.1rem;
+            line-height:1;
+          "
+        >
+          ◇
+        </div>
+
+        <div>
+          <span class="eyebrow">
+            Folder
+          </span>
+
+          <h3
+            style="
+              margin:6px 0 4px;
+            "
+          >
+            ${
+              escapeHtml(
+                folder.name ||
+                "Untitled Folder"
+              )
+            }
+          </h3>
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.75rem;
+            "
+          >
+            ${assetCount}
+            ${
+              assetCount === 1
+                ? "asset"
+                : "assets"
+            }
+          </p>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+
+function openCreateAssetFolderDialog() {
+  const brand =
+    getActiveBrand();
+
+  if (!brand) {
+    showToast(
+      "Choose a working brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+  let dialog =
+    $("#assetFolderDialog");
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
+      );
+
+    dialog.id =
+      "assetFolderDialog";
+
+    dialog.className =
+      "app-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+  }
+
+  dialog.innerHTML = `
+    <div
+      class="dialog-shell"
+      style="
+        width:min(
+          520px,
+          calc(100vw - 28px)
+        );
+      "
+    >
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:20px;
+          margin-bottom:22px;
+        "
+      >
+        <div>
+          <span class="eyebrow">
+            Asset Vault
+          </span>
+
+          <h2
+            style="
+              margin:5px 0;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-weight:400;
+            "
+          >
+            Create Folder
+          </h2>
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.78rem;
+            "
+          >
+            Organize assets for
+            ${escapeHtml(
+              brand.name
+            )}.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="icon-button"
+          data-close-asset-folder
+          aria-label="Close"
+        >
+          ×
+        </button>
+      </div>
+
+      <form
+        id="assetFolderForm"
+        autocomplete="off"
+      >
+        <label>
+          <span>
+            Folder Name
+          </span>
+
+          <input
+            id="assetFolderName"
+            type="text"
+            maxlength="120"
+            placeholder="Campaign Photography"
+            required
+          />
+        </label>
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:22px;
+          "
+        >
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-asset-folder
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveAssetFolderButton"
+            type="submit"
+            class="primary-button"
+          >
+            Create Folder
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  safeDialogOpen(
+    dialog
+  );
+
+  requestAnimationFrame(
+    () => {
+      $("#assetFolderName")
+        ?.focus();
+    }
+  );
+}
+
+
+async function handleCreateAssetFolder(
+  event
+) {
+  event.preventDefault();
+
+  const brand =
+    getActiveBrand();
+
+  if (!brand) {
+    return;
+  }
+
+  const name =
+    String(
+      $("#assetFolderName")
+        ?.value ||
+      ""
+    ).trim();
+
+  if (!name) {
+    showToast(
+      "Give the folder a name.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button =
+    $("#saveAssetFolderButton");
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Creating…";
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "asset_folders"
+        )
+        .insert({
+          brand_id:
+            brand.id,
+
+          name
+        })
+        .select("*")
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    APP_DATA.assetFolders.push(
+      normalizeAssetFolder(
+        data
+      )
+    );
+
+    safeDialogClose(
+      $("#assetFolderDialog")
+    );
+
+    renderApp();
+
+    showToast(
+      "Folder created.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Folder creation failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Folder could not be created.",
+      "error"
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Create Folder";
+    }
+  }
+}
 /* =========================================================
    ASSET UPLOAD
    ========================================================= */
