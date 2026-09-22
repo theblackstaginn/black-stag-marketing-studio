@@ -10535,15 +10535,226 @@ async function saveContentEditor(
 function renderContentCard(
   item
 ) {
-  // NEW FUNCTION HERE
+  const preview =
+    item.body ||
+    item.originalRequest ||
+    "";
+
+
+  return `
+    <article
+      class="content-panel"
+      data-open-content="${
+        escapeHtml(
+          item.id
+        )
+      }"
+      role="button"
+      tabindex="0"
+      aria-label="Open ${
+        escapeHtml(
+          item.title ||
+          "content"
+        )
+      }"
+      style="
+        margin-bottom:12px;
+        cursor:pointer;
+        transition:
+          transform .18s var(--ease),
+          border-color .18s var(--ease),
+          background .18s var(--ease);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:8px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  getContentTypeLabel(
+                    item.type
+                  )
+                )
+              }
+            </span>
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    item.status
+                  )
+                )
+              }
+            </span>
+
+          </div>
+
+
+          <h3
+            style="
+              margin:0 0 8px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                item.title ||
+                "Untitled Content"
+              )
+            }
+          </h3>
+
+
+          ${
+            preview
+              ? `
+                <p
+                  style="
+                    margin:0 0 9px;
+                    color:var(--muted);
+                    font-size:.78rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      truncateText(
+                        preview,
+                        260
+                      )
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          <div
+            style="
+              display:flex;
+              gap:10px;
+              flex-wrap:wrap;
+              color:var(--muted);
+              font-size:.68rem;
+            "
+          >
+
+            ${
+              item.platform
+                ? `
+                  <span>
+                    ${
+                      escapeHtml(
+                        item.platform
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              item.goal
+                ? `
+                  <span>
+                    •
+                    ${
+                      escapeHtml(
+                        item.goal
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              item.scheduledFor
+                ? `
+                  <span>
+                    Scheduled:
+                    ${
+                      escapeHtml(
+                        formatDateTime(
+                          item.scheduledFor
+                        )
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+
+        <span
+          aria-hidden="true"
+          style="
+            flex:0 0 auto;
+            color:var(--bronze-light);
+            font-size:1.1rem;
+            line-height:1;
+            padding-top:4px;
+          "
+        >
+          ›
+        </span>
+
+      </div>
+
+    </article>
+  `;
 }
-
-
-/* =========================================================
-   TEXT PREVIEW
-   ========================================================= */
-
-function truncateText(
 /* =========================================================
    TEXT PREVIEW
    ========================================================= */
