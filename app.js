@@ -13996,6 +13996,39 @@ function bindEvents() {
     handleGlobalClick
   );
 
+  document.addEventListener(
+    "keydown",
+    event => {
+      if (
+        event.key !==
+          "Enter" &&
+        event.key !==
+          " "
+      ) {
+        return;
+      }
+
+
+      const contentCard =
+        event.target.closest(
+          "[data-open-content]"
+        );
+
+
+      if (!contentCard) {
+        return;
+      }
+
+
+      event.preventDefault();
+
+
+      openContentEditor(
+        contentCard.dataset
+          .openContent
+      );
+    }
+  );
 
   $("#brandSwitcher")
     ?.addEventListener(
