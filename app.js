@@ -314,7 +314,7 @@ function createSupabaseClient() {
    ========================================================= */
 const {
   data: assetFolderRows,
-error: assetFolderLoadError
+  error: assetFolderLoadError
 } =
   await supabaseClient
     .from("asset_folders")
@@ -326,17 +326,17 @@ error: assetFolderLoadError
       }
     );
 
-if (folderError) {
+if (assetFolderLoadError) {
   console.warn(
     "Asset folders could not be loaded:",
-    folderError
+    assetFolderLoadError
   );
 
   APP_DATA.assetFolders = [];
 } else {
   APP_DATA.assetFolders =
     (
-      folderRows ||
+      assetFolderRows ||
       []
     ).map(
       normalizeAssetFolder
