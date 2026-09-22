@@ -1435,6 +1435,13 @@ async function loadAppData() {
       contentResult,
       calendarResult,
       assetsResult
+      const [
+  brandsResult,
+  campaignsResult,
+  contentResult,
+  calendarResult,
+  assetsResult,
+  assetFoldersResult
     ] =
       await Promise.all([
 
