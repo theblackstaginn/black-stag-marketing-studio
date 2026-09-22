@@ -11595,9 +11595,17 @@ function renderAssetCard(
   return `
     <article
       class="content-panel"
+      data-open-asset="${
+        escapeHtml(
+          asset.id
+        )
+      }"
+      role="button"
+      tabindex="0"
       style="
         min-width:0;
         overflow:hidden;
+        cursor:pointer;
       "
     >
 
