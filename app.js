@@ -312,13 +312,43 @@ function createSupabaseClient() {
 /* =========================================================
    APP DATA
    ========================================================= */
+const {
+  data: assetFolderRows,
+error: assetFolderLoadError
+} =
+  await supabaseClient
+    .from("asset_folders")
+    .select("*")
+    .order(
+      "name",
+      {
+        ascending: true
+      }
+    );
 
+if (folderError) {
+  console.warn(
+    "Asset folders could not be loaded:",
+    folderError
+  );
+
+  APP_DATA.assetFolders = [];
+} else {
+  APP_DATA.assetFolders =
+    (
+      folderRows ||
+      []
+    ).map(
+      normalizeAssetFolder
+    );
+}
 const APP_DATA = {
   brands: [],
   campaigns: [],
   content: [],
   calendar: [],
   assets: []
+  assetFolders: [],
 };
 
 
@@ -1314,7 +1344,32 @@ function normalizeCalendarItem(row) {
       row.updated_at
   };
 }
+function normalizeAssetFolder(row) {
+  return {
+    id:
+      row.id,
 
+    brandId:
+      row.brand_id,
+
+    parentFolderId:
+      row.parent_folder_id ||
+      null,
+
+    name:
+      row.name,
+
+    description:
+      row.description ||
+      "",
+
+    createdAt:
+      row.created_at,
+
+    updatedAt:
+      row.updated_at
+  };
+}
 
 function normalizeAsset(row) {
   return {
