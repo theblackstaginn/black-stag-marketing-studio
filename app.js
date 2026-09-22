@@ -1,19 +1,28 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    app.js
-   v1
+   v2
 
    Application shell:
    - Navigation
    - Brand switching
    - Starter brand architecture
    - Quick Create
+   - Manual ChatGPT AI workflow
+   - AI brief generation
+   - Copy-to-clipboard
+   - Paste-result workflow
+   - Draft creation
    - Filters
    - Dialogs
    - Toasts
    - Local app state
 
-   No AI or Supabase calls yet.
+   Supabase is not connected yet.
+
+   V1 AI MODE:
+   ChatGPT Manual
+
    ========================================================= */
 
 "use strict";
@@ -40,18 +49,10 @@ function escapeHtml(value = "") {
 }
 
 
-function slugify(value = "") {
-  return String(value)
-    .toLowerCase()
-    .trim()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-}
-
-
 function safeDialogOpen(dialog) {
-  if (!dialog) return;
+  if (!dialog) {
+    return;
+  }
 
   if (!dialog.open) {
     dialog.showModal();
@@ -60,12 +61,81 @@ function safeDialogOpen(dialog) {
 
 
 function safeDialogClose(dialog) {
-  if (!dialog) return;
+  if (!dialog) {
+    return;
+  }
 
   if (dialog.open) {
     dialog.close();
   }
 }
+
+
+function createId(prefix = "item") {
+  if (
+    window.crypto &&
+    typeof window.crypto.randomUUID === "function"
+  ) {
+    return `${prefix}-${window.crypto.randomUUID()}`;
+  }
+
+  return `${prefix}-${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
+}
+
+
+/* =========================================================
+   CONFIG
+   ========================================================= */
+
+const CONFIG =
+  window.BLACK_STAG_CONFIG || {
+    app: {
+      name:
+        "Black Stag Marketing Studio",
+
+      version:
+        "0.2.0",
+
+      environment:
+        "development"
+    },
+
+    ai: {
+      mode:
+        "manual-chatgpt",
+
+      providers: {
+        manualChatGPT: {
+          enabled:
+            true,
+
+          label:
+            "ChatGPT — Manual"
+        },
+
+        openAI: {
+          enabled:
+            false,
+
+          label:
+            "OpenAI API — Automatic",
+
+          endpoint:
+            ""
+        }
+      }
+    },
+
+    publishing: {
+      enabled:
+        false,
+
+      requireApproval:
+        true
+    }
+  };
 
 
 /* =========================================================
@@ -77,11 +147,17 @@ const STORAGE_KEYS = {
     "blackStagMarketingStudio.activeBrand",
 
   lastView:
-    "blackStagMarketingStudio.lastView"
+    "blackStagMarketingStudio.lastView",
+
+  content:
+    "blackStagMarketingStudio.content"
 };
 
 
-function readStorage(key, fallback = null) {
+function readStorage(
+  key,
+  fallback = null
+) {
   try {
     const value =
       window.localStorage.getItem(key);
@@ -98,7 +174,10 @@ function readStorage(key, fallback = null) {
 }
 
 
-function writeStorage(key, value) {
+function writeStorage(
+  key,
+  value
+) {
   try {
     window.localStorage.setItem(
       key,
@@ -113,19 +192,62 @@ function writeStorage(key, value) {
 }
 
 
+function readJsonStorage(
+  key,
+  fallback
+) {
+  try {
+    const raw =
+      window.localStorage.getItem(key);
+
+    if (!raw) {
+      return fallback;
+    }
+
+    return JSON.parse(raw);
+  } catch (error) {
+    console.warn(
+      "Unable to read JSON storage:",
+      error
+    );
+
+    return fallback;
+  }
+}
+
+
+function writeJsonStorage(
+  key,
+  value
+) {
+  try {
+    window.localStorage.setItem(
+      key,
+      JSON.stringify(value)
+    );
+  } catch (error) {
+    console.warn(
+      "Unable to write JSON storage:",
+      error
+    );
+  }
+}
+
+
 /* =========================================================
    STARTER BRAND DATA
 
-   This is temporary seed data.
+   Temporary seed data.
 
-   Later:
-   Supabase becomes the source of truth and these records
-   will be loaded from the Brand Brain database.
+   Supabase will eventually become the source of truth.
+
    ========================================================= */
 
 const STARTER_BRANDS = [
+
   {
-    id: "stag-and-stone",
+    id:
+      "stag-and-stone",
 
     name:
       "Stag & Stone Coffee and Bakehouse",
@@ -161,6 +283,7 @@ const STARTER_BRANDS = [
       false,
 
     identity: {
+
       tagline:
         "Crafted for the morning ritual.",
 
@@ -172,7 +295,16 @@ const STARTER_BRANDS = [
         "slightly mysterious",
         "atmospheric"
       ]
+
     },
+
+    marketingStrategy: [
+      "Build familiarity before asking for a sale.",
+      "Make local followers feel like they are watching the business come into existence.",
+      "Use real progress as marketing material.",
+      "Favor storytelling, previews, behind-the-scenes content, food and drink reveals, community building, and milestones.",
+      "Progress naturally from mystery to identity to story to visible progress to product reveals to community to opening details to countdown."
+    ],
 
     aiRules: [
       "Never imply the physical cafe is currently open.",
@@ -184,13 +316,16 @@ const STARTER_BRANDS = [
       "Use coming-soon language where appropriate.",
       "Favor storytelling, previews, progress, and behind-the-scenes content.",
       "Mystical and folkloric language is appropriate.",
-      "Avoid Halloween clichés and costume-shop witchiness."
+      "Avoid Halloween clichés and costume-shop witchiness.",
+      "Do not invent facts that were not supplied by the user or Brand Brain."
     ]
+
   },
 
 
   {
-    id: "black-stag-web-design",
+    id:
+      "black-stag-web-design",
 
     name:
       "Black Stag Web Design",
@@ -219,7 +354,17 @@ const STARTER_BRANDS = [
     campaignPhase:
       "ongoing",
 
+    openingDate:
+      null,
+
+    openingDateConfirmed:
+      false,
+
     identity: {
+
+      tagline:
+        "",
+
       personality: [
         "direct",
         "craft-focused",
@@ -228,22 +373,34 @@ const STARTER_BRANDS = [
         "practical",
         "custom-built"
       ]
+
     },
+
+    marketingStrategy: [
+      "Demonstrate practical value rather than relying on agency jargon.",
+      "Show real work and real business problems.",
+      "Explain the benefits of owning a custom-built website.",
+      "Speak clearly to small businesses and local service businesses."
+    ],
 
     aiRules: [
       "Do not imply clients rent their websites.",
-      "Emphasize ownership when relevant.",
-      "Do not invent project results or client testimonials.",
+      "Emphasize website ownership when relevant.",
+      "Do not invent project results.",
+      "Do not invent client testimonials.",
       "Do not misrepresent concept work as paid client work.",
       "Do not invent pricing.",
       "Avoid generic agency jargon.",
-      "Do not promise services the business does not currently offer."
+      "Do not promise services the business does not currently offer.",
+      "Do not invent facts that were not supplied by the user or Brand Brain."
     ]
+
   },
 
 
   {
-    id: "lace-and-leather",
+    id:
+      "lace-and-leather",
 
     name:
       "Lace & Leather",
@@ -272,7 +429,17 @@ const STARTER_BRANDS = [
     campaignPhase:
       "ongoing",
 
+    openingDate:
+      null,
+
+    openingDateConfirmed:
+      false,
+
     identity: {
+
+      tagline:
+        "",
+
       personality: [
         "arcane",
         "textural",
@@ -281,39 +448,60 @@ const STARTER_BRANDS = [
         "elegant",
         "fantasy-focused"
       ]
+
     },
 
+    marketingStrategy: [
+      "Show the tactile and believable qualities of digital textures.",
+      "Demonstrate practical creative uses.",
+      "Separate digital product marketing from custom commission marketing.",
+      "Favor artistic storytelling over generic digital-product advertising."
+    ],
+
     aiRules: [
-      "Do not invent products or product prices.",
+      "Do not invent products.",
+      "Do not invent product prices.",
       "Do not invent commission availability.",
       "Do not describe previews as reusable full-resolution assets.",
       "Preserve the distinction between digital products and custom commissions.",
       "Avoid generic fake-grunge language.",
-      "Favor believable material texture and archival fantasy aesthetics."
+      "Favor believable material texture and archival fantasy aesthetics.",
+      "Do not invent facts that were not supplied by the user or Brand Brain."
     ]
+
   }
+
 ];
 
 
 /* =========================================================
    APP DATA
 
-   Empty by design.
+   We deliberately do not seed fake campaigns,
+   analytics, posts, or assets.
 
-   We are not filling the interface with fake campaigns,
-   posts, assets, or analytics.
    ========================================================= */
 
 const APP_DATA = {
-  brands: [...STARTER_BRANDS],
 
-  campaigns: [],
+  brands:
+    [...STARTER_BRANDS],
 
-  content: [],
+  campaigns:
+    [],
 
-  calendar: [],
+  content:
+    readJsonStorage(
+      STORAGE_KEYS.content,
+      []
+    ),
 
-  assets: []
+  calendar:
+    [],
+
+  assets:
+    []
+
 };
 
 
@@ -322,6 +510,7 @@ const APP_DATA = {
    ========================================================= */
 
 const APP_STATE = {
+
   activeView:
     readStorage(
       STORAGE_KEYS.lastView,
@@ -344,7 +533,25 @@ const APP_STATE = {
     "all",
 
   createType:
-    "social-post"
+    "social-post",
+
+  currentAiBrief:
+    "",
+
+  currentAiRequest: {
+    brandId:
+      null,
+
+    type:
+      null,
+
+    goal:
+      null,
+
+    prompt:
+      null
+  }
+
 };
 
 
@@ -364,6 +571,7 @@ const VALID_VIEWS = new Set([
 
 
 const VIEW_TITLES = {
+
   dashboard:
     "Dashboard",
 
@@ -384,69 +592,113 @@ const VIEW_TITLES = {
 
   settings:
     "Settings"
+
 };
 
 
 /* =========================================================
-   CREATE TYPE DEFINITIONS
+   CONTENT TYPE DEFINITIONS
    ========================================================= */
 
 const CREATE_TYPES = {
+
   "social-post": {
+
     label:
       "Social Post",
 
+    instruction:
+      "Create a polished social media post.",
+
     defaultGoal:
       "awareness"
+
   },
 
+
   story: {
+
     label:
       "Story",
 
+    instruction:
+      "Create concise social story content suitable for a short sequence or single story.",
+
     defaultGoal:
       "awareness"
+
   },
 
+
   reel: {
+
     label:
       "Reel / Video Script",
 
+    instruction:
+      "Create a short-form video or reel concept and script.",
+
     defaultGoal:
       "engagement"
+
   },
 
+
   graphic: {
+
     label:
       "Promotional Graphic",
 
+    instruction:
+      "Develop the concept, visual direction, headline, supporting copy, and call to action for a promotional graphic.",
+
     defaultGoal:
       "awareness"
+
   },
 
+
   email: {
+
     label:
       "Email",
 
+    instruction:
+      "Create a marketing email with a subject line, preview text, body copy, and appropriate call to action.",
+
     defaultGoal:
       "awareness"
+
   },
 
+
   campaign: {
+
     label:
       "Campaign",
 
+    instruction:
+      "Develop a coordinated marketing campaign concept with objective, message, content ideas, recommended sequence, and calls to action.",
+
     defaultGoal:
       "awareness"
+
   },
 
+
   "website-copy": {
+
     label:
       "Website Copy",
 
+    instruction:
+      "Create polished website copy appropriate for the requested page, section, or purpose.",
+
     defaultGoal:
       "traffic"
+
   }
+
 };
 
 
@@ -454,7 +706,9 @@ const CREATE_TYPES = {
    ACTIVE BRAND
    ========================================================= */
 
-function getBrandById(brandId) {
+function getBrandById(
+  brandId
+) {
   return APP_DATA.brands.find(
     brand =>
       brand.id === brandId
@@ -494,9 +748,14 @@ function ensureValidActiveBrand() {
 }
 
 
-function setActiveBrand(brandId) {
+function setActiveBrand(
+  brandId,
+  options = {}
+) {
   const brand =
-    getBrandById(brandId);
+    getBrandById(
+      brandId
+    );
 
   if (!brand) {
     showToast(
@@ -506,6 +765,10 @@ function setActiveBrand(brandId) {
 
     return;
   }
+
+  const changed =
+    APP_STATE.activeBrandId !==
+    brand.id;
 
   APP_STATE.activeBrandId =
     brand.id;
@@ -519,12 +782,20 @@ function setActiveBrand(brandId) {
   renderBrandPicker();
   renderBrandGrid();
   renderDashboard();
+  renderCampaigns();
+  renderContentLibrary();
+  renderAssets();
   syncQuickCreateBrand();
 
-  showToast(
-    `Working brand changed to ${brand.shortName}.`,
-    "success"
-  );
+  if (
+    changed &&
+    options.toast !== false
+  ) {
+    showToast(
+      `Working brand changed to ${brand.shortName}.`,
+      "success"
+    );
+  }
 }
 
 
@@ -606,9 +877,23 @@ function renderBrandPicker() {
   if (!APP_DATA.brands.length) {
     list.innerHTML = `
       <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◆
+        </span>
+
+        <h3>
+          No brands yet.
+        </h3>
+
         <p>
-          No brands have been added yet.
+          Add a brand to begin building its
+          Brand Brain.
         </p>
+
       </div>
     `;
 
@@ -618,18 +903,18 @@ function renderBrandPicker() {
   list.innerHTML =
     APP_DATA.brands
       .map(brand => {
+
         const isActive =
           brand.id ===
           APP_STATE.activeBrandId;
 
         return `
           <button
-            class="brand-switcher
-              ${
-                isActive
-                  ? "is-selected"
-                  : ""
-              }"
+            class="brand-switcher ${
+              isActive
+                ? "is-selected"
+                : ""
+            }"
             type="button"
             data-select-brand="${
               escapeHtml(
@@ -652,6 +937,7 @@ function renderBrandPicker() {
             <span
               class="brand-switcher-copy"
             >
+
               <strong>
                 ${
                   escapeHtml(
@@ -667,6 +953,7 @@ function renderBrandPicker() {
                   )
                 }
               </small>
+
             </span>
 
             ${
@@ -712,6 +999,7 @@ function renderBrandGrid() {
       <div
         class="empty-state full-width"
       >
+
         <span
           class="empty-state-icon"
           aria-hidden="true"
@@ -727,6 +1015,7 @@ function renderBrandGrid() {
           Add a brand to begin building
           its Brand Brain.
         </p>
+
       </div>
     `;
 
@@ -736,6 +1025,7 @@ function renderBrandGrid() {
   grid.innerHTML =
     APP_DATA.brands
       .map(brand => {
+
         const isActive =
           brand.id ===
           APP_STATE.activeBrandId;
@@ -949,7 +1239,7 @@ function syncQuickCreateBrand() {
 
 
 /* =========================================================
-   DASHBOARD
+   GREETING
    ========================================================= */
 
 function renderGreeting() {
@@ -966,7 +1256,10 @@ function renderGreeting() {
   let greeting =
     "Good evening.";
 
-  if (hour >= 5 && hour < 12) {
+  if (
+    hour >= 5 &&
+    hour < 12
+  ) {
     greeting =
       "Good morning.";
   } else if (
@@ -982,6 +1275,10 @@ function renderGreeting() {
 }
 
 
+/* =========================================================
+   BRAND SCOPING
+   ========================================================= */
+
 function getBrandScopedItems(
   items,
   brandId
@@ -996,6 +1293,10 @@ function getBrandScopedItems(
   );
 }
 
+
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
 
 function renderDashboard() {
   const brand =
@@ -1045,6 +1346,7 @@ function renderDashboard() {
   const upcomingItems =
     brandCalendar
       .filter(item => {
+
         if (!item.publishAt) {
           return false;
         }
@@ -1058,6 +1360,7 @@ function renderDashboard() {
           Number.isFinite(time) &&
           time >= now
         );
+
       })
       .sort(
         (a, b) =>
@@ -1180,7 +1483,9 @@ function renderDashboardUpcoming(
    DATE FORMATTING
    ========================================================= */
 
-function formatDateTime(value) {
+function formatDateTime(
+  value
+) {
   const date =
     new Date(value);
 
@@ -1195,10 +1500,17 @@ function formatDateTime(value) {
   return new Intl.DateTimeFormat(
     undefined,
     {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit"
+      month:
+        "short",
+
+      day:
+        "numeric",
+
+      hour:
+        "numeric",
+
+      minute:
+        "2-digit"
     }
   ).format(date);
 }
@@ -1232,6 +1544,7 @@ function setView(
 
   $$("[data-view-panel]")
     .forEach(panel => {
+
       const matches =
         panel.dataset.viewPanel ===
         viewName;
@@ -1243,6 +1556,7 @@ function setView(
         "is-active",
         matches
       );
+
     });
 
 
@@ -1250,11 +1564,13 @@ function setView(
     ".nav-button[data-view], " +
     ".bottom-nav-button[data-view]"
   ).forEach(button => {
+
     button.classList.toggle(
       "is-active",
       button.dataset.view ===
         viewName
     );
+
   });
 
 
@@ -1277,7 +1593,9 @@ function setView(
 
     if (main) {
       main.scrollTo({
-        top: 0,
+        top:
+          0,
+
         behavior:
           options.instant
             ? "auto"
@@ -1286,7 +1604,9 @@ function setView(
     }
 
     window.scrollTo({
-      top: 0,
+      top:
+        0,
+
       behavior:
         options.instant
           ? "auto"
@@ -1297,7 +1617,7 @@ function setView(
 
 
 /* =========================================================
-   FILTERS
+   FILTER HELPERS
    ========================================================= */
 
 function setFilterButtons(
@@ -1307,16 +1627,20 @@ function setFilterButtons(
 ) {
   $$(selector)
     .forEach(button => {
+
       button.classList.toggle(
         "is-active",
         button.dataset[dataKey] ===
           activeValue
       );
+
     });
 }
 
 
-function setCampaignFilter(value) {
+function setCampaignFilter(
+  value
+) {
   APP_STATE.campaignFilter =
     value || "all";
 
@@ -1330,7 +1654,9 @@ function setCampaignFilter(value) {
 }
 
 
-function setContentFilter(value) {
+function setContentFilter(
+  value
+) {
   APP_STATE.contentFilter =
     value || "all";
 
@@ -1344,7 +1670,9 @@ function setContentFilter(value) {
 }
 
 
-function setAssetFilter(value) {
+function setAssetFilter(
+  value
+) {
   APP_STATE.assetFilter =
     value || "all";
 
@@ -1383,6 +1711,7 @@ function renderCampaigns() {
       brand.id
     );
 
+
   if (
     APP_STATE.campaignFilter !==
     "all"
@@ -1397,6 +1726,7 @@ function renderCampaigns() {
 
 
   if (!campaigns.length) {
+
     const filtered =
       APP_STATE.campaignFilter !==
       "all";
@@ -1454,6 +1784,7 @@ function renderCampaigns() {
         <article
           class="content-panel"
         >
+
           <span class="eyebrow">
             ${
               escapeHtml(
@@ -1471,6 +1802,7 @@ function renderCampaigns() {
               )
             }
           </h3>
+
         </article>
       `)
       .join("");
@@ -1517,6 +1849,7 @@ function renderContentLibrary() {
 
 
   if (!content.length) {
+
     const filtered =
       APP_STATE.contentFilter !==
       "all";
@@ -1556,29 +1889,62 @@ function renderContentLibrary() {
 
   library.innerHTML =
     content
-      .map(item => `
-        <article
-          class="content-panel"
-        >
-          <span class="eyebrow">
-            ${
-              escapeHtml(
-                item.status ||
-                "Draft"
-              )
-            }
-          </span>
+      .map(item => {
 
-          <h3>
-            ${
-              escapeHtml(
-                item.title ||
-                "Untitled Content"
-              )
-            }
-          </h3>
-        </article>
-      `)
+        const typeDefinition =
+          CREATE_TYPES[item.type];
+
+        return `
+          <article
+            class="content-panel"
+            style="
+              margin-bottom:12px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  item.status ||
+                  "draft"
+                )
+              }
+            </span>
+
+            <h3
+              style="
+                margin-bottom:8px;
+              "
+            >
+              ${
+                escapeHtml(
+                  item.title ||
+                  typeDefinition?.label ||
+                  "Untitled Content"
+                )
+              }
+            </h3>
+
+            <p
+              style="
+                color:var(--muted);
+                font-size:.8rem;
+                line-height:1.6;
+                white-space:pre-wrap;
+              "
+            >
+              ${
+                escapeHtml(
+                  item.body ||
+                  ""
+                )
+              }
+            </p>
+
+          </article>
+        `;
+
+      })
       .join("");
 }
 
@@ -1623,6 +1989,7 @@ function renderAssets() {
 
 
   if (!assets.length) {
+
     const filtered =
       APP_STATE.assetFilter !==
       "all";
@@ -1681,6 +2048,251 @@ function renderAssets() {
 
 
 /* =========================================================
+   AI BRIEF GENERATOR
+   ========================================================= */
+
+function buildAiBrief({
+  brand,
+  type,
+  goal,
+  userPrompt
+}) {
+  const definition =
+    CREATE_TYPES[type] ||
+    CREATE_TYPES["social-post"];
+
+
+  const personality =
+    brand.identity?.personality?.length
+      ? brand.identity.personality.join(
+          ", "
+        )
+      : "Use the established brand voice.";
+
+
+  const strategy =
+    brand.marketingStrategy?.length
+      ? brand.marketingStrategy
+          .map(
+            item =>
+              `- ${item}`
+          )
+          .join("\n")
+      : "- Follow the established marketing strategy.";
+
+
+  const rules =
+    brand.aiRules?.length
+      ? brand.aiRules
+          .map(
+            rule =>
+              `- ${rule}`
+          )
+          .join("\n")
+      : "- Do not invent business facts.";
+
+
+  const tagline =
+    brand.identity?.tagline
+      ? brand.identity.tagline
+      : "No official tagline supplied.";
+
+
+  const recentContent =
+    getRecentContentForBrief(
+      brand.id
+    );
+
+
+  return `BLACK STAG MARKETING STUDIO
+AI CONTENT BRIEF
+
+You are helping create marketing content for the following brand.
+
+==================================================
+BRAND
+==================================================
+
+Official Name:
+${brand.name}
+
+Short Name:
+${brand.shortName}
+
+Business Type:
+${brand.businessType}
+
+Website:
+${brand.website || "Not supplied"}
+
+Business Stage:
+${brand.stageLabel}
+
+Primary Marketing Goal:
+${brand.primaryGoal}
+
+Current Campaign Phase:
+${brand.campaignPhase || "Not specified"}
+
+Tagline:
+${tagline}
+
+
+==================================================
+BRAND VOICE
+==================================================
+
+${personality}
+
+
+==================================================
+MARKETING STRATEGY
+==================================================
+
+${strategy}
+
+
+==================================================
+SOURCE-OF-TRUTH RULES
+==================================================
+
+${rules}
+
+Treat supplied business information as factual only when it is explicitly included in this brief.
+
+Do not invent:
+- prices
+- dates
+- availability
+- operating hours
+- promotions
+- products
+- services
+- locations
+- policies
+- testimonials
+- performance claims
+- business milestones
+
+If information necessary to complete the request is missing, either write around the missing information or clearly identify what needs confirmation.
+
+
+==================================================
+CONTENT REQUEST
+==================================================
+
+Content Type:
+${definition.label}
+
+Marketing Goal:
+${goal}
+
+Task:
+${definition.instruction}
+
+User Request:
+${userPrompt}
+
+
+==================================================
+RECENT CONTENT
+==================================================
+
+${recentContent}
+
+
+==================================================
+INSTRUCTIONS
+==================================================
+
+Create content that sounds specific to this brand rather than generic AI marketing copy.
+
+Preserve the brand's established voice.
+
+Avoid repeating the same hooks, phrases, topics, or calls to action used in recent content.
+
+Do not invent business facts.
+
+Do not turn atmospheric branding into parody.
+
+Keep the writing natural and usable.
+
+When appropriate, give the strongest finished version first.
+
+If useful for this content type, you may also provide:
+- a shorter alternate version
+- a suggested call to action
+- a small number of relevant hashtags
+- a visual or photography suggestion
+
+Do not add unnecessary explanations before the finished marketing content.
+
+==================================================
+END BRIEF
+==================================================`;
+}
+
+
+/* =========================================================
+   RECENT CONTENT CONTEXT
+   ========================================================= */
+
+function getRecentContentForBrief(
+  brandId
+) {
+  const recent =
+    APP_DATA.content
+      .filter(
+        item =>
+          item.brandId ===
+          brandId
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            b.createdAt || 0
+          ).getTime() -
+          new Date(
+            a.createdAt || 0
+          ).getTime()
+      )
+      .slice(0, 5);
+
+
+  if (!recent.length) {
+    return "No previous content has been saved yet.";
+  }
+
+
+  return recent
+    .map(
+      (item, index) => {
+
+        const body =
+          String(
+            item.body || ""
+          )
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 300);
+
+        return `${index + 1}. ${
+          item.title ||
+          CREATE_TYPES[
+            item.type
+          ]?.label ||
+          "Content"
+        }
+
+${body || "No body text."}`;
+
+      }
+    )
+    .join("\n\n");
+}
+
+
+/* =========================================================
    QUICK CREATE
    ========================================================= */
 
@@ -1692,11 +2304,14 @@ function openQuickCreate(
       ? createType
       : "social-post";
 
+
   APP_STATE.createType =
     type;
 
+
   const definition =
     CREATE_TYPES[type];
+
 
   const title =
     $("#quickCreateDialogTitle");
@@ -1726,16 +2341,21 @@ function openQuickCreate(
       definition.defaultGoal;
   }
 
+
   syncQuickCreateBrand();
+
 
   safeDialogOpen(
     $("#quickCreateDialog")
   );
 
 
-  window.setTimeout(() => {
-    prompt?.focus();
-  }, 120);
+  window.setTimeout(
+    () => {
+      prompt?.focus();
+    },
+    120
+  );
 }
 
 
@@ -1746,24 +2366,34 @@ function closeQuickCreate() {
 }
 
 
+/* =========================================================
+   QUICK CREATE SUBMIT
+   ========================================================= */
+
 function handleQuickCreateSubmit(
   event
 ) {
   event.preventDefault();
 
+
   const brandId =
     $("#createBrand")?.value;
 
-  const prompt =
+
+  const userPrompt =
     $("#createPrompt")
       ?.value
       ?.trim();
 
+
   const goal =
-    $("#createGoal")?.value;
+    $("#createGoal")?.value ||
+    "awareness";
+
 
   const type =
-    $("#createContentType")?.value;
+    $("#createContentType")?.value ||
+    "social-post";
 
 
   const brand =
@@ -1782,7 +2412,7 @@ function handleQuickCreateSubmit(
   }
 
 
-  if (!prompt) {
+  if (!userPrompt) {
     showToast(
       "Tell the studio what you want to market.",
       "error"
@@ -1794,43 +2424,742 @@ function handleQuickCreateSubmit(
   }
 
 
-  /*
-     This is intentionally where the future AI
-     generation pipeline will begin.
-
-     For now we confirm that the request is valid
-     without pretending AI is connected.
-  */
-
-  console.info(
-    "Quick Create request:",
-    {
-      brandId:
-        brand.id,
-
+  const brief =
+    buildAiBrief({
+      brand,
       type,
-
       goal,
+      userPrompt
+    });
 
-      prompt
-    }
-  );
+
+  APP_STATE.currentAiBrief =
+    brief;
+
+
+  APP_STATE.currentAiRequest = {
+    brandId:
+      brand.id,
+
+    type,
+
+    goal,
+
+    prompt:
+      userPrompt
+  };
 
 
   closeQuickCreate();
 
+  showAiBriefDialog();
+}
 
-  showToast(
-    "The creation workflow is ready. AI comes next.",
-    "success"
+
+/* =========================================================
+   AI BRIEF DIALOG
+
+   This dialog is created dynamically so the existing
+   index.html does not need to be replaced.
+
+   ========================================================= */
+
+function ensureAiBriefDialog() {
+  let dialog =
+    $("#aiBriefDialog");
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "aiBriefDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+
+    <div class="dialog-header">
+
+      <div>
+
+        <span class="eyebrow">
+          ChatGPT — Manual
+        </span>
+
+        <h2>
+          AI Brief
+        </h2>
+
+      </div>
+
+      <button
+        id="closeAiBriefButton"
+        class="dialog-close"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <div class="create-form">
+
+      <p
+        style="
+          margin:0;
+          color:var(--muted);
+          font-size:.82rem;
+          line-height:1.65;
+        "
+      >
+        Marketing Studio assembled this prompt
+        from the active Brand Brain and your
+        request. Copy it into ChatGPT, then
+        return here with the finished result.
+      </p>
+
+
+      <label class="field">
+
+        <span>
+          Generated AI Brief
+        </span>
+
+        <textarea
+          id="aiBriefText"
+          readonly
+          style="
+            min-height:300px;
+          "
+        ></textarea>
+
+      </label>
+
+
+      <div
+        style="
+          display:grid;
+          grid-template-columns:1fr 1fr;
+          gap:10px;
+        "
+      >
+
+        <button
+          id="copyAiBriefButton"
+          class="primary-button"
+          type="button"
+        >
+          Copy Brief
+        </button>
+
+        <button
+          id="openChatGptButton"
+          class="secondary-button"
+          type="button"
+        >
+          Open ChatGPT
+        </button>
+
+      </div>
+
+
+      <button
+        id="showPasteResultButton"
+        class="secondary-button full-button"
+        type="button"
+      >
+        I Have My Result
+      </button>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
   );
 
 
-  const promptField =
+  $("#closeAiBriefButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#copyAiBriefButton")
+    ?.addEventListener(
+      "click",
+      copyCurrentAiBrief
+    );
+
+
+  $("#openChatGptButton")
+    ?.addEventListener(
+      "click",
+      openChatGpt
+    );
+
+
+  $("#showPasteResultButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+
+        showAiResultDialog();
+      }
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+function showAiBriefDialog() {
+  const dialog =
+    ensureAiBriefDialog();
+
+
+  const textarea =
+    $("#aiBriefText");
+
+
+  if (textarea) {
+    textarea.value =
+      APP_STATE.currentAiBrief;
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+/* =========================================================
+   COPY AI BRIEF
+   ========================================================= */
+
+async function copyCurrentAiBrief() {
+  const brief =
+    APP_STATE.currentAiBrief;
+
+  if (!brief) {
+    showToast(
+      "There is no AI brief to copy.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  try {
+
+    await navigator.clipboard.writeText(
+      brief
+    );
+
+    showToast(
+      "AI brief copied. Paste it into ChatGPT.",
+      "success"
+    );
+
+  } catch (error) {
+
+    const textarea =
+      $("#aiBriefText");
+
+    if (textarea) {
+      textarea.focus();
+      textarea.select();
+
+      try {
+        document.execCommand(
+          "copy"
+        );
+
+        showToast(
+          "AI brief copied. Paste it into ChatGPT.",
+          "success"
+        );
+
+        return;
+      } catch (fallbackError) {
+        console.warn(
+          fallbackError
+        );
+      }
+    }
+
+
+    showToast(
+      "Copy the brief from the text box.",
+      "error"
+    );
+
+  }
+}
+
+
+/* =========================================================
+   OPEN CHATGPT
+   ========================================================= */
+
+function openChatGpt() {
+  window.open(
+    "https://chatgpt.com/",
+    "_blank",
+    "noopener,noreferrer"
+  );
+}
+
+
+/* =========================================================
+   AI RESULT DIALOG
+   ========================================================= */
+
+function ensureAiResultDialog() {
+  let dialog =
+    $("#aiResultDialog");
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "aiResultDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+
+    <div class="dialog-header">
+
+      <div>
+
+        <span class="eyebrow">
+          Content Workflow
+        </span>
+
+        <h2>
+          Bring It Back
+        </h2>
+
+      </div>
+
+      <button
+        id="closeAiResultButton"
+        class="dialog-close"
+        type="button"
+        aria-label="Close"
+      >
+        ×
+      </button>
+
+    </div>
+
+
+    <form
+      id="aiResultForm"
+      class="create-form"
+    >
+
+      <p
+        style="
+          margin:0;
+          color:var(--muted);
+          font-size:.82rem;
+          line-height:1.65;
+        "
+      >
+        Paste the finished ChatGPT response
+        below. Marketing Studio will save it
+        as a draft under the correct brand.
+      </p>
+
+
+      <label class="field">
+
+        <span>
+          Draft Title
+        </span>
+
+        <input
+          id="aiResultTitle"
+          type="text"
+          placeholder="Optional title"
+          autocomplete="off"
+        />
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          ChatGPT Result
+        </span>
+
+        <textarea
+          id="aiResultText"
+          placeholder="Paste the finished content here..."
+          style="
+            min-height:260px;
+          "
+          required
+        ></textarea>
+
+      </label>
+
+
+      <div class="form-actions">
+
+        <button
+          id="backToBriefButton"
+          class="secondary-button"
+          type="button"
+        >
+          Back
+        </button>
+
+        <button
+          class="primary-button"
+          type="submit"
+        >
+          Save Draft
+        </button>
+
+      </div>
+
+    </form>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeAiResultButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#backToBriefButton")
+    ?.addEventListener(
+      "click",
+      () => {
+
+        safeDialogClose(
+          dialog
+        );
+
+        showAiBriefDialog();
+
+      }
+    );
+
+
+  $("#aiResultForm")
+    ?.addEventListener(
+      "submit",
+      handleAiResultSubmit
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+function showAiResultDialog() {
+  const dialog =
+    ensureAiResultDialog();
+
+
+  const title =
+    $("#aiResultTitle");
+
+
+  const text =
+    $("#aiResultText");
+
+
+  const definition =
+    CREATE_TYPES[
+      APP_STATE.currentAiRequest.type
+    ];
+
+
+  if (
+    title &&
+    !title.value
+  ) {
+    title.value =
+      definition?.label ||
+      "Marketing Draft";
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      text?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   SAVE AI RESULT AS DRAFT
+   ========================================================= */
+
+function handleAiResultSubmit(
+  event
+) {
+  event.preventDefault();
+
+
+  const result =
+    $("#aiResultText")
+      ?.value
+      ?.trim();
+
+
+  const title =
+    $("#aiResultTitle")
+      ?.value
+      ?.trim();
+
+
+  if (!result) {
+    showToast(
+      "Paste the finished ChatGPT content first.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const request =
+    APP_STATE.currentAiRequest;
+
+
+  const brand =
+    getBrandById(
+      request.brandId
+    );
+
+
+  if (!brand) {
+    showToast(
+      "The selected brand could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const draft = {
+
+    id:
+      createId(
+        "content"
+      ),
+
+    brandId:
+      brand.id,
+
+    campaignId:
+      null,
+
+    type:
+      request.type,
+
+    status:
+      "draft",
+
+    title:
+      title ||
+      CREATE_TYPES[
+        request.type
+      ]?.label ||
+      "Marketing Draft",
+
+    body:
+      result,
+
+    goal:
+      request.goal,
+
+    originalRequest:
+      request.prompt,
+
+    aiMode:
+      "manual-chatgpt",
+
+    aiBrief:
+      APP_STATE.currentAiBrief,
+
+    createdAt:
+      new Date().toISOString(),
+
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+
+  APP_DATA.content.unshift(
+    draft
+  );
+
+
+  saveLocalContent();
+
+
+  safeDialogClose(
+    $("#aiResultDialog")
+  );
+
+
+  resetAiWorkflow();
+
+
+  renderDashboard();
+  renderContentLibrary();
+
+
+  setView(
+    "studio"
+  );
+
+
+  showToast(
+    "Draft saved to Content Studio.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   SAVE LOCAL CONTENT
+
+   Temporary until Supabase replaces localStorage.
+
+   ========================================================= */
+
+function saveLocalContent() {
+  writeJsonStorage(
+    STORAGE_KEYS.content,
+    APP_DATA.content
+  );
+}
+
+
+/* =========================================================
+   RESET AI WORKFLOW
+   ========================================================= */
+
+function resetAiWorkflow() {
+  APP_STATE.currentAiBrief =
+    "";
+
+
+  APP_STATE.currentAiRequest = {
+    brandId:
+      null,
+
+    type:
+      null,
+
+    goal:
+      null,
+
+    prompt:
+      null
+  };
+
+
+  const prompt =
     $("#createPrompt");
 
-  if (promptField) {
-    promptField.value =
+
+  const result =
+    $("#aiResultText");
+
+
+  const title =
+    $("#aiResultTitle");
+
+
+  if (prompt) {
+    prompt.value =
+      "";
+  }
+
+
+  if (result) {
+    result.value =
+      "";
+  }
+
+
+  if (title) {
+    title.value =
       "";
   }
 }
@@ -1848,21 +3177,23 @@ function openBrandBrain(
       brandId
     );
 
+
   if (!brand) {
     return;
   }
 
-  /*
-     The actual Brand Brain editor will become
-     its own interface in the next phase.
-  */
 
   setActiveBrand(
-    brand.id
+    brand.id,
+    {
+      toast:
+        false
+    }
   );
 
+
   showToast(
-    `${brand.shortName} Brand Brain is the next layer we’ll connect.`,
+    `${brand.shortName} is selected. The full Brand Brain editor comes with the database layer.`,
     "success"
   );
 }
@@ -1893,15 +3224,35 @@ function handleAddAsset() {
 
 
 /* =========================================================
-   SETTINGS PLACEHOLDERS
+   SETTINGS
    ========================================================= */
 
 function handleSettingsSection(
   section
 ) {
+  if (section === "ai") {
+
+    const mode =
+      CONFIG.ai?.mode ||
+      "manual-chatgpt";
+
+
+    const label =
+      mode === "manual-chatgpt"
+        ? "ChatGPT — Manual"
+        : "OpenAI API — Automatic";
+
+
+    showToast(
+      `AI Mode: ${label}`,
+      "success"
+    );
+
+    return;
+  }
+
+
   const labels = {
-    ai:
-      "AI settings",
 
     social:
       "Social account connections",
@@ -1911,7 +3262,9 @@ function handleSettingsSection(
 
     preferences:
       "App preferences"
+
   };
+
 
   showToast(
     `${
@@ -1935,14 +3288,17 @@ function showToast(
   const region =
     $("#toastRegion");
 
+
   if (!region) {
     return;
   }
+
 
   const toast =
     document.createElement(
       "div"
     );
+
 
   toast.className =
     `toast ${
@@ -1953,34 +3309,44 @@ function showToast(
           : ""
     }`;
 
+
   toast.textContent =
     message;
+
 
   region.appendChild(
     toast
   );
 
 
-  window.setTimeout(() => {
-    toast.style.opacity =
-      "0";
+  window.setTimeout(
+    () => {
 
-    toast.style.transform =
-      "translateY(5px)";
-  }, Math.max(
-    500,
-    duration - 250
-  ));
+      toast.style.opacity =
+        "0";
+
+      toast.style.transform =
+        "translateY(5px)";
+
+    },
+    Math.max(
+      500,
+      duration - 250
+    )
+  );
 
 
-  window.setTimeout(() => {
-    toast.remove();
-  }, duration);
+  window.setTimeout(
+    () => {
+      toast.remove();
+    },
+    duration
+  );
 }
 
 
 /* =========================================================
-   DIALOG BACKDROP CLICK
+   DIALOG BACKDROP CLOSE
    ========================================================= */
 
 function enableBackdropClose(
@@ -1990,9 +3356,11 @@ function enableBackdropClose(
     return;
   }
 
+
   dialog.addEventListener(
     "click",
     event => {
+
       if (
         event.target === dialog
       ) {
@@ -2000,6 +3368,7 @@ function enableBackdropClose(
           dialog
         );
       }
+
     }
   );
 }
@@ -2017,13 +3386,15 @@ function handleGlobalClick(
       "[data-view]"
     );
 
-  if (viewButton) {
-    const view =
-      viewButton.dataset.view;
 
-    setView(view);
+  if (viewButton) {
+
+    setView(
+      viewButton.dataset.view
+    );
 
     return;
+
   }
 
 
@@ -2032,13 +3403,16 @@ function handleGlobalClick(
       "[data-create-type]"
     );
 
+
   if (createButton) {
+
     openQuickCreate(
       createButton.dataset
         .createType
     );
 
     return;
+
   }
 
 
@@ -2047,12 +3421,15 @@ function handleGlobalClick(
       "[data-open-quick-create]"
     );
 
+
   if (quickCreateButton) {
+
     openQuickCreate(
       "social-post"
     );
 
     return;
+
   }
 
 
@@ -2061,20 +3438,26 @@ function handleGlobalClick(
       "[data-select-brand]"
     );
 
+
   if (selectBrandButton) {
+
     const brandId =
       selectBrandButton.dataset
         .selectBrand;
+
 
     setActiveBrand(
       brandId
     );
 
+
     safeDialogClose(
       $("#brandPickerDialog")
     );
 
+
     return;
+
   }
 
 
@@ -2083,13 +3466,16 @@ function handleGlobalClick(
       "[data-open-brand]"
     );
 
+
   if (openBrandButton) {
+
     openBrandBrain(
       openBrandButton.dataset
         .openBrand
     );
 
     return;
+
   }
 
 
@@ -2098,20 +3484,22 @@ function handleGlobalClick(
       "[data-campaign-filter]"
     );
 
+
   if (campaignFilterButton) {
-    const filter =
-      campaignFilterButton.dataset
-        .campaignFilter;
 
     setView(
       "campaigns"
     );
 
+
     setCampaignFilter(
-      filter
+      campaignFilterButton.dataset
+        .campaignFilter
     );
 
+
     return;
+
   }
 
 
@@ -2120,20 +3508,22 @@ function handleGlobalClick(
       "[data-content-filter]"
     );
 
+
   if (contentFilterButton) {
-    const filter =
-      contentFilterButton.dataset
-        .contentFilter;
 
     setView(
       "studio"
     );
 
+
     setContentFilter(
-      filter
+      contentFilterButton.dataset
+        .contentFilter
     );
 
+
     return;
+
   }
 
 
@@ -2142,13 +3532,17 @@ function handleGlobalClick(
       "[data-asset-filter]"
     );
 
+
   if (assetFilterButton) {
+
     setAssetFilter(
       assetFilterButton.dataset
         .assetFilter
     );
 
+
     return;
+
   }
 
 
@@ -2157,11 +3551,14 @@ function handleGlobalClick(
       "[data-settings-section]"
     );
 
+
   if (settingsButton) {
+
     handleSettingsSection(
       settingsButton.dataset
         .settingsSection
     );
+
   }
 }
 
@@ -2171,6 +3568,7 @@ function handleGlobalClick(
    ========================================================= */
 
 function bindEvents() {
+
   document.addEventListener(
     "click",
     handleGlobalClick
@@ -2181,11 +3579,14 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       () => {
+
         renderBrandPicker();
+
 
         safeDialogOpen(
           $("#brandPickerDialog")
         );
+
       }
     );
 
@@ -2194,11 +3595,14 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       () => {
+
         renderBrandPicker();
+
 
         safeDialogOpen(
           $("#brandPickerDialog")
         );
+
       }
     );
 
@@ -2207,9 +3611,11 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       () => {
+
         safeDialogClose(
           $("#brandPickerDialog")
         );
+
       }
     );
 
@@ -2218,11 +3624,14 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       () => {
+
         safeDialogClose(
           $("#brandPickerDialog")
         );
 
+
         handleAddBrand();
+
       }
     );
 
@@ -2275,21 +3684,26 @@ function bindEvents() {
   document.addEventListener(
     "keydown",
     event => {
+
       if (
         event.key !== "Escape"
       ) {
         return;
       }
 
+
       safeDialogClose(
         $("#brandPickerDialog")
       );
 
+
       safeDialogClose(
         $("#quickCreateDialog")
       );
+
     }
   );
+
 }
 
 
@@ -2298,6 +3712,7 @@ function bindEvents() {
    ========================================================= */
 
 function renderApp() {
+
   ensureValidActiveBrand();
 
   renderGreeting();
@@ -2330,10 +3745,14 @@ function renderApp() {
   setView(
     initialView,
     {
-      scroll: false,
-      instant: true
+      scroll:
+        false,
+
+      instant:
+        true
     }
   );
+
 }
 
 
@@ -2342,8 +3761,11 @@ function renderApp() {
    ========================================================= */
 
 function init() {
+
   bindEvents();
+
   renderApp();
+
 }
 
 
@@ -2351,13 +3773,18 @@ if (
   document.readyState ===
   "loading"
 ) {
+
   document.addEventListener(
     "DOMContentLoaded",
     init,
     {
-      once: true
+      once:
+        true
     }
   );
+
 } else {
+
   init();
+
 }
