@@ -11509,8 +11509,7 @@ function renderAssetCard(
   asset
 ) {
   const imageUrl =
-    asset.externalUrl ||
-    "";
+  getAssetDisplayUrl(asset);
 
 
   const isImage =
