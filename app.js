@@ -11333,15 +11333,12 @@ function renderAssets() {
   const container =
     $("#assetGrid");
 
-
   if (!container) {
     return;
   }
 
-
   const brand =
     getActiveBrand();
-
 
   if (!brand) {
     container.innerHTML = `
@@ -11361,7 +11358,6 @@ function renderAssets() {
     return;
   }
 
-
   const activeFilter =
     document.querySelector(
       "[data-asset-filter].is-active"
@@ -11370,18 +11366,102 @@ function renderAssets() {
       ?.assetFilter ||
     "all";
 
+  const activeFolderId =
+    APP_STATE.activeAssetFolderId ||
+    null;
 
+  /*
+   * FOLDERS
+   *
+   * At the root, show folders that do not
+   * have a parent.
+   *
+   * Inside a folder, show its child folders.
+   */
+  let folders =
+    (
+      APP_DATA.assetFolders ||
+      []
+    )
+      .filter(
+        folder =>
+          String(
+            folder.brandId
+          ) ===
+          String(
+            brand.id
+          )
+      )
+      .filter(
+        folder => {
+          if (activeFolderId) {
+            return (
+              String(
+                folder.parentFolderId ||
+                ""
+              ) ===
+              String(
+                activeFolderId
+              )
+            );
+          }
+
+          return (
+            !folder.parentFolderId
+          );
+        }
+      )
+      .slice();
+
+  folders.sort(
+    (a, b) =>
+      String(
+        a.name || ""
+      ).localeCompare(
+        String(
+          b.name || ""
+        )
+      )
+  );
+
+  /*
+   * ASSETS
+   */
   let assets =
     APP_DATA.assets
       .filter(
         asset =>
-          asset.brandId ===
-            brand.id &&
+          String(
+            asset.brandId
+          ) ===
+            String(
+              brand.id
+            ) &&
           asset.active !==
             false
       )
-      .slice();
+      .filter(
+        asset => {
+          if (activeFolderId) {
+            return (
+              String(
+                asset.folderId ||
+                ""
+              ) ===
+              String(
+                activeFolderId
+              )
+            );
+          }
 
+          /*
+           * Root view only shows assets
+           * that are not inside a folder.
+           */
+          return !asset.folderId;
+        }
+      )
+      .slice();
 
   if (
     activeFilter !==
@@ -11397,7 +11477,6 @@ function renderAssets() {
       );
   }
 
-
   assets.sort(
     (a, b) =>
       new Date(
@@ -11412,9 +11491,189 @@ function renderAssets() {
       )
   );
 
+  /*
+   * CURRENT FOLDER
+   */
+  const currentFolder =
+    activeFolderId
+      ? (
+          APP_DATA.assetFolders ||
+          []
+        ).find(
+          folder =>
+            String(
+              folder.id
+            ) ===
+            String(
+              activeFolderId
+            )
+        )
+      : null;
 
-  if (!assets.length) {
+  /*
+   * TOOLBAR
+   */
+  const toolbarHtml = `
+    <div
+      style="
+        grid-column:1 / -1;
+        display:flex;
+        flex-wrap:wrap;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        margin-bottom:4px;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          flex-wrap:wrap;
+          align-items:center;
+          gap:10px;
+        "
+      >
+
+        ${
+          currentFolder
+            ? `
+              <button
+                class="secondary-button"
+                type="button"
+                data-asset-folder-back
+              >
+                ← Back
+              </button>
+
+              <strong>
+                ${escapeHtml(
+                  currentFolder.name
+                )}
+              </strong>
+            `
+            : ""
+        }
+
+      </div>
+
+      <div
+        style="
+          display:flex;
+          flex-wrap:wrap;
+          gap:10px;
+        "
+      >
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-create-asset-folder
+        >
+          + Create Folder
+        </button>
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-add-asset
+        >
+          + Add Asset
+        </button>
+
+      </div>
+
+    </div>
+  `;
+
+  /*
+   * FOLDER CARDS
+   */
+  const foldersHtml =
+    folders
+      .map(
+        folder => `
+          <article
+            class="content-panel"
+            data-open-asset-folder="${
+              escapeHtml(
+                folder.id
+              )
+            }"
+            role="button"
+            tabindex="0"
+            style="
+              min-width:0;
+              cursor:pointer;
+            "
+          >
+
+            <div
+              style="
+                aspect-ratio:4 / 3;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                margin-bottom:12px;
+                border:1px solid var(--line);
+                border-radius:calc(
+                  var(--radius) - 4px
+                );
+                background:
+                  rgba(255,255,255,.02);
+                font-size:44px;
+              "
+              aria-hidden="true"
+            >
+              ◇
+            </div>
+
+            <div
+              class="eyebrow"
+            >
+              Folder
+            </div>
+
+            <h3
+              style="
+                margin-top:6px;
+                margin-bottom:0;
+              "
+            >
+              ${escapeHtml(
+                folder.name ||
+                "Untitled Folder"
+              )}
+            </h3>
+
+          </article>
+        `
+      )
+      .join("");
+
+  /*
+   * ASSET CARDS
+   */
+  const assetsHtml =
+    assets
+      .map(
+        asset =>
+          renderAssetCard(
+            asset
+          )
+      )
+      .join("");
+
+  /*
+   * EMPTY FOLDER / EMPTY VAULT
+   */
+  if (
+    !folders.length &&
+    !assets.length
+  ) {
     container.innerHTML = `
+      ${toolbarHtml}
+
       <div
         class="empty-state"
         style="
@@ -11431,29 +11690,28 @@ function renderAssets() {
 
         <h3>
           ${
-            activeFilter ===
-              "all"
-              ? "The Asset Vault is empty."
-              : `No ${escapeHtml(
-                  titleCaseStatus(
-                    activeFilter
-                  )
-                )} here yet.`
+            currentFolder
+              ? "This folder is empty."
+              : (
+                  activeFilter ===
+                    "all"
+                    ? "The Asset Vault is empty."
+                    : `No ${escapeHtml(
+                        titleCaseStatus(
+                          activeFilter
+                        )
+                      )} here yet.`
+                )
           }
         </h3>
 
         <p>
-          Logos, photography, generated artwork,
-          and reusable brand assets will live here.
+          ${
+            currentFolder
+              ? "Add assets or create another folder here."
+              : "Create folders to organize your library, or add assets individually."
+          }
         </p>
-
-        <button
-          class="secondary-button"
-          type="button"
-          data-add-asset
-        >
-          Add Asset
-        </button>
 
       </div>
     `;
@@ -11461,18 +11719,12 @@ function renderAssets() {
     return;
   }
 
-
-  container.innerHTML =
-    assets
-      .map(
-        asset =>
-          renderAssetCard(
-            asset
-          )
-      )
-      .join("");
+  container.innerHTML = `
+    ${toolbarHtml}
+    ${foldersHtml}
+    ${assetsHtml}
+  `;
 }
-
 
 /* =========================================================
    ASSET FILTER MATCHING
