@@ -312,36 +312,7 @@ function createSupabaseClient() {
 /* =========================================================
    APP DATA
    ========================================================= */
-const {
-  data: assetFolderRows,
-  error: assetFolderLoadError
-} =
-  await supabaseClient
-    .from("asset_folders")
-    .select("*")
-    .order(
-      "name",
-      {
-        ascending: true
-      }
-    );
 
-if (assetFolderLoadError) {
-  console.warn(
-    "Asset folders could not be loaded:",
-    assetFolderLoadError
-  );
-
-  APP_DATA.assetFolders = [];
-} else {
-  APP_DATA.assetFolders =
-    (
-      assetFolderRows ||
-      []
-    ).map(
-      normalizeAssetFolder
-    );
-}
 const APP_DATA = {
   brands: [],
   campaigns: [],
