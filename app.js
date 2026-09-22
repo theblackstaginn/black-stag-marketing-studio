@@ -12048,12 +12048,41 @@ function openAssetEditor(assetId) {
 
   if (preview) {
     const imageUrl =
-  getAssetDisplayUrl(asset);
+      getAssetDisplayUrl(asset);
 
-if (imageUrl) {
-  preview.innerHTML = `
-    <img
-      src="${escapeHtml(imageUrl)}"
+    if (imageUrl) {
+      preview.innerHTML = `
+        <img
+          src="${escapeHtml(imageUrl)}"
+          alt="${escapeHtml(
+            asset.altText ||
+            asset.name ||
+            "Asset preview"
+          )}"
+          style="
+            display:block;
+            width:100%;
+            max-height:52vh;
+            object-fit:contain;
+            border-radius:14px;
+          "
+        />
+      `;
+    } else {
+      preview.innerHTML = `
+        <div
+          style="
+            min-height:180px;
+            display:grid;
+            place-items:center;
+            color:var(--muted);
+          "
+        >
+          No preview available
+        </div>
+      `;
+    }
+  }
 
   $("#assetEditorHeading").textContent =
     asset.name ||
