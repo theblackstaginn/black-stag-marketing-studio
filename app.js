@@ -14839,99 +14839,66 @@ function bindEvents() {
     handleGlobalClick
   );
 
+
   document.addEventListener(
     "keydown",
     event => {
       if (
-        event.key !==
-          "Enter" &&
-        event.key !==
-          " "
+        event.key !== "Enter" &&
+        event.key !== " "
       ) {
         return;
       }
 
 
       const contentCard =
+        event.target.closest(
+          "[data-open-content]"
+        );
 
-    event.target.closest(
 
-      "[data-open-content]"
+      if (contentCard) {
+        event.preventDefault();
 
-    );
+        openContentEditor(
+          contentCard.dataset
+            .openContent
+        );
 
-  if (contentCard) {
+        return;
+      }
 
-    openContentEditor(
 
-      contentCard.dataset
+      const calendarCard =
+        event.target.closest(
+          "[data-calendar-action]"
+        );
 
-        .openContent
 
-    );
+      if (!calendarCard) {
+        return;
+      }
 
-    return;
 
-  }
+      const action =
+        calendarCard.dataset
+          .calendarAction;
 
-  /*
+      const itemId =
+        calendarCard.dataset
+          .calendarItemId;
 
-    Open Calendar Card
 
-  */
-
-  const calendarCard =
-
-    event.target.closest(
-
-      "[data-calendar-action]"
-
-    );
-
-  if (calendarCard) {
-
-    const action =
-
-      calendarCard.dataset
-
-        .calendarAction;
-
-    const itemId =
-
-      calendarCard.dataset
-
-        .calendarItemId;
-
-    if (
-
-      action === "content" &&
-
-      itemId
-
-    ) {
-
-      openContentEditor(
-
+      if (
+        action === "content" &&
         itemId
+      ) {
+        event.preventDefault();
 
-      );
-
-      return;
-
-    }
-
-  }
-
-  /*
-
-
-      event.preventDefault();
-
-
-      openContentEditor(
-        contentCard.dataset
-          .openContent
-      );
+        openContentEditor(
+          itemId
+        );
+      }
     }
   );
 
