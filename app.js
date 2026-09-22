@@ -1,7 +1,7 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    app.js
-   v5 — BRAND BRAIN V1
+   AUDITED BUILD
 
    Supabase-connected application:
    - Authentication
@@ -18,7 +18,6 @@
    - Calendar
    - Asset Vault
    - Manual ChatGPT workflow
-
    ========================================================= */
 
 "use strict";
@@ -334,6 +333,12 @@ const APP_STATE = {
       "dashboard"
     ),
 
+  currentView:
+    readStorage(
+      STORAGE_KEYS.lastView,
+      "dashboard"
+    ),
+
   activeBrandId:
     readStorage(
       STORAGE_KEYS.activeBrand,
@@ -413,6 +418,37 @@ const VIEW_TITLES = {
 
   settings:
     "Settings"
+};
+
+
+const VIEW_DEFINITIONS = {
+  dashboard: {
+    label: "Dashboard"
+  },
+
+  brands: {
+    label: "Brands"
+  },
+
+  campaigns: {
+    label: "Campaigns"
+  },
+
+  studio: {
+    label: "Content Studio"
+  },
+
+  calendar: {
+    label: "Calendar"
+  },
+
+  vault: {
+    label: "Asset Vault"
+  },
+
+  settings: {
+    label: "Settings"
+  }
 };
 
 
@@ -1110,11 +1146,31 @@ function normalizeCampaign(row) {
     name:
       row.name,
 
+    description:
+      row.description ||
+      "",
+
     status:
       row.status,
 
     objective:
-      row.objective,
+      row.objective ||
+      "",
+
+    channels:
+      Array.isArray(
+        row.channels
+      )
+        ? row.channels
+        : [],
+
+    startsOn:
+      row.starts_on ||
+      null,
+
+    endsOn:
+      row.ends_on ||
+      null,
 
     createdAt:
       row.created_at,
@@ -1154,6 +1210,10 @@ function normalizeContent(row) {
     goal:
       row.goal,
 
+    platform:
+      row.platform ||
+      "",
+
     originalRequest:
       row.original_request,
 
@@ -1162,6 +1222,9 @@ function normalizeContent(row) {
 
     aiBrief:
       row.ai_brief,
+
+    scheduledFor:
+      row.scheduled_for,
 
     publishAt:
       row.scheduled_for,
@@ -1186,11 +1249,26 @@ function normalizeCalendarItem(row) {
     brandId:
       row.brand_id,
 
+    type:
+      row.item_type ||
+      "calendar",
+
+    itemType:
+      row.item_type ||
+      "calendar",
+
     title:
       row.title,
 
-    itemType:
-      row.item_type,
+    description:
+      row.description ||
+      "",
+
+    startsAt:
+      row.starts_at,
+
+    endsAt:
+      row.ends_at,
 
     startAt:
       row.starts_at,
@@ -1201,8 +1279,39 @@ function normalizeCalendarItem(row) {
     publishAt:
       row.starts_at,
 
+    allDay:
+      Boolean(
+        row.all_day
+      ),
+
+    recurring:
+      Boolean(
+        row.recurring
+      ),
+
+    recurrenceRule:
+      row.recurrence_rule ||
+      "",
+
+    marketingRelevant:
+      Boolean(
+        row.marketing_relevant
+      ),
+
+    sourceType:
+      row.source_type ||
+      "",
+
+    confirmed:
+      Boolean(
+        row.confirmed
+      ),
+
     createdAt:
-      row.created_at
+      row.created_at,
+
+    updatedAt:
+      row.updated_at
   };
 }
 
@@ -1221,6 +1330,14 @@ function normalizeAsset(row) {
     category:
       row.asset_type,
 
+    description:
+      row.description ||
+      "",
+
+    storageBucket:
+      row.storage_bucket ||
+      "",
+
     storagePath:
       row.storage_path,
 
@@ -1230,11 +1347,40 @@ function normalizeAsset(row) {
     mimeType:
       row.mime_type,
 
+    width:
+      row.width,
+
+    height:
+      row.height,
+
     altText:
       row.alt_text,
 
+    tags:
+      Array.isArray(
+        row.tags
+      )
+        ? row.tags
+        : [],
+
+    approvedForAi:
+      Boolean(
+        row.approved_for_ai
+      ),
+
+    approvedForMarketing:
+      Boolean(
+        row.approved_for_marketing
+      ),
+
+    active:
+      row.active !== false,
+
     createdAt:
-      row.created_at
+      row.created_at,
+
+    updatedAt:
+      row.updated_at
   };
 }
 
@@ -1427,9 +1573,6 @@ async function loadAppData() {
 
 /* =========================================================
    RELOAD ONE BRAND
-
-   Used after Brand Brain saves so we get the authoritative
-   database version back from Supabase.
    ========================================================= */
 
 async function reloadBrand(
@@ -1545,6 +1688,36 @@ function ensureValidActiveBrand() {
 }
 
 
+function syncQuickCreateBrand() {
+  const select =
+    $("#createBrand");
+
+
+  if (
+    !select ||
+    !APP_STATE.activeBrandId
+  ) {
+    return;
+  }
+
+
+  const optionExists =
+    Array.from(
+      select.options
+    ).some(
+      option =>
+        option.value ===
+        APP_STATE.activeBrandId
+    );
+
+
+  if (optionExists) {
+    select.value =
+      APP_STATE.activeBrandId;
+  }
+}
+
+
 function setActiveBrand(
   brandId,
   options = {}
@@ -1586,7 +1759,9 @@ function setActiveBrand(
   renderDashboard();
   renderCampaigns();
   renderContentLibrary();
+  renderCalendar();
   renderAssets();
+  renderQuickCreateBrandOptions();
   syncQuickCreateBrand();
 
 
@@ -1600,70 +1775,104 @@ function setActiveBrand(
     );
   }
 }
-
-
 /* =========================================================
    ACTIVE BRAND UI
    ========================================================= */
 
 function renderActiveBrand() {
   const brand =
-    ensureValidActiveBrand();
+    getActiveBrand();
+
+
+  const desktopMark =
+    $("#activeBrandMark");
+
+  const desktopName =
+    $("#activeBrandName");
+
+  const desktopStage =
+    $("#activeBrandStage");
+
+
+  const mobileMark =
+    $("#mobileActiveBrandMark");
+
+  const mobileName =
+    $("#mobileActiveBrandName");
+
+  const mobileStage =
+    $("#mobileActiveBrandStage");
 
 
   if (!brand) {
+    if (desktopMark) {
+      desktopMark.textContent =
+        "◆";
+    }
+
+    if (desktopName) {
+      desktopName.textContent =
+        "Choose Brand";
+    }
+
+    if (desktopStage) {
+      desktopStage.textContent =
+        "No active brand";
+    }
+
+    if (mobileMark) {
+      mobileMark.textContent =
+        "◆";
+    }
+
+    if (mobileName) {
+      mobileName.textContent =
+        "Choose Brand";
+    }
+
+    if (mobileStage) {
+      mobileStage.textContent =
+        "No active brand";
+    }
+
     return;
   }
 
 
-  const elements = [
-    [
-      "#activeBrandMark",
-      brand.mark
-    ],
-
-    [
-      "#activeBrandName",
-      brand.shortName
-    ],
-
-    [
-      "#activeBrandStage",
-      brand.stageLabel
-    ],
-
-    [
-      "#mobileActiveBrandMark",
-      brand.mark
-    ],
-
-    [
-      "#mobileActiveBrandName",
-      brand.shortName
-    ],
-
-    [
-      "#mobileActiveBrandStage",
-      brand.stageLabel
-    ]
-  ];
+  if (desktopMark) {
+    desktopMark.textContent =
+      brand.mark;
+  }
 
 
-  elements.forEach(
-    ([
-      selector,
-      value
-    ]) => {
-      const element =
-        $(selector);
+  if (desktopName) {
+    desktopName.textContent =
+      brand.shortName;
+  }
 
 
-      if (element) {
-        element.textContent =
-          value || "";
-      }
-    }
-  );
+  if (desktopStage) {
+    desktopStage.textContent =
+      brand.stageLabel;
+  }
+
+
+  if (mobileMark) {
+    mobileMark.textContent =
+      brand.mark;
+  }
+
+
+  if (mobileName) {
+    mobileName.textContent =
+      brand.shortName;
+  }
+
+
+  if (mobileStage) {
+    mobileStage.textContent =
+      brand.stageLabel;
+  }
 }
 
 
@@ -1693,11 +1902,12 @@ function renderBrandPicker() {
         </span>
 
         <h3>
-          No brands found.
+          No brands yet.
         </h3>
 
         <p>
-          No brands are available for this account.
+          Add a brand to begin building its
+          marketing brain.
         </p>
 
       </div>
@@ -1709,82 +1919,96 @@ function renderBrandPicker() {
 
   list.innerHTML =
     APP_DATA.brands
-      .map(brand => {
-        const isActive =
-          brand.id ===
-          APP_STATE.activeBrandId;
+      .filter(
+        brand =>
+          brand.active !== false
+      )
+      .map(
+        brand => {
+          const isActive =
+            brand.id ===
+            APP_STATE.activeBrandId;
 
 
-        return `
-          <button
-            class="brand-switcher ${
-              isActive
-                ? "is-selected"
-                : ""
-            }"
-            type="button"
-            data-select-brand="${
-              escapeHtml(
-                brand.id
-              )
-            }"
-          >
-
-            <span
-              class="brand-switcher-mark"
-              aria-hidden="true"
-            >
-              ${
+          return `
+            <button
+              class="brand-picker-option ${
+                isActive
+                  ? "is-active"
+                  : ""
+              }"
+              type="button"
+              data-select-brand="${
                 escapeHtml(
-                  brand.mark
+                  brand.id
                 )
-              }
-            </span>
-
-            <span
-              class="brand-switcher-copy"
+              }"
             >
 
-              <strong>
+              <span
+                class="brand-switcher-mark"
+                aria-hidden="true"
+              >
                 ${
                   escapeHtml(
-                    brand.shortName
+                    brand.mark
                   )
                 }
-              </strong>
+              </span>
 
-              <small>
-                ${
-                  escapeHtml(
-                    brand.stageLabel
-                  )
-                }
-              </small>
+              <span
+                style="
+                  min-width:0;
+                  flex:1;
+                  text-align:left;
+                "
+              >
 
-            </span>
+                <strong
+                  style="
+                    display:block;
+                    margin-bottom:3px;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      brand.shortName
+                    )
+                  }
+                </strong>
 
-            ${
-              isActive
-                ? `
-                  <span
-                    aria-label="Current brand"
-                  >
-                    ✓
-                  </span>
-                `
-                : `
-                  <span
-                    class="brand-switcher-chevron"
-                    aria-hidden="true"
-                  >
-                    ›
-                  </span>
-                `
-            }
+                <span
+                  style="
+                    display:block;
+                    color:var(--muted);
+                    font-size:.7rem;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      brand.stageLabel
+                    )
+                  }
+                </span>
 
-          </button>
-        `;
-      })
+              </span>
+
+              ${
+                isActive
+                  ? `
+                    <span
+                      class="eyebrow"
+                    >
+                      Current
+                    </span>
+                  `
+                  : ""
+              }
+
+            </button>
+          `;
+        }
+      )
       .join("");
 }
 
@@ -1833,163 +2057,178 @@ function renderBrandGrid() {
 
   grid.innerHTML =
     APP_DATA.brands
-      .map(brand => {
-        const isActive =
-          brand.id ===
-          APP_STATE.activeBrandId;
+      .map(
+        brand => {
+          const isActive =
+            brand.id ===
+            APP_STATE.activeBrandId;
 
 
-        return `
-          <article
-            class="content-panel"
-            data-brand-card="${
-              escapeHtml(
-                brand.id
-              )
-            }"
-          >
-
-            <div
-              style="
-                display:flex;
-                align-items:center;
-                gap:12px;
-                margin-bottom:18px;
-              "
+          return `
+            <article
+              class="content-panel"
+              data-brand-card="${
+                escapeHtml(
+                  brand.id
+                )
+              }"
             >
-
-              <span
-                class="brand-switcher-mark"
-                aria-hidden="true"
-              >
-                ${
-                  escapeHtml(
-                    brand.mark
-                  )
-                }
-              </span>
 
               <div
                 style="
-                  min-width:0;
-                  flex:1;
+                  display:flex;
+                  align-items:center;
+                  gap:12px;
+                  margin-bottom:18px;
                 "
               >
 
                 <span
-                  class="eyebrow"
-                  style="
-                    margin-bottom:4px;
-                  "
+                  class="brand-switcher-mark"
+                  aria-hidden="true"
                 >
                   ${
                     escapeHtml(
-                      brand.stageLabel
+                      brand.mark
                     )
                   }
                 </span>
 
-                <h3
+                <div
                   style="
-                    margin:0;
-                    font-family:
-                      Georgia,
-                      'Times New Roman',
-                      serif;
-                    font-size:1.15rem;
-                    font-weight:400;
+                    min-width:0;
+                    flex:1;
                   "
                 >
-                  ${
-                    escapeHtml(
-                      brand.shortName
-                    )
-                  }
-                </h3>
+
+                  <span
+                    class="eyebrow"
+                    style="
+                      margin-bottom:4px;
+                    "
+                  >
+                    ${
+                      escapeHtml(
+                        brand.stageLabel
+                      )
+                    }
+                  </span>
+
+                  <h3
+                    style="
+                      margin:0;
+                      font-family:
+                        Georgia,
+                        'Times New Roman',
+                        serif;
+                      font-size:1.15rem;
+                      font-weight:400;
+                    "
+                  >
+                    ${
+                      escapeHtml(
+                        brand.shortName
+                      )
+                    }
+                  </h3>
+
+                </div>
 
               </div>
 
-            </div>
 
-            <p
-              style="
-                color:var(--muted);
-                font-size:.8rem;
-                line-height:1.6;
-                min-height:62px;
-              "
-            >
-              ${
-                escapeHtml(
-                  brand.primaryGoal
-                )
-              }
-            </p>
-
-            <div
-              style="
-                display:flex;
-                gap:8px;
-                flex-wrap:wrap;
-                margin-top:18px;
-              "
-            >
-
-              ${
-                isActive
-                  ? `
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      disabled
-                    >
-                      Current Brand
-                    </button>
-                  `
-                  : `
-                    <button
-                      class="secondary-button"
-                      type="button"
-                      data-select-brand="${
-                        escapeHtml(
-                          brand.id
-                        )
-                      }"
-                    >
-                      Work With Brand
-                    </button>
-                  `
-              }
-
-              <button
-                class="text-button"
-                type="button"
-                data-open-brand="${
-                  escapeHtml(
-                    brand.id
-                  )
-                }"
+              <p
+                style="
+                  color:var(--muted);
+                  font-size:.8rem;
+                  line-height:1.6;
+                  min-height:62px;
+                "
               >
-                Brand Brain
-              </button>
+                ${
+                  escapeHtml(
+                    brand.primaryGoal
+                  )
+                }
+              </p>
 
-            </div>
 
-          </article>
-        `;
-      })
+              <div
+                style="
+                  display:flex;
+                  gap:8px;
+                  flex-wrap:wrap;
+                  margin-top:18px;
+                "
+              >
+
+                ${
+                  isActive
+                    ? `
+                      <button
+                        class="secondary-button"
+                        type="button"
+                        disabled
+                      >
+                        Current Brand
+                      </button>
+                    `
+                    : `
+                      <button
+                        class="secondary-button"
+                        type="button"
+                        data-select-brand="${
+                          escapeHtml(
+                            brand.id
+                          )
+                        }"
+                      >
+                        Work With Brand
+                      </button>
+                    `
+                }
+
+                <button
+                  class="text-button"
+                  type="button"
+                  data-open-brand="${
+                    escapeHtml(
+                      brand.id
+                    )
+                  }"
+                >
+                  Brand Brain
+                </button>
+
+              </div>
+
+            </article>
+          `;
+        }
+      )
       .join("");
 }
+
+
 /* =========================================================
    BRAND BRAIN
    ========================================================= */
 
 function getBrandBrainBrand() {
-  return getBrandById(
-    APP_STATE.brandBrainBrandId
+  return (
+    APP_DATA.brands.find(
+      brand =>
+        brand.id ===
+        APP_STATE.brandBrainBrandId
+    ) ||
+    null
   );
 }
 
+
+/* =========================================================
+   BRAND BRAIN DIALOG
+   ========================================================= */
 
 function ensureBrandBrainDialog() {
   let dialog =
@@ -2018,52 +2257,64 @@ function ensureBrandBrainDialog() {
   dialog.innerHTML = `
     <div
       style="
-        width:min(1040px,94vw);
+        width:min(960px,94vw);
         max-width:100%;
-        max-height:88vh;
-        display:flex;
-        flex-direction:column;
-        overflow:hidden;
+        max-height:90vh;
+        overflow-y:auto;
       "
     >
 
       <div class="dialog-header">
 
-        <div>
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            gap:12px;
+            min-width:0;
+          "
+        >
 
           <span
-            class="eyebrow"
-            id="brandBrainEyebrow"
+            id="brandBrainMark"
+            class="brand-switcher-mark"
+            aria-hidden="true"
           >
-            Brand Brain
+            ◆
           </span>
 
-          <h2
-            id="brandBrainTitle"
+          <div
             style="
-              margin-bottom:4px;
+              min-width:0;
             "
           >
-            Brand Brain
-          </h2>
 
-          <p
-            id="brandBrainSubtitle"
-            style="
-              margin:0;
-              color:var(--muted);
-              font-size:.78rem;
-              line-height:1.5;
-            "
-          ></p>
+            <span
+              id="brandBrainStage"
+              class="eyebrow"
+            >
+              Brand Brain
+            </span>
+
+            <h2
+              id="brandBrainTitle"
+              style="
+                margin-top:4px;
+              "
+            >
+              Brand Brain
+            </h2>
+
+          </div>
 
         </div>
+
 
         <button
           id="closeBrandBrainButton"
           class="dialog-close"
           type="button"
-          aria-label="Close Brand Brain"
+          aria-label="Close"
         >
           ×
         </button>
@@ -2072,15 +2323,13 @@ function ensureBrandBrainDialog() {
 
 
       <div
-        id="brandBrainTabs"
         style="
           display:flex;
           gap:8px;
-          overflow-x:auto;
-          flex-shrink:0;
-          padding:2px 0 14px;
-          scrollbar-width:thin;
+          flex-wrap:wrap;
+          margin-bottom:22px;
         "
+        id="brandBrainTabs"
       >
 
         <button
@@ -2128,12 +2377,6 @@ function ensureBrandBrainDialog() {
 
       <div
         id="brandBrainContent"
-        style="
-          overflow-y:auto;
-          padding-right:4px;
-          min-height:300px;
-          flex:1;
-        "
       ></div>
 
     </div>
@@ -2148,11 +2391,7 @@ function ensureBrandBrainDialog() {
   $("#closeBrandBrainButton")
     ?.addEventListener(
       "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
+      closeBrandBrain
     );
 
 
@@ -2172,20 +2411,10 @@ function ensureBrandBrainDialog() {
 
 
         setBrandBrainTab(
-          button.dataset
-            .brainTab
+          button.dataset.brainTab
         );
       }
     );
-
-
-  dialog.addEventListener(
-    "cancel",
-    () => {
-      APP_STATE.brandBrainBrandId =
-        null;
-    }
-  );
 
 
   enableBackdropClose(
@@ -2212,7 +2441,7 @@ function openBrandBrain(
 
   if (!brand) {
     showToast(
-      "That Brand Brain could not be found.",
+      "That brand could not be found.",
       "error"
     );
 
@@ -2228,11 +2457,15 @@ function openBrandBrain(
     "identity";
 
 
+  /*
+    Brand Brain always works in the context
+    of the brand being edited.
+  */
+
   setActiveBrand(
     brand.id,
     {
-      toast:
-        false
+      toast: false
     }
   );
 
@@ -2268,46 +2501,39 @@ function renderBrandBrainHeader() {
   }
 
 
-  const eyebrow =
-    $("#brandBrainEyebrow");
-
+  const mark =
+    $("#brandBrainMark");
 
   const title =
     $("#brandBrainTitle");
 
+  const stage =
+    $("#brandBrainStage");
 
-  const subtitle =
-    $("#brandBrainSubtitle");
 
-
-  if (eyebrow) {
-    eyebrow.textContent =
-      `${brand.mark} Brand Brain`;
+  if (mark) {
+    mark.textContent =
+      brand.mark ||
+      "◆";
   }
 
 
   if (title) {
     title.textContent =
-      brand.name;
+      `${brand.shortName} Brand Brain`;
   }
 
 
-  if (subtitle) {
-    const parts = [
-      brand.stageLabel,
-      brand.businessType
-    ]
-      .filter(Boolean);
-
-
-    subtitle.textContent =
-      parts.join(" · ");
+  if (stage) {
+    stage.textContent =
+      brand.stageLabel ||
+      "Brand Brain";
   }
 }
 
 
 /* =========================================================
-   BRAND BRAIN TABS
+   BRAND BRAIN TAB
    ========================================================= */
 
 function setBrandBrainTab(
@@ -2335,20 +2561,24 @@ function setBrandBrainTab(
 }
 
 
+/* =========================================================
+   BRAND BRAIN TAB UI
+   ========================================================= */
+
 function renderBrandBrainTabs() {
   $$(
     "[data-brain-tab]",
     $("#brandBrainDialog") ||
-    document
-  ).forEach(button => {
-
-    button.classList.toggle(
-      "is-active",
-      button.dataset.brainTab ===
-        APP_STATE.brandBrainTab
-    );
-
-  });
+      document
+  ).forEach(
+    button => {
+      button.classList.toggle(
+        "is-active",
+        button.dataset.brainTab ===
+          APP_STATE.brandBrainTab
+      );
+    }
+  );
 }
 
 
@@ -2432,7 +2662,7 @@ function brandBrainSectionHeader(
   return `
     <div
       style="
-        margin-bottom:22px;
+        margin-bottom:20px;
       "
     >
 
@@ -2448,26 +2678,30 @@ function brandBrainSectionHeader(
             Georgia,
             'Times New Roman',
             serif;
-          font-size:
-            1.3rem;
-          font-weight:
-            400;
+          font-size:1.2rem;
+          font-weight:400;
         "
       >
         ${escapeHtml(title)}
       </h3>
 
-      <p
-        style="
-          margin:0;
-          max-width:720px;
-          color:var(--muted);
-          font-size:.8rem;
-          line-height:1.65;
-        "
-      >
-        ${escapeHtml(description)}
-      </p>
+      ${
+        description
+          ? `
+            <p
+              style="
+                margin:0;
+                max-width:720px;
+                color:var(--muted);
+                font-size:.78rem;
+                line-height:1.65;
+              "
+            >
+              ${escapeHtml(description)}
+            </p>
+          `
+          : ""
+      }
 
     </div>
   `;
@@ -2475,10 +2709,7 @@ function brandBrainSectionHeader(
 
 
 /* =========================================================
-   TWO-COLUMN FORM HELPER
-
-   CSS grid collapses naturally when there is not enough
-   horizontal space.
+   BRAND BRAIN GRID
    ========================================================= */
 
 function brandBrainGridOpen() {
@@ -2490,7 +2721,7 @@ function brandBrainGridOpen() {
           repeat(
             auto-fit,
             minmax(
-              min(100%,260px),
+              min(100%,220px),
               1fr
             )
           );
@@ -2499,10 +2730,8 @@ function brandBrainGridOpen() {
     >
   `;
 }
-
-
 /* =========================================================
-   IDENTITY EDITOR
+   BRAND IDENTITY EDITOR
    ========================================================= */
 
 function renderBrandIdentityEditor(
@@ -2511,9 +2740,9 @@ function renderBrandIdentityEditor(
 ) {
   container.innerHTML = `
     ${brandBrainSectionHeader(
-      "Core Identity",
-      "Who this brand is",
-      "These are foundational business facts. Marketing Studio uses them throughout campaigns, content briefs, and future AI workflows."
+      "Brand Brain",
+      "Identity",
+      "The core facts that define what this brand is, where it is in its lifecycle, and what its marketing should accomplish."
     )}
 
     <form
@@ -2530,7 +2759,7 @@ function renderBrandIdentityEditor(
           </span>
 
           <input
-            id="brainOfficialName"
+            id="brandIdentityOfficialName"
             type="text"
             value="${
               escapeHtml(
@@ -2550,7 +2779,7 @@ function renderBrandIdentityEditor(
           </span>
 
           <input
-            id="brainShortName"
+            id="brandIdentityShortName"
             type="text"
             value="${
               escapeHtml(
@@ -2569,7 +2798,7 @@ function renderBrandIdentityEditor(
           </span>
 
           <input
-            id="brainMark"
+            id="brandIdentityMark"
             type="text"
             value="${
               escapeHtml(
@@ -2577,7 +2806,6 @@ function renderBrandIdentityEditor(
               )
             }"
             maxlength="12"
-            placeholder="S&S"
           />
 
         </label>
@@ -2590,7 +2818,7 @@ function renderBrandIdentityEditor(
           </span>
 
           <input
-            id="brainDomain"
+            id="brandIdentityDomain"
             type="url"
             value="${
               escapeHtml(
@@ -2602,10 +2830,6 @@ function renderBrandIdentityEditor(
 
         </label>
 
-      </div>
-
-
-      ${brandBrainGridOpen()}
 
         <label class="field">
 
@@ -2614,14 +2838,14 @@ function renderBrandIdentityEditor(
           </span>
 
           <input
-            id="brainBusinessType"
+            id="brandIdentityBusinessType"
             type="text"
             value="${
               escapeHtml(
                 brand.businessType
               )
             }"
-            placeholder="Coffee shop, web studio, creative shop..."
+            placeholder="Coffee shop, web design studio…"
           />
 
         </label>
@@ -2634,26 +2858,26 @@ function renderBrandIdentityEditor(
           </span>
 
           <select
-            id="brainBusinessStage"
+            id="brandIdentityStage"
           >
 
             <option
               value="pre-opening"
               ${
                 brand.stage ===
-                "pre-opening"
+                  "pre-opening"
                   ? "selected"
                   : ""
               }
             >
-              Pre-opening
+              Pre-Opening
             </option>
 
             <option
               value="operating"
               ${
                 brand.stage ===
-                "operating"
+                  "operating"
                   ? "selected"
                   : ""
               }
@@ -2665,7 +2889,7 @@ function renderBrandIdentityEditor(
               value="paused"
               ${
                 brand.stage ===
-                "paused"
+                  "paused"
                   ? "selected"
                   : ""
               }
@@ -2677,7 +2901,7 @@ function renderBrandIdentityEditor(
               value="seasonal"
               ${
                 brand.stage ===
-                "seasonal"
+                  "seasonal"
                   ? "selected"
                   : ""
               }
@@ -2689,12 +2913,12 @@ function renderBrandIdentityEditor(
               value="development"
               ${
                 brand.stage ===
-                "development"
+                  "development"
                   ? "selected"
                   : ""
               }
             >
-              In Development
+              Development
             </option>
 
           </select>
@@ -2705,18 +2929,18 @@ function renderBrandIdentityEditor(
         <label class="field">
 
           <span>
-            Display Stage
+            Stage Label
           </span>
 
           <input
-            id="brainStageLabel"
+            id="brandIdentityStageLabel"
             type="text"
             value="${
               escapeHtml(
                 brand.stageLabel
               )
             }"
-            placeholder="Pre-opening"
+            placeholder="Coming Soon"
           />
 
         </label>
@@ -2729,14 +2953,14 @@ function renderBrandIdentityEditor(
           </span>
 
           <input
-            id="brainCampaignPhase"
+            id="brandIdentityCampaignPhase"
             type="text"
             value="${
               escapeHtml(
                 brand.campaignPhase
               )
             }"
-            placeholder="Early ramp, launch, evergreen..."
+            placeholder="Early ramp, launch, evergreen…"
           />
 
         </label>
@@ -2751,10 +2975,8 @@ function renderBrandIdentityEditor(
         </span>
 
         <textarea
-          id="brainPrimaryGoal"
-          style="
-            min-height:90px;
-          "
+          id="brandIdentityPrimaryGoal"
+          rows="3"
           placeholder="What should marketing accomplish right now?"
         >${
           escapeHtml(
@@ -2772,7 +2994,7 @@ function renderBrandIdentityEditor(
         </span>
 
         <input
-          id="brainTagline"
+          id="brandIdentityTagline"
           type="text"
           value="${
             escapeHtml(
@@ -2791,10 +3013,8 @@ function renderBrandIdentityEditor(
         </span>
 
         <textarea
-          id="brainShortDescription"
-          style="
-            min-height:90px;
-          "
+          id="brandIdentityShortDescription"
+          rows="3"
           placeholder="A concise description of the business."
         >${
           escapeHtml(
@@ -2812,11 +3032,9 @@ function renderBrandIdentityEditor(
         </span>
 
         <textarea
-          id="brainLongDescription"
-          style="
-            min-height:130px;
-          "
-          placeholder="A fuller description of the brand, its offering, and its place in the market."
+          id="brandIdentityLongDescription"
+          rows="5"
+          placeholder="A fuller description of the brand and what it does."
         >${
           escapeHtml(
             brand.longDescription
@@ -2833,11 +3051,9 @@ function renderBrandIdentityEditor(
         </span>
 
         <textarea
-          id="brainBrandStory"
-          style="
-            min-height:150px;
-          "
-          placeholder="Where did the brand come from? What is the story behind it?"
+          id="brandIdentityStory"
+          rows="6"
+          placeholder="Where the brand came from and what shaped it."
         >${
           escapeHtml(
             brand.brandStory
@@ -2847,48 +3063,42 @@ function renderBrandIdentityEditor(
       </label>
 
 
-      ${brandBrainGridOpen()}
+      <label class="field">
 
-        <label class="field">
+        <span>
+          Mission
+        </span>
 
-          <span>
-            Mission
-          </span>
+        <textarea
+          id="brandIdentityMission"
+          rows="4"
+          placeholder="What is this brand here to do?"
+        >${
+          escapeHtml(
+            brand.mission
+          )
+        }</textarea>
 
-          <textarea
-            id="brainMission"
-            style="
-              min-height:120px;
-            "
-          >${
-            escapeHtml(
-              brand.mission
-            )
-          }</textarea>
-
-        </label>
+      </label>
 
 
-        <label class="field">
+      <label class="field">
 
-          <span>
-            Differentiator
-          </span>
+        <span>
+          Differentiator
+        </span>
 
-          <textarea
-            id="brainDifferentiator"
-            style="
-              min-height:120px;
-            "
-          >${
-            escapeHtml(
-              brand.differentiator
-            )
-          }</textarea>
+        <textarea
+          id="brandIdentityDifferentiator"
+          rows="4"
+          placeholder="What meaningfully separates this brand from alternatives?"
+        >${
+          escapeHtml(
+            brand.differentiator
+          )
+        }</textarea>
 
-        </label>
-
-      </div>
+      </label>
 
 
       <label class="field">
@@ -2898,10 +3108,9 @@ function renderBrandIdentityEditor(
         </span>
 
         <textarea
-          id="brainBrandPromise"
-          style="
-            min-height:100px;
-          "
+          id="brandIdentityPromise"
+          rows="4"
+          placeholder="What can customers consistently expect from this brand?"
         >${
           escapeHtml(
             brand.brandPromise
@@ -2913,95 +3122,84 @@ function renderBrandIdentityEditor(
 
       <div
         style="
-          margin-top:8px;
-          padding:16px;
-          border:1px solid var(--line);
-          border-radius:var(--radius);
-          background:rgba(255,255,255,.018);
+          display:grid;
+          grid-template-columns:
+            repeat(
+              auto-fit,
+              minmax(
+                min(100%,220px),
+                1fr
+              )
+            );
+          gap:14px;
         "
       >
 
-        <span class="eyebrow">
-          Opening Information
-        </span>
+        <label class="field">
 
-        <p
+          <span>
+            Opening Date
+          </span>
+
+          <input
+            id="brandIdentityOpeningDate"
+            type="date"
+            value="${
+              escapeHtml(
+                brand.openingDate ||
+                ""
+              )
+            }"
+          />
+
+        </label>
+
+
+        <label
+          class="field"
           style="
-            margin:
-              6px 0 16px;
-            color:var(--muted);
-            font-size:.76rem;
-            line-height:1.55;
+            justify-content:flex-end;
           "
         >
-          Especially important for pre-opening brands.
-          An unconfirmed opening date should never be
-          presented by AI as fact.
-        </p>
 
+          <span>
+            Opening Date Status
+          </span>
 
-        ${brandBrainGridOpen()}
-
-          <label class="field">
-
-            <span>
-              Opening Date
-            </span>
-
-            <input
-              id="brainOpeningDate"
-              type="date"
-              value="${
-                escapeHtml(
-                  brand.openingDate ||
-                  ""
-                )
-              }"
-            />
-
-          </label>
-
-
-          <label
-            class="field"
+          <span
             style="
-              justify-content:flex-end;
+              display:flex;
+              align-items:center;
+              gap:9px;
+              min-height:44px;
             "
           >
 
-            <span>
-              Date Status
-            </span>
-
-            <label
+            <input
+              id="brandIdentityOpeningConfirmed"
+              type="checkbox"
+              ${
+                brand.openingDateConfirmed
+                  ? "checked"
+                  : ""
+              }
               style="
-                display:flex;
-                align-items:center;
-                gap:10px;
-                min-height:46px;
-                padding:0 2px;
-                color:var(--ink);
-                font-size:.8rem;
+                width:auto;
+              "
+            />
+
+            <span
+              style="
+                color:var(--muted);
+                font-size:.78rem;
               "
             >
+              Date is confirmed
+            </span>
 
-              <input
-                id="brainOpeningConfirmed"
-                type="checkbox"
-                ${
-                  brand.openingDateConfirmed
-                    ? "checked"
-                    : ""
-                }
-              />
+          </span>
 
-              Opening date is confirmed
-
-            </label>
-
-          </label>
-
-        </div>
+        </label>
 
       </div>
 
@@ -3011,13 +3209,13 @@ function renderBrandIdentityEditor(
         style="
           position:sticky;
           bottom:0;
-          padding-top:14px;
+          padding-top:16px;
           padding-bottom:2px;
           background:
             linear-gradient(
               180deg,
               transparent,
-              rgba(7,8,11,.96) 25%
+              rgba(7,8,11,.97) 25%
             );
         "
       >
@@ -3031,8 +3229,8 @@ function renderBrandIdentityEditor(
         </button>
 
         <button
-          class="primary-button"
           id="saveBrandIdentityButton"
+          class="primary-button"
           type="submit"
         >
           Save Identity
@@ -3053,7 +3251,7 @@ function renderBrandIdentityEditor(
 
 
 /* =========================================================
-   SAVE IDENTITY
+   SAVE BRAND IDENTITY
    ========================================================= */
 
 async function handleBrandIdentitySave(
@@ -3067,23 +3265,8 @@ async function handleBrandIdentitySave(
 
 
   if (!brand) {
-    return;
-  }
-
-
-  const button =
-    $("#saveBrandIdentityButton");
-
-
-  const officialName =
-    $("#brainOfficialName")
-      ?.value
-      ?.trim();
-
-
-  if (!officialName) {
     showToast(
-      "Official Name is required.",
+      "No Brand Brain is currently open.",
       "error"
     );
 
@@ -3091,51 +3274,37 @@ async function handleBrandIdentitySave(
   }
 
 
-  const shortName =
-    nullableText(
-      $("#brainShortName")
-        ?.value
+  const officialName =
+    $("#brandIdentityOfficialName")
+      ?.value
+      ?.trim();
+
+
+  if (!officialName) {
+    showToast(
+      "Official name is required.",
+      "error"
     );
 
+    $("#brandIdentityOfficialName")
+      ?.focus();
 
-  const stage =
-    $("#brainBusinessStage")
-      ?.value ||
-    "operating";
-
-
-  const stageLabelInput =
-    nullableText(
-      $("#brainStageLabel")
-        ?.value
-    );
+    return;
+  }
 
 
   const openingDate =
     nullableDate(
-      $("#brainOpeningDate")
+      $("#brandIdentityOpeningDate")
         ?.value
     );
 
 
   const openingConfirmed =
     Boolean(
-      $("#brainOpeningConfirmed")
-        ?.checked
-    );
-
-
-  /*
-    Safety rule:
-
-    A date cannot remain "confirmed" if there
-    is no actual opening date stored.
-  */
-
-  const finalOpeningConfirmed =
-    Boolean(
       openingDate &&
-      openingConfirmed
+      $("#brandIdentityOpeningConfirmed")
+        ?.checked
     );
 
 
@@ -3144,86 +3313,91 @@ async function handleBrandIdentitySave(
       officialName,
 
     short_name:
-      shortName,
+      nullableText(
+        $("#brandIdentityShortName")
+          ?.value
+      ),
 
     mark:
       nullableText(
-        $("#brainMark")
+        $("#brandIdentityMark")
           ?.value
       ),
 
     domain:
       nullableText(
-        $("#brainDomain")
+        $("#brandIdentityDomain")
           ?.value
       ),
 
     business_type:
       nullableText(
-        $("#brainBusinessType")
+        $("#brandIdentityBusinessType")
           ?.value
       ),
 
     business_stage:
-      stage,
+      $("#brandIdentityStage")
+        ?.value ||
+      "operating",
 
     stage_label:
-      stageLabelInput ||
-      titleCaseStatus(
-        stage
+      nullableText(
+        $("#brandIdentityStageLabel")
+          ?.value
       ),
 
     primary_marketing_goal:
       nullableText(
-        $("#brainPrimaryGoal")
+        $("#brandIdentityPrimaryGoal")
           ?.value
       ),
 
     campaign_phase:
       nullableText(
-        $("#brainCampaignPhase")
+        $("#brandIdentityCampaignPhase")
           ?.value
       ),
 
     tagline:
       nullableText(
-        $("#brainTagline")
+        $("#brandIdentityTagline")
           ?.value
       ),
 
     short_description:
       nullableText(
-        $("#brainShortDescription")
+        $("#brandIdentityShortDescription")
           ?.value
       ),
 
     long_description:
       nullableText(
-        $("#brainLongDescription")
+        $("#brandIdentityLongDescription")
           ?.value
       ),
 
     brand_story:
       nullableText(
-        $("#brainBrandStory")
+        $("#brandIdentityStory")
           ?.value
       ),
 
     mission:
       nullableText(
-        $("#brainMission")
+        $("#brandIdentityMission")
           ?.value
       ),
 
     differentiator:
       nullableText(
-        $("#brainDifferentiator")
+        $("#brandIdentityDifferentiator")
           ?.value
       ),
 
     brand_promise:
       nullableText(
-        $("#brainBrandPromise")
+        $("#brandIdentityPromise")
           ?.value
       ),
 
@@ -3231,8 +3405,12 @@ async function handleBrandIdentitySave(
       openingDate,
 
     opening_date_confirmed:
-      finalOpeningConfirmed
+      openingConfirmed
   };
+
+
+  const button =
+    $("#saveBrandIdentityButton");
 
 
   if (button) {
@@ -3250,9 +3428,7 @@ async function handleBrandIdentitySave(
     } =
       await supabaseClient
         .from("brands")
-        .update(
-          payload
-        )
+        .update(payload)
         .eq(
           "id",
           brand.id
@@ -3264,14 +3440,9 @@ async function handleBrandIdentitySave(
     }
 
 
-    const updatedBrand =
-      await reloadBrand(
-        brand.id
-      );
-
-
-    APP_STATE.brandBrainBrandId =
-      updatedBrand.id;
+    await reloadBrand(
+      brand.id
+    );
 
 
     renderActiveBrand();
@@ -3286,9 +3457,13 @@ async function handleBrandIdentitySave(
 
     renderContentLibrary();
 
+    renderCalendar();
+
     renderAssets();
 
     renderQuickCreateBrandOptions();
+
+    syncQuickCreateBrand();
 
     renderBrandBrainHeader();
 
@@ -3296,7 +3471,7 @@ async function handleBrandIdentitySave(
 
 
     showToast(
-      `${updatedBrand.shortName} identity saved.`,
+      "Brand identity saved.",
       "success"
     );
 
@@ -3309,7 +3484,7 @@ async function handleBrandIdentitySave(
 
     showToast(
       error?.message ||
-      "Unable to save the brand identity.",
+      "Unable to save brand identity.",
       "error",
       5000
     );
@@ -3331,7 +3506,7 @@ async function handleBrandIdentitySave(
 
 
 /* =========================================================
-   BRAND BRAIN CLOSE
+   CLOSE BRAND BRAIN
    ========================================================= */
 
 function closeBrandBrain() {
@@ -3342,6 +3517,10 @@ function closeBrandBrain() {
 
   APP_STATE.brandBrainBrandId =
     null;
+
+
+  APP_STATE.brandBrainTab =
+    "identity";
 }
 /* =========================================================
    BRAND VOICE EDITOR
@@ -3357,71 +3536,64 @@ function renderBrandVoiceEditor(
 
   container.innerHTML = `
     ${brandBrainSectionHeader(
-      "Brand Voice",
-      "How this brand speaks",
-      "These settings teach Marketing Studio how the brand should sound, what language belongs to it, and what habits the AI should avoid."
+      "Brand Brain",
+      "Voice",
+      "Teach Marketing Studio how this brand should sound, which language belongs to it, and which habits should stay out of the copy."
     )}
-
 
     <form
       id="brandVoiceForm"
       class="create-form"
     >
 
-      <label class="field">
-
-        <span>
-          Voice Adjectives
-        </span>
-
-        <input
-          id="brainVoiceAdjectives"
-          type="text"
-          value="${
-            escapeHtml(
-              arrayToText(
-                voice.adjectives
-              )
-            )
-          }"
-          placeholder="warm, old-world, grounded, mysterious"
-        />
-
-        <small
-          style="
-            color:var(--muted);
-            font-size:.7rem;
-            line-height:1.5;
-          "
-        >
-          Separate each adjective with a comma.
-        </small>
-
-      </label>
-
-
-      <label class="field">
-
-        <span>
-          Emotional Atmosphere
-        </span>
-
-        <textarea
-          id="brainVoiceAtmosphere"
-          style="
-            min-height:110px;
-          "
-          placeholder="Describe how the brand should feel when someone reads it."
-        >${
-          escapeHtml(
-            voice.emotionalAtmosphere
-          )
-        }</textarea>
-
-      </label>
-
-
       ${brandBrainGridOpen()}
+
+        <label class="field">
+
+          <span>
+            Voice Adjectives
+          </span>
+
+          <input
+            id="brandVoiceAdjectives"
+            type="text"
+            value="${
+              escapeHtml(
+                arrayToText(
+                  voice.adjectives
+                )
+              )
+            }"
+            placeholder="Warm, old-world, grounded, mysterious"
+          />
+
+          <small>
+            Separate with commas.
+          </small>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Emotional Atmosphere
+          </span>
+
+          <input
+            id="brandVoiceAtmosphere"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.emotionalAtmosphere ||
+                ""
+              )
+            }"
+            placeholder="Welcoming, handcrafted, quietly magical"
+          />
+
+        </label>
+
 
         <label class="field">
 
@@ -3430,14 +3602,15 @@ function renderBrandVoiceEditor(
           </span>
 
           <input
-            id="brainVoiceFormality"
+            id="brandVoiceFormality"
             type="text"
             value="${
               escapeHtml(
-                voice.formality
+                voice.formality ||
+                ""
               )
             }"
-            placeholder="Relaxed but polished"
+            placeholder="Conversational, polished, informal…"
           />
 
         </label>
@@ -3450,14 +3623,15 @@ function renderBrandVoiceEditor(
           </span>
 
           <input
-            id="brainVoiceHumor"
+            id="brandVoiceHumor"
             type="text"
             value="${
               escapeHtml(
-                voice.humorStyle
+                voice.humorStyle ||
+                ""
               )
             }"
-            placeholder="Dry, playful, minimal..."
+            placeholder="Dry, playful, restrained…"
           />
 
         </label>
@@ -3470,14 +3644,15 @@ function renderBrandVoiceEditor(
           </span>
 
           <input
-            id="brainVoiceMystery"
+            id="brandVoiceMystery"
             type="text"
             value="${
               escapeHtml(
-                voice.mysteryLevel
+                voice.mysteryLevel ||
+                ""
               )
             }"
-            placeholder="Subtle, moderate, none..."
+            placeholder="Subtle, moderate, none…"
           />
 
         </label>
@@ -3490,11 +3665,12 @@ function renderBrandVoiceEditor(
           </span>
 
           <input
-            id="brainVoiceCapitalization"
+            id="brandVoiceCapitalization"
             type="text"
             value="${
               escapeHtml(
-                voice.capitalizationStyle
+                voice.capitalizationStyle ||
+                ""
               )
             }"
             placeholder="Standard sentence case"
@@ -3505,233 +3681,109 @@ function renderBrandVoiceEditor(
       </div>
 
 
-      <div
-        style="
-          margin-top:8px;
-          padding:16px;
-          border:1px solid var(--line);
-          border-radius:var(--radius);
-          background:rgba(255,255,255,.018);
-        "
-      >
+      <label class="field">
 
-        <span class="eyebrow">
-          Vocabulary
+        <span>
+          Preferred Vocabulary
         </span>
 
-        <p
-          style="
-            margin:
-              6px 0 16px;
-            color:var(--muted);
-            font-size:.76rem;
-            line-height:1.55;
-          "
-        >
-          Give the AI language that feels natural
-          for this brand—and language that does not.
-        </p>
-
-
-        ${brandBrainGridOpen()}
-
-          <label class="field">
-
-            <span>
-              Preferred Vocabulary
-            </span>
-
-            <textarea
-              id="brainPreferredVocabulary"
-              style="
-                min-height:120px;
-              "
-              placeholder="ritual, crafted, hearth, Appalachian..."
-            >${
-              escapeHtml(
-                arrayToText(
-                  voice.preferredVocabulary
-                )
-              )
-            }</textarea>
-
-            <small
-              style="
-                color:var(--muted);
-                font-size:.7rem;
-              "
-            >
-              Comma-separated.
-            </small>
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Vocabulary to Avoid
-            </span>
-
-            <textarea
-              id="brainAvoidVocabulary"
-              style="
-                min-height:120px;
-              "
-              placeholder="spooky, fang-tastic, corporate buzzwords..."
-            >${
-              escapeHtml(
-                arrayToText(
-                  voice.avoidVocabulary
-                )
-              )
-            }</textarea>
-
-            <small
-              style="
-                color:var(--muted);
-                font-size:.7rem;
-              "
-            >
-              Comma-separated.
-            </small>
-
-          </label>
-
-        </div>
-
-      </div>
-
-
-      <div
-        style="
-          margin-top:8px;
-          padding:16px;
-          border:1px solid var(--line);
-          border-radius:var(--radius);
-          background:rgba(255,255,255,.018);
-        "
-      >
-
-        <span class="eyebrow">
-          Phrases & Language Habits
-        </span>
-
-        <p
-          style="
-            margin:
-              6px 0 16px;
-            color:var(--muted);
-            font-size:.76rem;
-            line-height:1.55;
-          "
-        >
-          Capture recurring language that feels
-          right—or immediately makes the brand
-          sound wrong.
-        </p>
-
-
-        ${brandBrainGridOpen()}
-
-          <label class="field">
-
-            <span>
-              Preferred Phrases
-            </span>
-
-            <textarea
-              id="brainPreferredPhrases"
-              style="
-                min-height:120px;
-              "
-              placeholder="Crafted for the morning ritual, coming to life..."
-            >${
-              escapeHtml(
-                arrayToText(
-                  voice.preferredPhrases
-                )
-              )
-            }</textarea>
-
-            <small
-              style="
-                color:var(--muted);
-                font-size:.7rem;
-              "
-            >
-              Comma-separated.
-            </small>
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Phrases to Avoid
-            </span>
-
-            <textarea
-              id="brainAvoidPhrases"
-              style="
-                min-height:120px;
-              "
-              placeholder="Don't miss out, something for everyone..."
-            >${
-              escapeHtml(
-                arrayToText(
-                  voice.avoidPhrases
-                )
-              )
-            }</textarea>
-
-            <small
-              style="
-                color:var(--muted);
-                font-size:.7rem;
-              "
-            >
-              Comma-separated.
-            </small>
-
-          </label>
-
-        </div>
-
-
-        <label class="field">
-
-          <span>
-            Clichés to Avoid
-          </span>
-
-          <textarea
-            id="brainCliches"
-            style="
-              min-height:100px;
-            "
-            placeholder="Halloween clichés, generic small-business clichés..."
-          >${
-            escapeHtml(
-              arrayToText(
-                voice.clichesToAvoid
-              )
+        <textarea
+          id="brandVoicePreferredVocabulary"
+          rows="3"
+          placeholder="Words that naturally belong to this brand, separated by commas."
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.preferredVocabulary
             )
-          }</textarea>
+          )
+        }</textarea>
 
-          <small
-            style="
-              color:var(--muted);
-              font-size:.7rem;
-            "
-          >
-            Comma-separated.
-          </small>
+      </label>
 
-        </label>
 
-      </div>
+      <label class="field">
+
+        <span>
+          Vocabulary to Avoid
+        </span>
+
+        <textarea
+          id="brandVoiceAvoidVocabulary"
+          rows="3"
+          placeholder="Words the brand should avoid, separated by commas."
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.avoidVocabulary
+            )
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Preferred Phrases
+        </span>
+
+        <textarea
+          id="brandVoicePreferredPhrases"
+          rows="3"
+          placeholder="Approved recurring phrases, separated by commas."
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.preferredPhrases
+            )
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Phrases to Avoid
+        </span>
+
+        <textarea
+          id="brandVoiceAvoidPhrases"
+          rows="3"
+          placeholder="Phrases that feel wrong for the brand, separated by commas."
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.avoidPhrases
+            )
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Clichés to Avoid
+        </span>
+
+        <textarea
+          id="brandVoiceCliches"
+          rows="3"
+          placeholder="Overused ideas or phrases Marketing Studio should avoid."
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.clichesToAvoid
+            )
+          )
+        }</textarea>
+
+      </label>
 
 
       ${brandBrainGridOpen()}
@@ -3742,17 +3794,17 @@ function renderBrandVoiceEditor(
             Emoji Policy
           </span>
 
-          <textarea
-            id="brainEmojiPolicy"
-            style="
-              min-height:100px;
-            "
-            placeholder="Rare, restrained, never in formal website copy..."
-          >${
-            escapeHtml(
-              voice.emojiPolicy
-            )
-          }</textarea>
+          <input
+            id="brandVoiceEmojiPolicy"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.emojiPolicy ||
+                ""
+              )
+            }"
+            placeholder="Rare, none, moderate…"
+          />
 
         </label>
 
@@ -3763,17 +3815,38 @@ function renderBrandVoiceEditor(
             Profanity Policy
           </span>
 
-          <textarea
-            id="brainProfanityPolicy"
-            style="
-              min-height:100px;
-            "
-            placeholder="None, mild only, acceptable in specific contexts..."
-          >${
-            escapeHtml(
-              voice.profanityPolicy
-            )
-          }</textarea>
+          <input
+            id="brandVoiceProfanityPolicy"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.profanityPolicy ||
+                ""
+              )
+            }"
+            placeholder="None, light when appropriate…"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            CTA Style
+          </span>
+
+          <input
+            id="brandVoiceCtaStyle"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.ctaStyle ||
+                ""
+              )
+            }"
+            placeholder="Warm invitation, direct action…"
+          />
 
         </label>
 
@@ -3783,39 +3856,17 @@ function renderBrandVoiceEditor(
       <label class="field">
 
         <span>
-          Call-to-Action Style
-        </span>
-
-        <textarea
-          id="brainCtaStyle"
-          style="
-            min-height:100px;
-          "
-          placeholder="How should the brand ask people to visit, book, order, inquire, follow, or act?"
-        >${
-          escapeHtml(
-            voice.ctaStyle
-          )
-        }</textarea>
-
-      </label>
-
-
-      <label class="field">
-
-        <span>
           Writing Notes
         </span>
 
         <textarea
-          id="brainWritingNotes"
-          style="
-            min-height:150px;
-          "
+          id="brandVoiceWritingNotes"
+          rows="5"
           placeholder="Anything else the AI should understand about how this brand writes."
         >${
           escapeHtml(
-            voice.writingNotes
+            voice.writingNotes ||
+            ""
           )
         }</textarea>
 
@@ -3829,31 +3880,28 @@ function renderBrandVoiceEditor(
         </span>
 
         <textarea
-          id="brainApprovedExamples"
-          style="
-            min-height:150px;
-          "
-          placeholder="Paste examples of language that sounds exactly right for this brand."
+          id="brandVoiceApprovedExamples"
+          rows="8"
+          placeholder="Paste examples of language that feels exactly right for this brand.
+
+Separate multiple examples with a line containing only:
+---"
         >${
           escapeHtml(
             Array.isArray(
               voice.approvedExamples
             )
               ? voice.approvedExamples
-                  .join("\n\n---\n\n")
+                  .join(
+                    "\n---\n"
+                  )
               : ""
           )
         }</textarea>
 
-        <small
-          style="
-            color:var(--muted);
-            font-size:.7rem;
-            line-height:1.5;
-          "
-        >
-          Separate multiple examples with a line containing
-          three dashes: ---
+        <small>
+          These become examples of on-brand language
+          when Marketing Studio builds an AI brief.
         </small>
 
       </label>
@@ -3864,13 +3912,13 @@ function renderBrandVoiceEditor(
         style="
           position:sticky;
           bottom:0;
-          padding-top:14px;
+          padding-top:16px;
           padding-bottom:2px;
           background:
             linear-gradient(
               180deg,
               transparent,
-              rgba(7,8,11,.96) 25%
+              rgba(7,8,11,.97) 25%
             );
         "
       >
@@ -3884,8 +3932,8 @@ function renderBrandVoiceEditor(
         </button>
 
         <button
-          class="primary-button"
           id="saveBrandVoiceButton"
+          class="primary-button"
           type="submit"
         >
           Save Voice
@@ -3906,19 +3954,21 @@ function renderBrandVoiceEditor(
 
 
 /* =========================================================
-   APPROVED EXAMPLES PARSER
+   APPROVED EXAMPLES
    ========================================================= */
 
 function parseApprovedExamples(
   value
 ) {
-  return String(value || "")
+  return String(
+    value || ""
+  )
     .split(
       /\n\s*---\s*\n/g
     )
     .map(
-      item =>
-        item.trim()
+      example =>
+        example.trim()
     )
     .filter(Boolean);
 }
@@ -3939,12 +3989,13 @@ async function handleBrandVoiceSave(
 
 
   if (!brand) {
+    showToast(
+      "No Brand Brain is currently open.",
+      "error"
+    );
+
     return;
   }
-
-
-  const button =
-    $("#saveBrandVoiceButton");
 
 
   const payload = {
@@ -3953,100 +4004,104 @@ async function handleBrandVoiceSave(
 
     adjectives:
       textToArray(
-        $("#brainVoiceAdjectives")
+        $("#brandVoiceAdjectives")
           ?.value
       ),
 
     emotional_atmosphere:
       nullableText(
-        $("#brainVoiceAtmosphere")
+        $("#brandVoiceAtmosphere")
           ?.value
       ),
 
     formality:
       nullableText(
-        $("#brainVoiceFormality")
+        $("#brandVoiceFormality")
           ?.value
       ),
 
     humor_style:
       nullableText(
-        $("#brainVoiceHumor")
+        $("#brandVoiceHumor")
           ?.value
       ),
 
     mystery_level:
       nullableText(
-        $("#brainVoiceMystery")
+        $("#brandVoiceMystery")
           ?.value
       ),
 
     preferred_vocabulary:
       textToArray(
-        $("#brainPreferredVocabulary")
+        $("#brandVoicePreferredVocabulary")
           ?.value
       ),
 
     avoid_vocabulary:
       textToArray(
-        $("#brainAvoidVocabulary")
+        $("#brandVoiceAvoidVocabulary")
           ?.value
       ),
 
     preferred_phrases:
       textToArray(
-        $("#brainPreferredPhrases")
+        $("#brandVoicePreferredPhrases")
           ?.value
       ),
 
     avoid_phrases:
       textToArray(
-        $("#brainAvoidPhrases")
+        $("#brandVoiceAvoidPhrases")
           ?.value
       ),
 
     cliches_to_avoid:
       textToArray(
-        $("#brainCliches")
+        $("#brandVoiceCliches")
           ?.value
       ),
 
     emoji_policy:
       nullableText(
-        $("#brainEmojiPolicy")
+        $("#brandVoiceEmojiPolicy")
           ?.value
       ),
 
     profanity_policy:
       nullableText(
-        $("#brainProfanityPolicy")
+        $("#brandVoiceProfanityPolicy")
           ?.value
       ),
 
     capitalization_style:
       nullableText(
-        $("#brainVoiceCapitalization")
+        $("#brandVoiceCapitalization")
           ?.value
       ),
 
     cta_style:
       nullableText(
-        $("#brainCtaStyle")
+        $("#brandVoiceCtaStyle")
           ?.value
       ),
 
     writing_notes:
       nullableText(
-        $("#brainWritingNotes")
+        $("#brandVoiceWritingNotes")
           ?.value
       ),
 
     approved_examples:
       parseApprovedExamples(
-        $("#brainApprovedExamples")
+        $("#brandVoiceApprovedExamples")
           ?.value
       )
   };
+
+
+  const button =
+    $("#saveBrandVoiceButton");
 
 
   if (button) {
@@ -4059,20 +4114,13 @@ async function handleBrandVoiceSave(
 
 
   try {
-
-    /*
-      brand_id is UNIQUE in the schema, so upsert gives
-      us one authoritative Brand Voice row per brand.
-
-      This also means a brand that does not yet have a
-      voice row can be created from this same editor.
-    */
-
     const {
       error
     } =
       await supabaseClient
-        .from("brand_voice")
+        .from(
+          "brand_voice"
+        )
         .upsert(
           payload,
           {
@@ -4087,14 +4135,9 @@ async function handleBrandVoiceSave(
     }
 
 
-    const updatedBrand =
-      await reloadBrand(
-        brand.id
-      );
-
-
-    APP_STATE.brandBrainBrandId =
-      updatedBrand.id;
+    await reloadBrand(
+      brand.id
+    );
 
 
     renderActiveBrand();
@@ -4109,12 +4152,11 @@ async function handleBrandVoiceSave(
 
 
     showToast(
-      `${updatedBrand.shortName} voice saved.`,
+      "Brand voice saved.",
       "success"
     );
 
   } catch (error) {
-
     console.error(
       "Unable to save brand voice:",
       error
@@ -4123,13 +4165,12 @@ async function handleBrandVoiceSave(
 
     showToast(
       error?.message ||
-      "Unable to save the brand voice.",
+      "Unable to save brand voice.",
       "error",
       5000
     );
 
   } finally {
-
     const currentButton =
       $("#saveBrandVoiceButton");
 
@@ -4141,7 +4182,6 @@ async function handleBrandVoiceSave(
       currentButton.textContent =
         "Save Voice";
     }
-
   }
 }
 /* =========================================================
@@ -4168,12 +4208,12 @@ function renderBrandFactsEditor(
                 b.updated_at ||
                 b.created_at ||
                 0
-              ).getTime() -
+              ) -
               new Date(
                 a.updated_at ||
                 a.created_at ||
                 0
-              ).getTime()
+              )
           )
       : [];
 
@@ -4181,118 +4221,84 @@ function renderBrandFactsEditor(
   container.innerHTML = `
     ${brandBrainSectionHeader(
       "Source of Truth",
-      "What the AI is allowed to know as fact",
-      "Store verified business information, owner-approved information, ideas that still need confirmation, and AI suggestions without mixing them together."
+      "Verified Brand Facts",
+      "Store the information Marketing Studio is allowed to treat as factual. Every fact can carry a status, source, verification date, sensitivity flag, and AI permission."
     )}
-
 
     <div
       style="
         display:flex;
-        justify-content:space-between;
-        align-items:flex-start;
-        gap:14px;
-        flex-wrap:wrap;
-        margin-bottom:18px;
+        justify-content:flex-end;
+        margin-bottom:16px;
       "
     >
-
-      <div
-        style="
-          max-width:620px;
-        "
-      >
-
-        <p
-          style="
-            margin:0;
-            color:var(--muted);
-            font-size:.78rem;
-            line-height:1.6;
-          "
-        >
-          Verified and owner-approved facts can be
-          included in AI briefs. Anything marked
-          Needs Confirmation or AI Suggested remains
-          separated from factual marketing claims.
-        </p>
-
-      </div>
-
 
       <button
         class="primary-button"
         type="button"
-        id="addBrandFactButton"
+        data-add-brand-fact
       >
-        + Add Fact
+        Add Fact
       </button>
 
     </div>
 
 
-    <div
-      id="brandFactsList"
-    >
+    ${
+      facts.length
+        ? `
+          <div
+            style="
+              display:grid;
+              gap:12px;
+            "
+          >
+            ${
+              facts
+                .map(
+                  renderBrandFactCard
+                )
+                .join("")
+            }
+          </div>
+        `
+        : `
+          <div class="empty-state">
 
-      ${
-        facts.length
-          ? facts
-              .map(
-                fact =>
-                  renderBrandFactCard(
-                    fact
-                  )
-              )
-              .join("")
-          : `
-            <div class="empty-state">
+            <span
+              class="empty-state-icon"
+              aria-hidden="true"
+            >
+              ◇
+            </span>
 
-              <span
-                class="empty-state-icon"
-                aria-hidden="true"
-              >
-                ◇
-              </span>
+            <h3>
+              No Source of Truth facts yet.
+            </h3>
 
-              <h3>
-                No Source of Truth facts yet.
-              </h3>
+            <p>
+              Add verified business facts, owner-approved
+              information, and anything Marketing Studio
+              should know without guessing.
+            </p>
 
-              <p>
-                Add confirmed business details here so
-                Marketing Studio knows what it may safely
-                use in future content.
-              </p>
+            <button
+              class="secondary-button"
+              type="button"
+              data-add-brand-fact
+            >
+              Add First Fact
+            </button>
 
-              <button
-                class="secondary-button"
-                type="button"
-                data-add-brand-fact
-              >
-                Add First Fact
-              </button>
-
-            </div>
-          `
-      }
-
-    </div>
+          </div>
+        `
+    }
 
 
     <div
       class="form-actions"
       style="
-        position:sticky;
-        bottom:0;
-        padding-top:14px;
-        padding-bottom:2px;
-        background:
-          linear-gradient(
-            180deg,
-            transparent,
-            rgba(7,8,11,.96) 25%
-          );
+        margin-top:20px;
       "
     >
 
@@ -4306,15 +4312,6 @@ function renderBrandFactsEditor(
 
     </div>
   `;
-
-
-  $("#addBrandFactButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        showBrandFactDialog();
-      }
-    );
 }
 
 
@@ -4325,67 +4322,42 @@ function renderBrandFactsEditor(
 function renderBrandFactCard(
   fact
 ) {
-  const status =
-    fact.status ||
-    "needs_confirmation";
+  let value =
+    fact.value_text ||
+    "";
 
 
-  const statusLabel =
-    titleCaseStatus(
-      status
-    );
+  if (
+    !value &&
+    fact.value_jsonb != null
+  ) {
+    try {
+      value =
+        JSON.stringify(
+          fact.value_jsonb,
+          null,
+          2
+        );
+    } catch {
+      value =
+        String(
+          fact.value_jsonb
+        );
+    }
+  }
 
 
-  const category =
-    fact.category ||
-    "general";
-
-
-  const heading =
+  const label =
     fact.subject ||
     fact.fact_key ||
-    titleCaseStatus(
-      category
-    );
-
-
-  const value =
-    fact.value_text ||
-    (
-      fact.value_jsonb != null
-        ? JSON.stringify(
-            fact.value_jsonb
-          )
-        : ""
-    );
-
-
-  const sourceParts = [
-    fact.source_type
-      ? `Source: ${
-          titleCaseStatus(
-            fact.source_type
-          )
-        }`
-      : "",
-
-    fact.last_verified_at
-      ? `Verified ${
-          formatDateTime(
-            fact.last_verified_at
-          )
-        }`
-      : ""
-  ].filter(Boolean);
+    fact.category ||
+    "Brand Fact";
 
 
   return `
     <article
       class="content-panel"
-      style="
-        margin-bottom:12px;
-      "
-      data-fact-card="${
+      data-brand-fact="${
         escapeHtml(
           fact.id
         )
@@ -4396,8 +4368,8 @@ function renderBrandFactCard(
         style="
           display:flex;
           justify-content:space-between;
-          gap:14px;
           align-items:flex-start;
+          gap:14px;
           flex-wrap:wrap;
         "
       >
@@ -4412,8 +4384,7 @@ function renderBrandFactCard(
           <div
             style="
               display:flex;
-              align-items:center;
-              gap:8px;
+              gap:7px;
               flex-wrap:wrap;
               margin-bottom:8px;
             "
@@ -4423,7 +4394,8 @@ function renderBrandFactCard(
               ${
                 escapeHtml(
                   titleCaseStatus(
-                    category
+                    fact.category ||
+                    "fact"
                   )
                 )
               }
@@ -4433,19 +4405,22 @@ function renderBrandFactCard(
               style="
                 display:inline-flex;
                 align-items:center;
-                min-height:24px;
-                padding:4px 8px;
+                min-height:22px;
+                padding:3px 7px;
                 border:1px solid var(--line);
                 border-radius:999px;
                 color:var(--muted);
-                font-size:.65rem;
-                letter-spacing:.05em;
+                font-size:.62rem;
+                letter-spacing:.04em;
                 text-transform:uppercase;
               "
             >
               ${
                 escapeHtml(
-                  statusLabel
+                  titleCaseStatus(
+                    fact.status ||
+                    "needs_confirmation"
+                  )
                 )
               }
             </span>
@@ -4457,13 +4432,13 @@ function renderBrandFactCard(
                     style="
                       display:inline-flex;
                       align-items:center;
-                      min-height:24px;
-                      padding:4px 8px;
+                      min-height:22px;
+                      padding:3px 7px;
                       border:1px solid var(--line);
                       border-radius:999px;
                       color:var(--muted);
-                      font-size:.65rem;
-                      letter-spacing:.05em;
+                      font-size:.62rem;
+                      letter-spacing:.04em;
                       text-transform:uppercase;
                     "
                   >
@@ -4479,117 +4454,164 @@ function renderBrandFactCard(
           <h3
             style="
               margin:
-                0 0 8px;
+                0 0 7px;
               font-family:
                 Georgia,
                 'Times New Roman',
                 serif;
-              font-size:1.08rem;
+              font-size:1rem;
               font-weight:400;
             "
           >
             ${
               escapeHtml(
-                heading ||
-                "Brand Fact"
+                label
               )
             }
           </h3>
 
 
-          ${
-            value
-              ? `
-                <p
-                  style="
-                    margin:
-                      0 0 10px;
-                    color:var(--ink);
-                    font-size:.82rem;
-                    line-height:1.65;
-                    white-space:pre-wrap;
-                  "
-                >
-                  ${
-                    escapeHtml(
-                      value
-                    )
-                  }
-                </p>
-              `
-              : ""
-          }
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.76rem;
+              line-height:1.6;
+              white-space:pre-wrap;
+              overflow-wrap:anywhere;
+            "
+          >${
+            escapeHtml(
+              value ||
+              "No value stored."
+            )
+          }</p>
 
 
           ${
-            fact.source_note
+            fact.source_type ||
+            fact.source_url ||
+            fact.source_note ||
+            fact.last_verified_at
               ? `
-                <p
+                <div
                   style="
-                    margin:
-                      0 0 8px;
+                    margin-top:12px;
                     color:var(--muted);
-                    font-size:.74rem;
+                    font-size:.68rem;
                     line-height:1.55;
                   "
                 >
+
                   ${
-                    escapeHtml(
-                      fact.source_note
-                    )
+                    fact.source_type
+                      ? `
+                        <div>
+                          Source type:
+                          ${
+                            escapeHtml(
+                              fact.source_type
+                            )
+                          }
+                        </div>
+                      `
+                      : ""
                   }
-                </p>
+
+                  ${
+                    fact.source_url
+                      ? `
+                        <div
+                          style="
+                            overflow-wrap:anywhere;
+                          "
+                        >
+                          Source:
+                          ${
+                            escapeHtml(
+                              fact.source_url
+                            )
+                          }
+                        </div>
+                      `
+                      : ""
+                  }
+
+                  ${
+                    fact.source_note
+                      ? `
+                        <div>
+                          ${
+                            escapeHtml(
+                              fact.source_note
+                            )
+                          }
+                        </div>
+                      `
+                      : ""
+                  }
+
+                  ${
+                    fact.last_verified_at
+                      ? `
+                        <div>
+                          Verified:
+                          ${
+                            escapeHtml(
+                              formatDateTime(
+                                fact.last_verified_at
+                              )
+                            )
+                          }
+                        </div>
+                      `
+                      : ""
+                  }
+
+                </div>
               `
               : ""
           }
 
 
-          ${
-            sourceParts.length
-              ? `
-                <small
-                  style="
-                    display:block;
-                    color:var(--muted);
-                    font-size:.68rem;
-                    line-height:1.5;
-                  "
-                >
-                  ${
-                    escapeHtml(
-                      sourceParts.join(
-                        " · "
+          <div
+            style="
+              display:flex;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-top:12px;
+              color:var(--muted);
+              font-size:.66rem;
+            "
+          >
+
+            <span>
+              AI may modify:
+              ${
+                fact.ai_can_modify
+                  ? "Yes"
+                  : "No"
+              }
+            </span>
+
+            ${
+              fact.expires_at
+                ? `
+                  <span>
+                    Expires:
+                    ${
+                      escapeHtml(
+                        formatDateTime(
+                          fact.expires_at
+                        )
                       )
-                    )
-                  }
-                </small>
-              `
-              : ""
-          }
+                    }
+                  </span>
+                `
+                : ""
+            }
 
-
-          ${
-            fact.source_url
-              ? `
-                <small
-                  style="
-                    display:block;
-                    margin-top:4px;
-                    color:var(--muted);
-                    font-size:.68rem;
-                    line-height:1.5;
-                    overflow-wrap:anywhere;
-                  "
-                >
-                  ${
-                    escapeHtml(
-                      fact.source_url
-                    )
-                  }
-                </small>
-              `
-              : ""
-          }
+          </div>
 
         </div>
 
@@ -4597,13 +4619,13 @@ function renderBrandFactCard(
         <div
           style="
             display:flex;
-            gap:8px;
+            gap:7px;
             flex-wrap:wrap;
           "
         >
 
           <button
-            class="secondary-button"
+            class="text-button"
             type="button"
             data-edit-brand-fact="${
               escapeHtml(
@@ -4630,59 +4652,13 @@ function renderBrandFactCard(
 
       </div>
 
-
-      <div
-        style="
-          display:flex;
-          gap:8px;
-          flex-wrap:wrap;
-          margin-top:14px;
-          padding-top:12px;
-          border-top:1px solid var(--line);
-          color:var(--muted);
-          font-size:.68rem;
-        "
-      >
-
-        <span>
-          AI may modify:
-          ${
-            fact.ai_can_modify
-              ? "Yes"
-              : "No"
-          }
-        </span>
-
-        ${
-          fact.expires_at
-            ? `
-              <span>
-                ·
-              </span>
-
-              <span>
-                Expires:
-                ${
-                  escapeHtml(
-                    formatDateTime(
-                      fact.expires_at
-                    )
-                  )
-                }
-              </span>
-            `
-            : ""
-        }
-
-      </div>
-
     </article>
   `;
 }
 
 
 /* =========================================================
-   FIND FACT
+   GET SOURCE OF TRUTH FACT
    ========================================================= */
 
 function getBrandFactById(
@@ -4708,7 +4684,7 @@ function getBrandFactById(
 
 
 /* =========================================================
-   FACT EDITOR DIALOG
+   SOURCE OF TRUTH DIALOG
    ========================================================= */
 
 function ensureBrandFactDialog() {
@@ -4738,9 +4714,9 @@ function ensureBrandFactDialog() {
   dialog.innerHTML = `
     <div
       style="
-        width:min(760px,92vw);
+        width:min(720px,94vw);
         max-width:100%;
-        max-height:88vh;
+        max-height:90vh;
         overflow-y:auto;
       "
     >
@@ -4753,13 +4729,12 @@ function ensureBrandFactDialog() {
             Source of Truth
           </span>
 
-          <h2
-            id="brandFactDialogTitle"
-          >
+          <h2 id="brandFactDialogTitle">
             Add Fact
           </h2>
 
         </div>
+
 
         <button
           id="closeBrandFactDialogButton"
@@ -4795,7 +4770,7 @@ function ensureBrandFactDialog() {
             <input
               id="brandFactCategory"
               type="text"
-              placeholder="pricing, hours, location, product, policy..."
+              placeholder="pricing, operations, location, product…"
               required
             />
 
@@ -4811,27 +4786,58 @@ function ensureBrandFactDialog() {
             <input
               id="brandFactKey"
               type="text"
-              placeholder="tier_one_price"
+              placeholder="opening_status"
             />
 
           </label>
 
+
+          <label class="field">
+
+            <span>
+              Subject
+            </span>
+
+            <input
+              id="brandFactSubject"
+              type="text"
+              placeholder="Opening Status"
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Status
+            </span>
+
+            <select
+              id="brandFactStatus"
+            >
+
+              <option value="verified">
+                Verified
+              </option>
+
+              <option value="owner_approved">
+                Owner Approved
+              </option>
+
+              <option value="needs_confirmation">
+                Needs Confirmation
+              </option>
+
+              <option value="ai_suggested">
+                AI Suggested
+              </option>
+
+            </select>
+
+          </label>
+
         </div>
-
-
-        <label class="field">
-
-          <span>
-            Subject / Label
-          </span>
-
-          <input
-            id="brandFactSubject"
-            type="text"
-            placeholder="Tier One Website Price"
-          />
-
-        </label>
 
 
         <label class="field">
@@ -4842,155 +4848,91 @@ function ensureBrandFactDialog() {
 
           <textarea
             id="brandFactValue"
-            style="
-              min-height:130px;
-            "
-            placeholder="The exact information Marketing Studio should remember."
+            rows="5"
+            required
+            placeholder="The factual information Marketing Studio should remember."
           ></textarea>
 
         </label>
 
 
-        <label class="field">
+        ${brandBrainGridOpen()}
 
-          <span>
-            Status
-          </span>
+          <label class="field">
 
-          <select
-            id="brandFactStatus"
-          >
+            <span>
+              Source Type
+            </span>
 
-            <option value="verified">
-              Verified
-            </option>
+            <input
+              id="brandFactSourceType"
+              type="text"
+              placeholder="website, owner, contract, menu…"
+            />
 
-            <option value="owner_approved">
-              Owner Approved
-            </option>
-
-            <option value="needs_confirmation">
-              Needs Confirmation
-            </option>
-
-            <option value="ai_suggested">
-              AI Suggested
-            </option>
-
-          </select>
-
-        </label>
-
-
-        <div
-          style="
-            padding:16px;
-            border:1px solid var(--line);
-            border-radius:var(--radius);
-            background:rgba(255,255,255,.018);
-          "
-        >
-
-          <span class="eyebrow">
-            Provenance
-          </span>
-
-          <p
-            style="
-              margin:
-                6px 0 16px;
-              color:var(--muted);
-              font-size:.76rem;
-              line-height:1.55;
-            "
-          >
-            Record where this information came from so
-            future AI workflows can distinguish a known
-            fact from an assumption.
-          </p>
-
-
-          ${brandBrainGridOpen()}
-
-            <label class="field">
-
-              <span>
-                Source Type
-              </span>
-
-              <input
-                id="brandFactSourceType"
-                type="text"
-                placeholder="owner, website, menu, contract..."
-              />
-
-            </label>
-
-
-            <label class="field">
-
-              <span>
-                Source URL
-              </span>
-
-              <input
-                id="brandFactSourceUrl"
-                type="url"
-                placeholder="https://..."
-              />
-
-            </label>
-
-          </div>
+          </label>
 
 
           <label class="field">
 
             <span>
-              Source Note
+              Source URL
             </span>
 
-            <textarea
-              id="brandFactSourceNote"
-              style="
-                min-height:90px;
-              "
-              placeholder="Where or how this was confirmed."
-            ></textarea>
+            <input
+              id="brandFactSourceUrl"
+              type="url"
+              placeholder="https://..."
+            />
+
+          </label>
+
+        </div>
+
+
+        <label class="field">
+
+          <span>
+            Source Note
+          </span>
+
+          <textarea
+            id="brandFactSourceNote"
+            rows="3"
+            placeholder="Where this came from or why it is trusted."
+          ></textarea>
+
+        </label>
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Last Verified
+            </span>
+
+            <input
+              id="brandFactLastVerified"
+              type="datetime-local"
+            />
 
           </label>
 
 
-          ${brandBrainGridOpen()}
+          <label class="field">
 
-            <label class="field">
+            <span>
+              Expires
+            </span>
 
-              <span>
-                Last Verified
-              </span>
+            <input
+              id="brandFactExpires"
+              type="datetime-local"
+            />
 
-              <input
-                id="brandFactLastVerified"
-                type="datetime-local"
-              />
-
-            </label>
-
-
-            <label class="field">
-
-              <span>
-                Expires
-              </span>
-
-              <input
-                id="brandFactExpires"
-                type="datetime-local"
-              />
-
-            </label>
-
-          </div>
+          </label>
 
         </div>
 
@@ -4998,22 +4940,17 @@ function ensureBrandFactDialog() {
         <div
           style="
             display:grid;
-            gap:12px;
-            padding:16px;
-            border:1px solid var(--line);
-            border-radius:var(--radius);
-            background:rgba(255,255,255,.018);
+            gap:10px;
           "
         >
 
           <label
             style="
               display:flex;
-              align-items:flex-start;
-              gap:10px;
-              color:var(--ink);
-              font-size:.8rem;
-              line-height:1.5;
+              align-items:center;
+              gap:9px;
+              color:var(--muted);
+              font-size:.78rem;
             "
           >
 
@@ -5021,28 +4958,11 @@ function ensureBrandFactDialog() {
               id="brandFactAiCanModify"
               type="checkbox"
               style="
-                margin-top:3px;
+                width:auto;
               "
             />
 
-            <span>
-              <strong>
-                AI may modify this value
-              </strong>
-
-              <small
-                style="
-                  display:block;
-                  margin-top:3px;
-                  color:var(--muted);
-                  font-size:.7rem;
-                "
-              >
-                Leave this off for fixed business facts
-                such as prices, addresses, policies,
-                confirmed dates, and official names.
-              </small>
-            </span>
+            AI may modify this value
 
           </label>
 
@@ -5050,11 +4970,10 @@ function ensureBrandFactDialog() {
           <label
             style="
               display:flex;
-              align-items:flex-start;
-              gap:10px;
-              color:var(--ink);
-              font-size:.8rem;
-              line-height:1.5;
+              align-items:center;
+              gap:9px;
+              color:var(--muted);
+              font-size:.78rem;
             "
           >
 
@@ -5062,27 +4981,11 @@ function ensureBrandFactDialog() {
               id="brandFactSensitive"
               type="checkbox"
               style="
-                margin-top:3px;
+                width:auto;
               "
             />
 
-            <span>
-              <strong>
-                Sensitive information
-              </strong>
-
-              <small
-                style="
-                  display:block;
-                  margin-top:3px;
-                  color:var(--muted);
-                  font-size:.7rem;
-                "
-              >
-                Sensitive facts should not be included
-                in ordinary AI marketing briefs.
-              </small>
-            </span>
+            Mark as sensitive
 
           </label>
 
@@ -5120,6 +5023,13 @@ function ensureBrandFactDialog() {
   );
 
 
+  $("#brandFactForm")
+    ?.addEventListener(
+      "submit",
+      handleBrandFactSave
+    );
+
+
   $("#closeBrandFactDialogButton")
     ?.addEventListener(
       "click",
@@ -5142,13 +5052,6 @@ function ensureBrandFactDialog() {
     );
 
 
-  $("#brandFactForm")
-    ?.addEventListener(
-      "submit",
-      handleBrandFactSave
-    );
-
-
   enableBackdropClose(
     dialog
   );
@@ -5159,7 +5062,7 @@ function ensureBrandFactDialog() {
 
 
 /* =========================================================
-   DATETIME-LOCAL CONVERSION
+   DATETIME-LOCAL HELPERS
    ========================================================= */
 
 function toDateTimeLocalValue(
@@ -5183,23 +5086,30 @@ function toDateTimeLocalValue(
   }
 
 
-  const offset =
-    date.getTimezoneOffset();
+  const pad =
+    number =>
+      String(number)
+        .padStart(
+          2,
+          "0"
+        );
 
 
-  const local =
-    new Date(
-      date.getTime() -
-      offset * 60 * 1000
-    );
-
-
-  return local
-    .toISOString()
-    .slice(
-      0,
-      16
-    );
+  return (
+    `${date.getFullYear()}-` +
+    `${pad(
+      date.getMonth() + 1
+    )}-` +
+    `${pad(
+      date.getDate()
+    )}T` +
+    `${pad(
+      date.getHours()
+    )}:` +
+    `${pad(
+      date.getMinutes()
+    )}`
+  );
 }
 
 
@@ -5229,21 +5139,12 @@ function fromDateTimeLocalValue(
 
 
 /* =========================================================
-   SHOW FACT EDITOR
+   SHOW SOURCE OF TRUTH DIALOG
    ========================================================= */
 
 function showBrandFactDialog(
   factId = null
 ) {
-  const brand =
-    getBrandBrainBrand();
-
-
-  if (!brand) {
-    return;
-  }
-
-
   const dialog =
     ensureBrandFactDialog();
 
@@ -5256,171 +5157,79 @@ function showBrandFactDialog(
       : null;
 
 
-  const title =
-    $("#brandFactDialogTitle");
+  $("#brandFactDialogTitle").textContent =
+    fact
+      ? "Edit Fact"
+      : "Add Fact";
 
 
-  if (title) {
-    title.textContent =
-      fact
-        ? "Edit Fact"
-        : "Add Fact";
-  }
+  $("#brandFactId").value =
+    fact?.id ||
+    "";
 
 
-  const idField =
-    $("#brandFactId");
+  $("#brandFactCategory").value =
+    fact?.category ||
+    "";
 
 
-  const categoryField =
-    $("#brandFactCategory");
+  $("#brandFactKey").value =
+    fact?.fact_key ||
+    "";
 
 
-  const keyField =
-    $("#brandFactKey");
+  $("#brandFactSubject").value =
+    fact?.subject ||
+    "";
 
 
-  const subjectField =
-    $("#brandFactSubject");
+  $("#brandFactValue").value =
+    fact?.value_text ||
+    "";
 
 
-  const valueField =
-    $("#brandFactValue");
+  $("#brandFactStatus").value =
+    fact?.status ||
+    "verified";
 
 
-  const statusField =
-    $("#brandFactStatus");
+  $("#brandFactSourceType").value =
+    fact?.source_type ||
+    "";
 
 
-  const sourceTypeField =
-    $("#brandFactSourceType");
+  $("#brandFactSourceUrl").value =
+    fact?.source_url ||
+    "";
 
 
-  const sourceUrlField =
-    $("#brandFactSourceUrl");
+  $("#brandFactSourceNote").value =
+    fact?.source_note ||
+    "";
 
 
-  const sourceNoteField =
-    $("#brandFactSourceNote");
+  $("#brandFactLastVerified").value =
+    toDateTimeLocalValue(
+      fact?.last_verified_at
+    );
 
 
-  const lastVerifiedField =
-    $("#brandFactLastVerified");
+  $("#brandFactExpires").value =
+    toDateTimeLocalValue(
+      fact?.expires_at
+    );
 
 
-  const expiresField =
-    $("#brandFactExpires");
+  $("#brandFactAiCanModify").checked =
+    Boolean(
+      fact?.ai_can_modify
+    );
 
 
-  const aiCanModifyField =
-    $("#brandFactAiCanModify");
-
-
-  const sensitiveField =
-    $("#brandFactSensitive");
-
-
-  if (idField) {
-    idField.value =
-      fact?.id ||
-      "";
-  }
-
-
-  if (categoryField) {
-    categoryField.value =
-      fact?.category ||
-      "";
-  }
-
-
-  if (keyField) {
-    keyField.value =
-      fact?.fact_key ||
-      "";
-  }
-
-
-  if (subjectField) {
-    subjectField.value =
-      fact?.subject ||
-      "";
-  }
-
-
-  if (valueField) {
-    valueField.value =
-      fact?.value_text ||
-      (
-        fact?.value_jsonb != null
-          ? JSON.stringify(
-              fact.value_jsonb,
-              null,
-              2
-            )
-          : ""
-      );
-  }
-
-
-  if (statusField) {
-    statusField.value =
-      fact?.status ||
-      "needs_confirmation";
-  }
-
-
-  if (sourceTypeField) {
-    sourceTypeField.value =
-      fact?.source_type ||
-      "";
-  }
-
-
-  if (sourceUrlField) {
-    sourceUrlField.value =
-      fact?.source_url ||
-      "";
-  }
-
-
-  if (sourceNoteField) {
-    sourceNoteField.value =
-      fact?.source_note ||
-      "";
-  }
-
-
-  if (lastVerifiedField) {
-    lastVerifiedField.value =
-      toDateTimeLocalValue(
-        fact?.last_verified_at
-      );
-  }
-
-
-  if (expiresField) {
-    expiresField.value =
-      toDateTimeLocalValue(
-        fact?.expires_at
-      );
-  }
-
-
-  if (aiCanModifyField) {
-    aiCanModifyField.checked =
-      Boolean(
-        fact?.ai_can_modify
-      );
-  }
-
-
-  if (sensitiveField) {
-    sensitiveField.checked =
-      Boolean(
-        fact?.is_sensitive
-      );
-  }
+  $("#brandFactSensitive").checked =
+    Boolean(
+      fact?.is_sensitive
+    );
 
 
   safeDialogOpen(
@@ -5430,7 +5239,8 @@ function showBrandFactDialog(
 
   window.setTimeout(
     () => {
-      categoryField?.focus();
+      $("#brandFactCategory")
+        ?.focus();
     },
     100
   );
@@ -5452,14 +5262,19 @@ async function handleBrandFactSave(
 
 
   if (!brand) {
+    showToast(
+      "No Brand Brain is currently open.",
+      "error"
+    );
+
     return;
   }
 
 
   const factId =
     $("#brandFactId")
-      ?.value
-      ?.trim();
+      ?.value ||
+    null;
 
 
   const category =
@@ -5474,31 +5289,14 @@ async function handleBrandFactSave(
       ?.trim();
 
 
-  const button =
-    $("#saveBrandFactButton");
-
-
-  if (!category) {
+  if (
+    !category ||
+    !value
+  ) {
     showToast(
-      "Give this fact a category.",
+      "Category and value are required.",
       "error"
     );
-
-    $("#brandFactCategory")
-      ?.focus();
-
-    return;
-  }
-
-
-  if (!value) {
-    showToast(
-      "Give this fact a value.",
-      "error"
-    );
-
-    $("#brandFactValue")
-      ?.focus();
 
     return;
   }
@@ -5509,16 +5307,6 @@ async function handleBrandFactSave(
       ?.value ||
     "needs_confirmation";
 
-
-  /*
-    If the owner marks something verified but does not
-    manually supply a verification time, record the
-    current time as the verification timestamp.
-
-    Owner-approved information is intentionally distinct
-    from externally verified information, so it does not
-    automatically receive a verified timestamp.
-  */
 
   let lastVerified =
     fromDateTimeLocalValue(
@@ -5532,7 +5320,8 @@ async function handleBrandFactSave(
     !lastVerified
   ) {
     lastVerified =
-      new Date().toISOString();
+      new Date()
+        .toISOString();
   }
 
 
@@ -5540,7 +5329,8 @@ async function handleBrandFactSave(
     brand_id:
       brand.id,
 
-    category,
+    category:
+      category,
 
     fact_key:
       nullableText(
@@ -5560,7 +5350,8 @@ async function handleBrandFactSave(
     value_jsonb:
       null,
 
-    status,
+    status:
+      status,
 
     source_type:
       nullableText(
@@ -5606,6 +5397,10 @@ async function handleBrandFactSave(
   };
 
 
+  const button =
+    $("#saveBrandFactButton");
+
+
   if (button) {
     button.disabled =
       true;
@@ -5622,22 +5417,22 @@ async function handleBrandFactSave(
     if (factId) {
       result =
         await supabaseClient
-          .from("brand_facts")
+          .from(
+            "brand_facts"
+          )
           .update(
             payload
           )
           .eq(
             "id",
             factId
-          )
-          .eq(
-            "brand_id",
-            brand.id
           );
     } else {
       result =
         await supabaseClient
-          .from("brand_facts")
+          .from(
+            "brand_facts"
+          )
           .insert(
             payload
           );
@@ -5659,14 +5454,12 @@ async function handleBrandFactSave(
     );
 
 
-    renderBrandBrainHeader();
-
     renderBrandBrainContent();
 
 
     showToast(
       factId
-        ? "Source of Truth updated."
+        ? "Source of Truth fact updated."
         : "Source of Truth fact added.",
       "success"
     );
@@ -5729,12 +5522,13 @@ async function archiveBrandFact(
   const label =
     fact.subject ||
     fact.fact_key ||
+    fact.category ||
     "this fact";
 
 
   const confirmed =
     window.confirm(
-      `Archive "${label}"?\n\nIt will stop appearing in the active Source of Truth and will not be used in normal AI briefs.`
+      `Archive "${label}"?`
     );
 
 
@@ -5748,7 +5542,9 @@ async function archiveBrandFact(
       error
     } =
       await supabaseClient
-        .from("brand_facts")
+        .from(
+          "brand_facts"
+        )
         .update({
           status:
             "archived",
@@ -5759,10 +5555,6 @@ async function archiveBrandFact(
         .eq(
           "id",
           fact.id
-        )
-        .eq(
-          "brand_id",
-          brand.id
         );
 
 
@@ -5780,13 +5572,13 @@ async function archiveBrandFact(
 
 
     showToast(
-      "Fact archived.",
+      "Source of Truth fact archived.",
       "success"
     );
 
   } catch (error) {
     console.error(
-      "Unable to archive fact:",
+      "Unable to archive Source of Truth fact:",
       error
     );
 
@@ -5802,7 +5594,7 @@ async function archiveBrandFact(
 
 
 /* =========================================================
-   SOURCE OF TRUTH CLICK HANDLING
+   SOURCE OF TRUTH ACTIONS
    ========================================================= */
 
 function handleBrandFactsClick(
@@ -7393,53 +7185,60 @@ function renderBrandMilestoneCard(
           }
 
 
-          <div
-            style="
-              display:flex;
-              gap:10px;
-              flex-wrap:wrap;
-              color:var(--muted);
-              font-size:.68rem;
-              line-height:1.5;
-            "
-          >
-
-            ${
-              milestone.milestone_date
-                ? `
-                  <span>
-                    Date:
-                    ${
-                      escapeHtml(
-                        formatDate(
-                          milestone.milestone_date
-                        )
+          ${
+            milestone.milestone_date
+              ? `
+                <p
+                  style="
+                    margin:0;
+                    color:var(--muted);
+                    font-size:.7rem;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      formatDate(
+                        milestone.milestone_date
                       )
-                    }
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            contentOpportunity
+              ? `
+                <div
+                  style="
+                    margin-top:14px;
+                    padding:12px 14px;
+                    border:1px solid var(--line);
+                    border-radius:var(--radius);
+                    background:rgba(255,255,255,.018);
+                  "
+                >
+                  <span class="eyebrow">
+                    Content Opportunity
                   </span>
-                `
-                : ""
-            }
 
-
-            ${
-              milestone.completed_at
-                ? `
-                  <span>
-                    Completed:
-                    ${
-                      escapeHtml(
-                        formatDateTime(
-                          milestone.completed_at
-                        )
-                      )
-                    }
-                  </span>
-                `
-                : ""
-            }
-
-          </div>
+                  <p
+                    style="
+                      margin:5px 0 0;
+                      color:var(--muted);
+                      font-size:.75rem;
+                      line-height:1.55;
+                    "
+                  >
+                    This is confirmed progress and may be
+                    worth sharing with your audience.
+                  </p>
+                </div>
+              `
+              : ""
+          }
 
         </div>
 
@@ -7492,7 +7291,7 @@ function renderBrandMilestoneCard(
 
 
           <button
-            class="secondary-button"
+            class="text-button"
             type="button"
             data-edit-brand-milestone="${
               escapeHtml(
@@ -7537,6 +7336,8 @@ function getBrandMilestoneById(
     null
   );
 }
+
+
 /* =========================================================
    MILESTONE EDITOR DIALOG
    ========================================================= */
@@ -8298,8 +8099,9 @@ function createContentFromMilestone(
 
 
   /*
-    We close Brand Brain first so Quick Create becomes
-    the active dialog instead of stacking dialogs.
+    Close Brand Brain first so Quick Create
+    becomes the active dialog instead of
+    stacking dialogs.
   */
 
   safeDialogClose(
@@ -8310,8 +8112,7 @@ function createContentFromMilestone(
   setActiveBrand(
     brand.id,
     {
-      toast:
-        false
+      toast: false
     }
   );
 
@@ -8354,11 +8155,6 @@ function createContentFromMilestone(
 
 
       if (goalField) {
-        /*
-          Only set a value if the existing Quick Create
-          goal selector actually supports it.
-        */
-
         const availableValues =
           Array.from(
             goalField.options ||
@@ -8767,7 +8563,6 @@ function getContentTypeLabel(
 /* =========================================================
    CAMPAIGNS
    ========================================================= */
-
 function renderCampaigns() {
   const container =
     $("#campaignList");
@@ -9553,10 +9348,11 @@ function setContentFilter(
 
   renderContentLibrary();
 }
+
+
 /* =========================================================
    CALENDAR
    ========================================================= */
-
 function renderCalendar() {
   const container =
     $("#calendarShell");
@@ -10006,7 +9802,6 @@ function renderCalendarItem(
 /* =========================================================
    ASSET VAULT
    ========================================================= */
-
 function renderAssets() {
   const container =
     $("#assetGrid");
@@ -10475,10 +10270,11 @@ function handleAddAsset() {
     "success"
   );
 }
+
+
 /* =========================================================
    QUICK CREATE BRAND OPTIONS
    ========================================================= */
-
 function renderQuickCreateBrandOptions() {
   const select =
     $("#createBrand");
@@ -11654,6 +11450,8 @@ ${buildBrandMilestonesBrief(
       "\n\n========================================\n\n"
     );
 }
+
+
 /* =========================================================
    MANUAL AI WORKFLOW STATE
    ========================================================= */
@@ -11667,6 +11465,9 @@ const MANUAL_AI_STATE = {
 };
 
 
+/* =========================================================
+   MANUAL AI DIALOG
+   ========================================================= */
 /* =========================================================
    MANUAL AI DIALOG
    ========================================================= */
@@ -11698,9 +11499,9 @@ function ensureManualAiDialog() {
   dialog.innerHTML = `
     <div
       style="
-        width:min(820px,94vw);
+        width:min(860px,94vw);
         max-width:100%;
-        max-height:90vh;
+        max-height:92vh;
         overflow-y:auto;
       "
     >
@@ -11710,7 +11511,7 @@ function ensureManualAiDialog() {
         <div>
 
           <span class="eyebrow">
-            Manual AI Mode
+            AI Studio
           </span>
 
           <h2 id="manualAiDialogTitle">
@@ -11735,7 +11536,7 @@ function ensureManualAiDialog() {
       <div
         style="
           display:grid;
-          gap:20px;
+          gap:18px;
         "
       >
 
@@ -11745,7 +11546,7 @@ function ensureManualAiDialog() {
             style="
               display:flex;
               justify-content:space-between;
-              align-items:flex-end;
+              align-items:flex-start;
               gap:12px;
               flex-wrap:wrap;
               margin-bottom:10px;
@@ -11760,24 +11561,25 @@ function ensureManualAiDialog() {
 
               <h3
                 style="
-                  margin:4px 0 0;
+                  margin:
+                    4px 0 0;
                   font-family:
                     Georgia,
                     'Times New Roman',
                     serif;
-                  font-size:1.08rem;
+                  font-size:1rem;
                   font-weight:400;
                 "
               >
-                Copy the Brand-Aware Brief
+                Copy the AI brief
               </h3>
 
             </div>
 
 
             <button
-              id="copyManualAiBriefButton"
-              class="primary-button"
+              id="copyAiBriefButton"
+              class="secondary-button"
               type="button"
             >
               Copy Brief
@@ -11786,45 +11588,48 @@ function ensureManualAiDialog() {
           </div>
 
 
-          <p
-            style="
-              margin:
-                0 0 10px;
-              color:var(--muted);
-              font-size:.76rem;
-              line-height:1.6;
-            "
-          >
-            Paste this into ChatGPT. The brief already
-            includes the selected brand's identity,
-            voice, verified Source of Truth, AI
-            guardrails, and relevant business progress.
-          </p>
-
-
           <textarea
             id="manualAiBrief"
             readonly
-            spellcheck="false"
             style="
-              width:100%;
-              min-height:260px;
-              resize:vertical;
+              min-height:250px;
+              font-family:
+                ui-monospace,
+                SFMono-Regular,
+                Menlo,
+                Monaco,
+                Consolas,
+                monospace;
+              font-size:.72rem;
+              line-height:1.55;
             "
           ></textarea>
+
+
+          <p
+            style="
+              margin:
+                8px 0 0;
+              color:var(--muted);
+              font-size:.72rem;
+              line-height:1.55;
+            "
+          >
+            Paste this into ChatGPT. The brief already
+            contains the current Brand Brain, verified
+            facts, voice rules, milestones, and AI
+            guardrails.
+          </p>
 
         </section>
 
 
-        <div
+        <section
           style="
-            height:1px;
-            background:var(--line);
+            padding-top:18px;
+            border-top:1px solid var(--line);
           "
-        ></div>
-
-
-        <section>
+        >
 
           <div
             style="
@@ -11838,81 +11643,105 @@ function ensureManualAiDialog() {
 
             <h3
               style="
-                margin:4px 0 0;
+                margin:
+                  4px 0 0;
                 font-family:
                   Georgia,
                   'Times New Roman',
                   serif;
-                font-size:1.08rem;
+                font-size:1rem;
                 font-weight:400;
               "
             >
-              Paste the Finished Result
+              Paste the finished result
             </h3>
 
           </div>
 
 
-          <p
-            style="
-              margin:
-                0 0 10px;
-              color:var(--muted);
-              font-size:.76rem;
-              line-height:1.6;
-            "
-          >
-            Review the ChatGPT result first, make any
-            edits you want, then paste the finished
-            version here. Saving creates a real draft
-            in Content Studio.
-          </p>
-
-
           <textarea
             id="manualAiResult"
-            placeholder="Paste the finished ChatGPT result here…"
             style="
-              width:100%;
               min-height:240px;
-              resize:vertical;
             "
+            placeholder="Paste ChatGPT's finished content here."
           ></textarea>
 
         </section>
 
 
-        <div
-          class="form-actions"
+        <section
           style="
-            position:sticky;
-            bottom:0;
-            padding-top:14px;
-            padding-bottom:2px;
-            background:
-              linear-gradient(
-                180deg,
-                transparent,
-                rgba(7,8,11,.97) 25%
-              );
+            padding-top:18px;
+            border-top:1px solid var(--line);
           "
         >
+
+          <span class="eyebrow">
+            Draft Details
+          </span>
+
+
+          <div
+            style="
+              margin-top:10px;
+            "
+          >
+
+            ${brandBrainGridOpen()}
+
+              <label class="field">
+
+                <span>
+                  Title
+                </span>
+
+                <input
+                  id="manualAiDraftTitle"
+                  type="text"
+                  placeholder="Give this draft a useful name"
+                />
+
+              </label>
+
+
+              <label class="field">
+
+                <span>
+                  Platform
+                </span>
+
+                <input
+                  id="manualAiPlatform"
+                  type="text"
+                  placeholder="Instagram, Facebook, Website…"
+                />
+
+              </label>
+
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <div class="form-actions">
 
           <button
             id="cancelManualAiButton"
             class="secondary-button"
             type="button"
           >
-            Close
+            Cancel
           </button>
-
 
           <button
             id="saveManualAiDraftButton"
             class="primary-button"
             type="button"
           >
-            Save as Draft
+            Save Draft
           </button>
 
         </div>
@@ -11950,7 +11779,7 @@ function ensureManualAiDialog() {
     );
 
 
-  $("#copyManualAiBriefButton")
+  $("#copyAiBriefButton")
     ?.addEventListener(
       "click",
       copyManualAiBrief
@@ -11974,7 +11803,7 @@ function ensureManualAiDialog() {
 
 
 /* =========================================================
-   SHOW MANUAL AI DIALOG
+   SHOW MANUAL AI WORKFLOW
    ========================================================= */
 
 function showManualAiDialog({
@@ -12001,7 +11830,7 @@ function showManualAiDialog({
 
 
   MANUAL_AI_STATE.goal =
-    goal || "";
+    goal;
 
 
   MANUAL_AI_STATE.brief =
@@ -12018,10 +11847,10 @@ function showManualAiDialog({
 
   if (title) {
     title.textContent =
-      `${
+      `Create ${
         definition?.label ||
         "Content"
-      } · ${brand.shortName}`;
+      }`;
   }
 
 
@@ -12045,9 +11874,130 @@ function showManualAiDialog({
   }
 
 
+  const draftTitle =
+    $("#manualAiDraftTitle");
+
+
+  if (draftTitle) {
+    draftTitle.value =
+      buildDefaultDraftTitle(
+        type,
+        request
+      );
+  }
+
+
+  const platform =
+    $("#manualAiPlatform");
+
+
+  if (platform) {
+    platform.value =
+      getDefaultPlatformForType(
+        type
+      );
+  }
+
+
   safeDialogOpen(
     dialog
   );
+
+
+  window.setTimeout(
+    () => {
+      $("#copyAiBriefButton")
+        ?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   DEFAULT DRAFT TITLE
+   ========================================================= */
+
+function buildDefaultDraftTitle(
+  type,
+  request
+) {
+  const definition =
+    CREATE_TYPES[type];
+
+
+  const label =
+    definition?.label ||
+    "Content";
+
+
+  const cleanRequest =
+    String(
+      request ||
+      ""
+    )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim();
+
+
+  if (!cleanRequest) {
+    return label;
+  }
+
+
+  return (
+    `${label} — ${
+      truncateText(
+        cleanRequest,
+        60
+      )
+    }`
+  );
+}
+
+
+/* =========================================================
+   DEFAULT PLATFORM
+   ========================================================= */
+
+function getDefaultPlatformForType(
+  type
+) {
+  switch (type) {
+    case "social-post":
+      return "Social";
+
+
+    case "story":
+      return "Social Story";
+
+
+    case "reel":
+      return "Reel / Short Video";
+
+
+    case "email":
+      return "Email";
+
+
+    case "website-copy":
+      return "Website";
+
+
+    case "graphic":
+      return "Promotional Graphic";
+
+
+    case "campaign":
+      return "Multi-channel";
+
+
+    default:
+      return "";
+  }
 }
 
 
@@ -12064,7 +12014,7 @@ async function copyManualAiBrief() {
 
   if (!brief) {
     showToast(
-      "There is no brief to copy.",
+      "There is no AI brief to copy.",
       "error"
     );
 
@@ -12086,21 +12036,9 @@ async function copyManualAiBrief() {
         $("#manualAiBrief");
 
 
-      if (!field) {
-        throw new Error(
-          "Clipboard unavailable."
-        );
-      }
+      field?.focus();
 
-
-      field.focus();
-
-      field.select();
-
-      field.setSelectionRange(
-        0,
-        field.value.length
-      );
+      field?.select();
 
 
       const copied =
@@ -12111,14 +12049,14 @@ async function copyManualAiBrief() {
 
       if (!copied) {
         throw new Error(
-          "Clipboard unavailable."
+          "Clipboard access was unavailable."
         );
       }
     }
 
 
     showToast(
-      "Brief copied. Paste it into ChatGPT.",
+      "AI brief copied. Paste it into ChatGPT.",
       "success"
     );
 
@@ -12139,72 +12077,61 @@ async function copyManualAiBrief() {
 
 
 /* =========================================================
-   CREATE CONTENT TITLE
-   ========================================================= */
-
-function makeDraftTitle(
-  type,
-  request
-) {
-  const label =
-    CREATE_TYPES[type]
-      ?.label ||
-    "Content";
-
-
-  const cleaned =
-    String(
-      request ||
-      ""
-    )
-      .replace(
-        /\s+/g,
-        " "
-      )
-      .trim();
-
-
-  if (!cleaned) {
-    return (
-      `${label} Draft`
-    );
-  }
-
-
-  const shortRequest =
-    cleaned.length > 58
-      ? (
-          cleaned
-            .slice(
-              0,
-              58
-            )
-            .trimEnd() +
-          "…"
-        )
-      : cleaned;
-
-
-  return (
-    `${label} · ${shortRequest}`
-  );
-}
-
-
-/* =========================================================
-   SAVE MANUAL AI RESULT AS DRAFT
+   SAVE MANUAL AI DRAFT
    ========================================================= */
 
 async function saveManualAiDraft() {
+  const brandId =
+    MANUAL_AI_STATE.brandId;
+
+
+  const type =
+    MANUAL_AI_STATE.type;
+
+
+  const request =
+    MANUAL_AI_STATE.request;
+
+
+  const goal =
+    MANUAL_AI_STATE.goal;
+
+
+  const brief =
+    MANUAL_AI_STATE.brief;
+
+
   const result =
     $("#manualAiResult")
       ?.value
       ?.trim();
 
 
+  const title =
+    $("#manualAiDraftTitle")
+      ?.value
+      ?.trim();
+
+
+  const platform =
+    $("#manualAiPlatform")
+      ?.value
+      ?.trim();
+
+
+  if (!brandId) {
+    showToast(
+      "The working brand is missing.",
+      "error"
+    );
+
+    return;
+  }
+
+
   if (!result) {
     showToast(
-      "Paste the finished ChatGPT result first.",
+      "Paste the finished ChatGPT result before saving.",
       "error"
     );
 
@@ -12212,24 +12139,6 @@ async function saveManualAiDraft() {
     $("#manualAiResult")
       ?.focus();
 
-
-    return;
-  }
-
-
-  const brand =
-    APP_DATA.brands.find(
-      item =>
-        item.id ===
-        MANUAL_AI_STATE.brandId
-    );
-
-
-  if (!brand) {
-    showToast(
-      "The selected brand could not be found.",
-      "error"
-    );
 
     return;
   }
@@ -12248,183 +12157,31 @@ async function saveManualAiDraft() {
   }
 
 
-  const payload = {
-    brand_id:
-      brand.id,
-
-    campaign_id:
-      null,
-
-    content_type:
-      getDatabaseContentType(
-        MANUAL_AI_STATE.type
-      ),
-
-    status:
-      "draft",
-
-    title:
-      makeDraftTitle(
-        MANUAL_AI_STATE.type,
-        MANUAL_AI_STATE.request
-      ),
-
-    body:
-      result,
-
-    alternate_copy:
-      null,
-
-    visual_direction:
-      null,
-
-    cta:
-      null,
-
-    hashtags:
-      [],
-
-    platform:
-      null,
-
-    goal:
-      nullableText(
-        MANUAL_AI_STATE.goal
-      ),
-
-    original_request:
-      MANUAL_AI_STATE.request,
-
-    ai_mode:
-      "manual-chatgpt",
-
-    ai_brief:
-      MANUAL_AI_STATE.brief,
-
-    rejection_reason:
-      null,
-
-    scheduled_for:
-      null,
-
-    published_at:
-      null
-  };
-
-
   try {
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from(
-          "content_items"
-        )
-        .insert(
-          payload
-        )
-        .select()
-        .single();
-
-
-    if (error) {
-      throw error;
+    if (
+      type === "campaign"
+    ) {
+      await saveManualCampaignDraft({
+        brandId,
+        request,
+        goal,
+        brief,
+        result,
+        title,
+        platform
+      });
+    } else {
+      await saveManualContentDraft({
+        brandId,
+        type,
+        request,
+        goal,
+        brief,
+        result,
+        title,
+        platform
+      });
     }
-
-
-    /*
-      Record the manual AI run separately from the
-      content item. This gives us useful history later
-      without pretending the app called an API.
-    */
-
-    const {
-      error:
-        aiRunError
-    } =
-      await supabaseClient
-        .from(
-          "ai_runs"
-        )
-        .insert({
-          brand_id:
-            brand.id,
-
-          content_id:
-            data.id,
-
-          campaign_id:
-            null,
-
-          provider:
-            "chatgpt-manual",
-
-          model:
-            null,
-
-          prompt_version:
-            "brand-brain-v1",
-
-          user_instruction:
-            MANUAL_AI_STATE.request,
-
-          input_snapshot: {
-            goal:
-              MANUAL_AI_STATE.goal ||
-              null,
-
-            content_type:
-              MANUAL_AI_STATE.type
-          },
-
-          generated_prompt:
-            MANUAL_AI_STATE.brief,
-
-          output_text:
-            result,
-
-          status:
-            "completed",
-
-          input_tokens:
-            null,
-
-          output_tokens:
-            null,
-
-          estimated_cost:
-            0
-        });
-
-
-    if (aiRunError) {
-      /*
-        The draft itself is already safely saved.
-        An AI-run history failure should not destroy
-        or duplicate that content.
-      */
-
-      console.warn(
-        "Draft saved, but AI run history could not be recorded:",
-        aiRunError
-      );
-    }
-
-
-    APP_DATA.content =
-      APP_DATA.content.filter(
-        item =>
-          item.id !==
-          data.id
-      );
-
-
-    APP_DATA.content.unshift(
-      normalizeContent(
-        data
-      )
-    );
 
 
     safeDialogClose(
@@ -12432,25 +12189,27 @@ async function saveManualAiDraft() {
     );
 
 
+    clearManualAiState();
+
+
+    await refreshWorkingData();
+
+
     renderDashboard();
+
+    renderCampaigns();
 
     renderContentLibrary();
 
     renderCalendar();
 
-
-    navigateToView(
-      "studio"
-    );
+    renderAssets();
 
 
     showToast(
-      "Draft saved to Content Studio.",
+      "Draft saved.",
       "success"
     );
-
-
-    resetManualAiState();
 
   } catch (error) {
     console.error(
@@ -12476,17 +12235,252 @@ async function saveManualAiDraft() {
         false;
 
       currentButton.textContent =
-        "Save as Draft";
+        "Save Draft";
     }
   }
 }
 
 
 /* =========================================================
-   RESET MANUAL AI STATE
+   SAVE CONTENT DRAFT
    ========================================================= */
 
-function resetManualAiState() {
+async function saveManualContentDraft({
+  brandId,
+  type,
+  request,
+  goal,
+  brief,
+  result,
+  title,
+  platform
+}) {
+  const payload = {
+    brand_id:
+      brandId,
+
+    content_type:
+      getDatabaseContentType(
+        type
+      ),
+
+    title:
+      nullableText(
+        title
+      ) ||
+      getContentTypeLabel(
+        type
+      ),
+
+    body:
+      result,
+
+    platform:
+      nullableText(
+        platform
+      ),
+
+    status:
+      "draft",
+
+    goal:
+      nullableText(
+        goal
+      ),
+
+    original_request:
+      request,
+
+    ai_prompt:
+      brief,
+
+    ai_provider:
+      "manual-chatgpt",
+
+    ai_generated:
+      true
+  };
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "content_items"
+      )
+      .insert(
+        payload
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  await logManualAiRun({
+    brandId,
+    request,
+    brief,
+    result,
+    contentType:
+      getDatabaseContentType(
+        type
+      )
+  });
+}
+
+
+/* =========================================================
+   SAVE CAMPAIGN DRAFT
+   ========================================================= */
+
+async function saveManualCampaignDraft({
+  brandId,
+  request,
+  goal,
+  brief,
+  result,
+  title,
+  platform
+}) {
+  const campaignName =
+    nullableText(
+      title
+    ) ||
+    "AI Campaign Draft";
+
+
+  const channels =
+    platform
+      ? textToArray(
+          platform
+        )
+      : [];
+
+
+  const payload = {
+    brand_id:
+      brandId,
+
+    name:
+      campaignName,
+
+    description:
+      result,
+
+    objective:
+      nullableText(
+        goal
+      ) ||
+      nullableText(
+        request
+      ),
+
+    status:
+      "draft",
+
+    channels:
+      channels
+  };
+
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "campaigns"
+      )
+      .insert(
+        payload
+      );
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  await logManualAiRun({
+    brandId,
+    request,
+    brief,
+    result,
+    contentType:
+      "campaign"
+  });
+}
+
+
+/* =========================================================
+   AI RUN LOG
+   ========================================================= */
+
+async function logManualAiRun({
+  brandId,
+  request,
+  brief,
+  result,
+  contentType
+}) {
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from(
+          "ai_runs"
+        )
+        .insert({
+          brand_id:
+            brandId,
+
+          provider:
+            "manual-chatgpt",
+
+          mode:
+            "manual",
+
+          task_type:
+            contentType,
+
+          user_request:
+            request,
+
+          prompt_text:
+            brief,
+
+          response_text:
+            result,
+
+          status:
+            "completed"
+        });
+
+
+    if (error) {
+      console.warn(
+        "AI run log was not saved:",
+        error
+      );
+    }
+
+  } catch (error) {
+    console.warn(
+      "AI run logging failed:",
+      error
+    );
+  }
+}
+
+
+/* =========================================================
+   CLEAR MANUAL AI STATE
+   ========================================================= */
+
+function clearManualAiState() {
   MANUAL_AI_STATE.brandId =
     null;
 
@@ -12505,31 +12499,49 @@ function resetManualAiState() {
 
   MANUAL_AI_STATE.brief =
     "";
-
-
-  const briefField =
-    $("#manualAiBrief");
-
-
-  const resultField =
-    $("#manualAiResult");
-
-
-  if (briefField) {
-    briefField.value =
-      "";
-  }
-
-
-  if (resultField) {
-    resultField.value =
-      "";
-  }
 }
+
+
+/* =========================================================
+   REFRESH WORKING DATA
+   ========================================================= */
+
+async function refreshWorkingData() {
+  const activeBrandId =
+    APP_STATE.activeBrandId;
+
+
+  await loadAppData();
+
+
+  if (
+    activeBrandId &&
+    APP_DATA.brands.some(
+      brand =>
+        brand.id ===
+        activeBrandId
+    )
+  ) {
+    APP_STATE.activeBrandId =
+      activeBrandId;
+  }
+
+
+  renderActiveBrand();
+
+  renderBrandPicker();
+
+  renderBrandGrid();
+
+  renderQuickCreateBrandOptions();
+
+  syncQuickCreateBrand();
+}
+
+
 /* =========================================================
    NAVIGATION
    ========================================================= */
-
 function navigateToView(
   viewName
 ) {
@@ -12541,8 +12553,13 @@ function navigateToView(
       : "dashboard";
 
 
-  APP_STATE.currentView =
+  APP_STATE.activeView =
     targetView;
+
+  writeStorage(
+    STORAGE_KEYS.lastView,
+    targetView
+  );
 
 
   $$(
@@ -12603,7 +12620,7 @@ function navigateToView(
 
 function renderCurrentView() {
   switch (
-    APP_STATE.currentView
+    APP_STATE.activeView
   ) {
     case "dashboard":
       renderDashboard();
@@ -12979,6 +12996,8 @@ const VIEW_DEFINITIONS = {
     label: "Settings"
   }
 };
+
+
 /* =========================================================
    GLOBAL CLICK HANDLING
    ========================================================= */
@@ -13093,24 +13112,20 @@ function handleGlobalClick(
     Open Brand Brain
   */
 
-  /*
-  Open Brand Brain
-*/
-
-const brandBrainButton =
-  event.target.closest(
-    "[data-open-brand]"
-  );
+  const brandBrainButton =
+    event.target.closest(
+      "[data-open-brand]"
+    );
 
 
-if (brandBrainButton) {
-  openBrandBrain(
-    brandBrainButton.dataset
-      .openBrand
-  );
+  if (brandBrainButton) {
+    openBrandBrain(
+      brandBrainButton.dataset
+        .openBrand
+    );
 
-  return;
-}
+    return;
+  }
 
 
   /*
@@ -13324,44 +13339,25 @@ function bindEvents() {
   );
 }
 
+
 /* =========================================================
    ACTIVE BRAND STORAGE
    ========================================================= */
-
 function readStoredActiveBrandId() {
-  try {
-    return localStorage.getItem(
-      "black-stag-active-brand"
-    );
-  } catch (error) {
-    console.warn(
-      "Could not read stored active brand:",
-      error
-    );
-
-    return null;
-  }
+  return readStorage(
+    STORAGE_KEYS.activeBrand,
+    null
+  );
 }
 
 
 function writeStoredActiveBrandId(
   brandId
 ) {
-  try {
-    if (brandId) {
-      localStorage.setItem(
-        "black-stag-active-brand",
-        brandId
-      );
-    } else {
-      localStorage.removeItem(
-        "black-stag-active-brand"
-      );
-    }
-  } catch (error) {
-    console.warn(
-      "Could not store active brand:",
-      error
+  if (brandId) {
+    writeStorage(
+      STORAGE_KEYS.activeBrand,
+      brandId
     );
   }
 }
@@ -13427,7 +13423,7 @@ async function startAuthenticatedApp(
 
 
     navigateToView(
-      APP_STATE.currentView ||
+      APP_STATE.activeView ||
       "dashboard"
     );
 
