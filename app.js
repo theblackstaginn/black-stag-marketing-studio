@@ -15631,6 +15631,31 @@ function handleGlobalClick(
     return;
   }
 
+  /*
+    Open Asset
+  */
+
+  const assetCard =
+    event.target.closest(
+      "[data-open-asset]"
+    );
+
+
+  if (assetCard) {
+    const assetId =
+      assetCard.dataset
+        .openAsset;
+
+
+    if (assetId) {
+      openAssetEditor(
+        assetId
+      );
+    }
+
+
+    return;
+  }
 
   /*
     Asset filters
