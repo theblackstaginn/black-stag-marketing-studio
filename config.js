@@ -31,7 +31,7 @@ window.BLACK_STAG_CONFIG = {
       Example format:
       https://xxxxxxxxxxxxxxxxxxxx.supabase.co
     */
-    url: "PASTE_YOUR_PROJECT_URL_HERE",
+    url: "https://lpjpuedylongafgqbwjh.supabase.co/rest/v1/",
 
     /*
       Paste ONLY the Publishable key from:
@@ -42,7 +42,7 @@ window.BLACK_STAG_CONFIG = {
 
       DO NOT use anything from the Secret keys section.
     */
-    publishableKey: "PASTE_YOUR_PUBLISHABLE_KEY_HERE"
+    publishableKey: "sb_publishable_Qydee2Ugq7Tm9qCgBgvGSA_8yDHusJy"
   },
 
   /* =======================================================
