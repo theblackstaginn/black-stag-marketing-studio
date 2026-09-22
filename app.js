@@ -12047,39 +12047,13 @@ function openAssetEditor(assetId) {
     $("#assetEditorPreview");
 
   if (preview) {
-    if (asset.externalUrl) {
-      preview.innerHTML = `
-        <img
-          src="${escapeHtml(asset.externalUrl)}"
-          alt="${escapeHtml(
-            asset.altText ||
-            asset.name ||
-            "Asset preview"
-          )}"
-          style="
-            display:block;
-            width:100%;
-            max-height:52vh;
-            object-fit:contain;
-            border-radius:14px;
-          "
-        />
-      `;
-    } else {
-      preview.innerHTML = `
-        <div
-          style="
-            min-height:180px;
-            display:grid;
-            place-items:center;
-            color:var(--muted);
-          "
-        >
-          No preview available
-        </div>
-      `;
-    }
-  }
+    const imageUrl =
+  getAssetDisplayUrl(asset);
+
+if (imageUrl) {
+  preview.innerHTML = `
+    <img
+      src="${escapeHtml(imageUrl)}"
 
   $("#assetEditorHeading").textContent =
     asset.name ||
