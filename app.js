@@ -1,7 +1,7 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    app.js
-   v3
+   v4
 
    Supabase-connected application shell:
    - Authentication
@@ -97,13 +97,6 @@ const SUPABASE_KEY =
 
 /* =========================================================
    LOCAL PREFERENCES
-
-   Supabase now stores business/content data.
-
-   localStorage is only used for harmless UI preferences:
-   - selected brand
-   - selected view
-
    ========================================================= */
 
 const STORAGE_KEYS = {
@@ -203,14 +196,9 @@ function createSupabaseClient() {
       SUPABASE_KEY,
       {
         auth: {
-          persistSession:
-            true,
-
-          autoRefreshToken:
-            true,
-
-          detectSessionInUrl:
-            true
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
         }
       }
     );
@@ -222,26 +210,14 @@ function createSupabaseClient() {
 
 /* =========================================================
    APP DATA
-
-   Supabase is now the source of truth.
-
    ========================================================= */
 
 const APP_DATA = {
-  brands:
-    [],
-
-  campaigns:
-    [],
-
-  content:
-    [],
-
-  calendar:
-    [],
-
-  assets:
-    []
+  brands: [],
+  campaigns: [],
+  content: [],
+  calendar: [],
+  assets: []
 };
 
 
@@ -262,42 +238,27 @@ const APP_STATE = {
       null
     ),
 
-  user:
-    null,
+  user: null,
 
-  session:
-    null,
+  session: null,
 
-  loading:
-    true,
+  loading: true,
 
-  campaignFilter:
-    "all",
+  campaignFilter: "all",
 
-  contentFilter:
-    "all",
+  contentFilter: "all",
 
-  assetFilter:
-    "all",
+  assetFilter: "all",
 
-  createType:
-    "social-post",
+  createType: "social-post",
 
-  currentAiBrief:
-    "",
+  currentAiBrief: "",
 
   currentAiRequest: {
-    brandId:
-      null,
-
-    type:
-      null,
-
-    goal:
-      null,
-
-    prompt:
-      null
+    brandId: null,
+    type: null,
+    goal: null,
+    prompt: null
   }
 };
 
@@ -318,26 +279,13 @@ const VALID_VIEWS = new Set([
 
 
 const VIEW_TITLES = {
-  dashboard:
-    "Dashboard",
-
-  brands:
-    "Brands",
-
-  campaigns:
-    "Campaigns",
-
-  studio:
-    "Content Studio",
-
-  calendar:
-    "Calendar",
-
-  vault:
-    "Asset Vault",
-
-  settings:
-    "Settings"
+  dashboard: "Dashboard",
+  brands: "Brands",
+  campaigns: "Campaigns",
+  studio: "Content Studio",
+  calendar: "Calendar",
+  vault: "Asset Vault",
+  settings: "Settings"
 };
 
 
@@ -347,135 +295,72 @@ const VIEW_TITLES = {
 
 const CREATE_TYPES = {
   "social-post": {
-    label:
-      "Social Post",
-
-    dbType:
-      "social_post",
-
+    label: "Social Post",
+    dbType: "social_post",
     instruction:
       "Create a polished social media post.",
-
-    defaultGoal:
-      "awareness"
+    defaultGoal: "awareness"
   },
-
 
   story: {
-    label:
-      "Story",
-
-    dbType:
-      "story",
-
+    label: "Story",
+    dbType: "story",
     instruction:
       "Create concise social story content suitable for a short sequence or single story.",
-
-    defaultGoal:
-      "awareness"
+    defaultGoal: "awareness"
   },
-
 
   reel: {
-    label:
-      "Reel / Video Script",
-
-    dbType:
-      "reel_script",
-
+    label: "Reel / Video Script",
+    dbType: "reel_script",
     instruction:
       "Create a short-form video or reel concept and script.",
-
-    defaultGoal:
-      "engagement"
+    defaultGoal: "engagement"
   },
-
 
   graphic: {
-    label:
-      "Promotional Graphic",
-
-    dbType:
-      "promotional_graphic",
-
+    label: "Promotional Graphic",
+    dbType: "promotional_graphic",
     instruction:
       "Develop the concept, visual direction, headline, supporting copy, and call to action for a promotional graphic.",
-
-    defaultGoal:
-      "awareness"
+    defaultGoal: "awareness"
   },
-
 
   email: {
-    label:
-      "Email",
-
-    dbType:
-      "email",
-
+    label: "Email",
+    dbType: "email",
     instruction:
       "Create a marketing email with a subject line, preview text, body copy, and appropriate call to action.",
-
-    defaultGoal:
-      "awareness"
+    defaultGoal: "awareness"
   },
-
 
   campaign: {
-    label:
-      "Campaign",
-
-    dbType:
-      "campaign",
-
+    label: "Campaign",
+    dbType: "campaign",
     instruction:
       "Develop a coordinated marketing campaign concept with objective, message, content ideas, recommended sequence, and calls to action.",
-
-    defaultGoal:
-      "awareness"
+    defaultGoal: "awareness"
   },
 
-
   "website-copy": {
-    label:
-      "Website Copy",
-
-    dbType:
-      "website_copy",
-
+    label: "Website Copy",
+    dbType: "website_copy",
     instruction:
       "Create polished website copy appropriate for the requested page, section, or purpose.",
-
-    defaultGoal:
-      "traffic"
+    defaultGoal: "traffic"
   }
 };
 
 
 const DB_TYPE_TO_APP_TYPE = {
-  social_post:
-    "social-post",
-
-  story:
-    "story",
-
-  reel_script:
-    "reel",
-
-  email:
-    "email",
-
-  website_copy:
-    "website-copy",
-
-  promotional_graphic:
-    "graphic",
-
-  campaign:
-    "campaign",
-
-  other:
-    "social-post"
+  social_post: "social-post",
+  story: "story",
+  reel_script: "reel",
+  email: "email",
+  website_copy: "website-copy",
+  promotional_graphic: "graphic",
+  campaign: "campaign",
+  other: "social-post"
 };
 
 
@@ -874,16 +759,16 @@ function normalizeBrand(
 
       phrasesToUse:
         Array.isArray(
-          voice?.phrases_to_use
+          voice?.preferred_phrases
         )
-          ? voice.phrases_to_use
+          ? voice.preferred_phrases
           : [],
 
       phrasesToAvoid:
         Array.isArray(
-          voice?.phrases_to_avoid
+          voice?.avoid_phrases
         )
-          ? voice.phrases_to_avoid
+          ? voice.avoid_phrases
           : [],
 
       clichesToAvoid:
@@ -899,6 +784,7 @@ function normalizeBrand(
 
     aiRules:
       rules
+        .slice()
         .sort(
           (a, b) =>
             Number(
@@ -1031,13 +917,13 @@ function normalizeCalendarItem(
       row.item_type,
 
     startAt:
-      row.start_at,
+      row.starts_at,
 
     endAt:
-      row.end_at,
+      row.ends_at,
 
     publishAt:
-      row.start_at,
+      row.starts_at,
 
     createdAt:
       row.created_at
@@ -1059,10 +945,19 @@ function normalizeAsset(
       row.name,
 
     category:
-      row.category,
+      row.asset_type,
 
     storagePath:
       row.storage_path,
+
+    externalUrl:
+      row.external_url,
+
+    mimeType:
+      row.mime_type,
+
+    altText:
+      row.alt_text,
 
     createdAt:
       row.created_at
@@ -1110,8 +1005,7 @@ async function loadAppData() {
           .order(
             "created_at",
             {
-              ascending:
-                true
+              ascending: true
             }
           ),
 
@@ -1122,8 +1016,7 @@ async function loadAppData() {
           .order(
             "created_at",
             {
-              ascending:
-                false
+              ascending: false
             }
           ),
 
@@ -1134,8 +1027,7 @@ async function loadAppData() {
           .order(
             "created_at",
             {
-              ascending:
-                false
+              ascending: false
             }
           ),
 
@@ -1144,10 +1036,9 @@ async function loadAppData() {
           .from("calendar_items")
           .select("*")
           .order(
-            "start_at",
+            "starts_at",
             {
-              ascending:
-                true
+              ascending: true
             }
           ),
 
@@ -1158,8 +1049,7 @@ async function loadAppData() {
           .order(
             "created_at",
             {
-              ascending:
-                false
+              ascending: false
             }
           )
 
@@ -2090,17 +1980,10 @@ function formatDateTime(
   return new Intl.DateTimeFormat(
     undefined,
     {
-      month:
-        "short",
-
-      day:
-        "numeric",
-
-      hour:
-        "numeric",
-
-      minute:
-        "2-digit"
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
     }
   ).format(date);
 }
@@ -2188,9 +2071,7 @@ function setView(
 
     if (main) {
       main.scrollTo({
-        top:
-          0,
-
+        top: 0,
         behavior:
           options.instant
             ? "auto"
@@ -2200,9 +2081,7 @@ function setView(
 
 
     window.scrollTo({
-      top:
-        0,
-
+      top: 0,
       behavior:
         options.instant
           ? "auto"
@@ -2688,6 +2567,61 @@ function renderAssets() {
 
 
 /* =========================================================
+   BRAND FACT FORMATTING
+   ========================================================= */
+
+function formatBrandFactForBrief(
+  fact
+) {
+  const label =
+    fact.fact_key ||
+    fact.subject ||
+    fact.category ||
+    "Fact";
+
+
+  let value =
+    fact.value_text ||
+    "";
+
+
+  if (
+    !value &&
+    fact.value_jsonb !==
+      null &&
+    fact.value_jsonb !==
+      undefined
+  ) {
+    try {
+      value =
+        typeof fact.value_jsonb ===
+          "string"
+          ? fact.value_jsonb
+          : JSON.stringify(
+              fact.value_jsonb
+            );
+    } catch (error) {
+      console.warn(
+        "Unable to format brand fact:",
+        error
+      );
+
+      value =
+        "";
+    }
+  }
+
+
+  if (!value) {
+    return "";
+  }
+
+
+  return `- ${label}: ${value}`;
+}
+
+
+/* =========================================================
    AI BRIEF GENERATOR
    ========================================================= */
 
@@ -2739,29 +2673,18 @@ function buildAiBrief({
     brand.facts
       ?.filter(
         fact =>
-          fact.status ===
-            "verified" ||
-          fact.status ===
-            "owner_approved"
-      )
-      .map(
-        fact =>
-          `- ${
-            fact.fact_key ||
-            fact.fact_type ||
-            "Fact"
-          }: ${
-            fact.value_text ||
-            fact.value ||
-            ""
-          }`
-      )
-      .filter(
-        line =>
-          !line.endsWith(
-            ": "
+          fact.active !== false &&
+          (
+            fact.status ===
+              "verified" ||
+            fact.status ===
+              "owner_approved"
           )
       )
+      .map(
+        formatBrandFactForBrief
+      )
+      .filter(Boolean)
       .join("\n") ||
     "No additional verified facts supplied.";
 
@@ -3869,17 +3792,10 @@ function resetAiWorkflow() {
 
 
   APP_STATE.currentAiRequest = {
-    brandId:
-      null,
-
-    type:
-      null,
-
-    goal:
-      null,
-
-    prompt:
-      null
+    brandId: null,
+    type: null,
+    goal: null,
+    prompt: null
   };
 
 
@@ -3935,8 +3851,7 @@ function openBrandBrain(
   setActiveBrand(
     brand.id,
     {
-      toast:
-        false
+      toast: false
     }
   );
 
@@ -4434,6 +4349,16 @@ function bindEvents() {
         $("#quickCreateDialog")
       );
 
+
+      safeDialogClose(
+        $("#aiBriefDialog")
+      );
+
+
+      safeDialogClose(
+        $("#aiResultDialog")
+      );
+
     }
   );
 }
@@ -4476,11 +4401,8 @@ function renderApp() {
   setView(
     initialView,
     {
-      scroll:
-        false,
-
-      instant:
-        true
+      scroll: false,
+      instant: true
     }
   );
 }
@@ -4592,8 +4514,7 @@ if (
     "DOMContentLoaded",
     init,
     {
-      once:
-        true
+      once: true
     }
   );
 } else {
