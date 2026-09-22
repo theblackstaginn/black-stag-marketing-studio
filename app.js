@@ -10860,6 +10860,11 @@ function renderCalendar() {
           brand.id
       );
 
+console.log("CALENDAR DEBUG", {
+  activeBrandId: brand.id,
+  calendar: APP_DATA.calendar,
+  content: APP_DATA.content
+});
 
   const scheduledContent =
     APP_DATA.content
