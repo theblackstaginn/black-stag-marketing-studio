@@ -13288,6 +13288,47 @@ function bindEvents() {
   );
 }
 
+/* =========================================================
+   ACTIVE BRAND STORAGE
+   ========================================================= */
+
+function readStoredActiveBrandId() {
+  try {
+    return localStorage.getItem(
+      "black-stag-active-brand"
+    );
+  } catch (error) {
+    console.warn(
+      "Could not read stored active brand:",
+      error
+    );
+
+    return null;
+  }
+}
+
+
+function writeStoredActiveBrandId(
+  brandId
+) {
+  try {
+    if (brandId) {
+      localStorage.setItem(
+        "black-stag-active-brand",
+        brandId
+      );
+    } else {
+      localStorage.removeItem(
+        "black-stag-active-brand"
+      );
+    }
+  } catch (error) {
+    console.warn(
+      "Could not store active brand:",
+      error
+    );
+  }
+}
 
 /* =========================================================
    AUTHENTICATED APP START
