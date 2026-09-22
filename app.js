@@ -1348,10 +1348,14 @@ function normalizeAsset(row) {
       row.id,
 
     brandId:
-      row.brand_id,
+  row.brand_id,
 
-    name:
-      row.name,
+folderId:
+  row.folder_id ||
+  null,
+
+name:
+  row.name,
 
     category:
       row.asset_type,
