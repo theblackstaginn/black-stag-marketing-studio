@@ -12602,9 +12602,9 @@ async function handleAssetUploadSubmit(
 
 
     const normalized =
-      normalizeAssetRow(
-        data
-      );
+  normalizeAsset(
+    data
+  );
 
 
     APP_DATA.assets.unshift(
