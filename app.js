@@ -9103,6 +9103,719 @@ function renderContentLibrary() {
       .join("");
 }
 
+/* =========================================================
+   CONTENT EDITOR
+   ========================================================= */
+
+function ensureContentEditorDialog() {
+  let dialog =
+    $("#contentEditorDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "contentEditorDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(760px,94vw);
+        max-width:100%;
+        max-height:92vh;
+        overflow-y:auto;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span
+            id="contentEditorEyebrow"
+            class="eyebrow"
+          >
+            Content
+          </span>
+
+          <h2 id="contentEditorHeading">
+            Edit Content
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeContentEditorButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="contentEditorForm"
+        class="create-form"
+      >
+
+        <input
+          id="contentEditorId"
+          type="hidden"
+        />
+
+
+        <label class="field">
+
+          <span>
+            Title
+          </span>
+
+          <input
+            id="contentEditorTitle"
+            type="text"
+            placeholder="Content title"
+          />
+
+        </label>
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(
+                2,
+                minmax(0,1fr)
+              );
+            gap:12px;
+          "
+        >
+
+          <label class="field">
+
+            <span>
+              Platform
+            </span>
+
+            <input
+              id="contentEditorPlatform"
+              type="text"
+              placeholder="Facebook, Instagram…"
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Status
+            </span>
+
+            <select
+              id="contentEditorStatus"
+            >
+
+              <option value="draft">
+                Draft
+              </option>
+
+              <option value="review">
+                Review
+              </option>
+
+              <option value="approved">
+                Approved
+              </option>
+
+              <option value="scheduled">
+                Scheduled
+              </option>
+
+              <option value="published">
+                Published
+              </option>
+
+            </select>
+
+          </label>
+
+        </div>
+
+
+        <label class="field">
+
+          <span>
+            Content
+          </span>
+
+          <textarea
+            id="contentEditorBody"
+            style="
+              min-height:300px;
+            "
+            placeholder="Write or edit the content here."
+          ></textarea>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Goal
+          </span>
+
+          <input
+            id="contentEditorGoal"
+            type="text"
+            placeholder="Build awareness, drive bookings…"
+          />
+
+        </label>
+
+
+        <label
+          id="contentEditorScheduleField"
+          class="field"
+          hidden
+        >
+
+          <span>
+            Scheduled date & time
+          </span>
+
+          <input
+            id="contentEditorScheduledFor"
+            type="datetime-local"
+          />
+
+        </label>
+
+
+        <div
+          style="
+            padding-top:4px;
+            color:var(--muted);
+            font-size:.7rem;
+            line-height:1.55;
+          "
+        >
+          Saving updates this content item only.
+          Scheduling does not publish it.
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            id="cancelContentEditorButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveContentEditorButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Changes
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeContentEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelContentEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#contentEditorStatus")
+    ?.addEventListener(
+      "change",
+      updateContentEditorScheduleVisibility
+    );
+
+
+  $("#contentEditorForm")
+    ?.addEventListener(
+      "submit",
+      saveContentEditor
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   OPEN CONTENT EDITOR
+   ========================================================= */
+
+function openContentEditor(
+  contentId
+) {
+  const item =
+    APP_DATA.content.find(
+      content =>
+        content.id ===
+        contentId
+    );
+
+
+  if (!item) {
+    showToast(
+      "That content item could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const dialog =
+    ensureContentEditorDialog();
+
+
+  $("#contentEditorId").value =
+    item.id;
+
+
+  $("#contentEditorTitle").value =
+    item.title ||
+    "";
+
+
+  $("#contentEditorPlatform").value =
+    item.platform ||
+    "";
+
+
+  $("#contentEditorStatus").value =
+    item.status ||
+    "draft";
+
+
+  $("#contentEditorBody").value =
+    item.body ||
+    "";
+
+
+  $("#contentEditorGoal").value =
+    item.goal ||
+    "";
+
+
+  $("#contentEditorEyebrow").textContent =
+    getContentTypeLabel(
+      item.type
+    );
+
+
+  $("#contentEditorHeading").textContent =
+    item.title ||
+    "Edit Content";
+
+
+  const scheduleInput =
+    $("#contentEditorScheduledFor");
+
+
+  if (scheduleInput) {
+    scheduleInput.value =
+      toLocalDateTimeInputValue(
+        item.scheduledFor
+      );
+  }
+
+
+  updateContentEditorScheduleVisibility();
+
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+/* =========================================================
+   CONTENT EDITOR SCHEDULE VISIBILITY
+   ========================================================= */
+
+function updateContentEditorScheduleVisibility() {
+  const status =
+    $("#contentEditorStatus")
+      ?.value;
+
+
+  const field =
+    $("#contentEditorScheduleField");
+
+
+  if (!field) {
+    return;
+  }
+
+
+  field.hidden =
+    status !==
+    "scheduled";
+}
+
+
+/* =========================================================
+   DATETIME INPUT VALUE
+   ========================================================= */
+
+function toLocalDateTimeInputValue(
+  value
+) {
+  if (!value) {
+    return "";
+  }
+
+
+  const date =
+    new Date(
+      value
+    );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+
+  const pad =
+    number =>
+      String(number)
+        .padStart(
+          2,
+          "0"
+        );
+
+
+  return [
+    date.getFullYear(),
+    "-",
+    pad(
+      date.getMonth() + 1
+    ),
+    "-",
+    pad(
+      date.getDate()
+    ),
+    "T",
+    pad(
+      date.getHours()
+    ),
+    ":",
+    pad(
+      date.getMinutes()
+    )
+  ].join("");
+}
+
+
+/* =========================================================
+   SAVE CONTENT EDITOR
+   ========================================================= */
+
+async function saveContentEditor(
+  event
+) {
+  event.preventDefault();
+
+
+  const id =
+    $("#contentEditorId")
+      ?.value;
+
+
+  const title =
+    $("#contentEditorTitle")
+      ?.value
+      ?.trim();
+
+
+  const platform =
+    $("#contentEditorPlatform")
+      ?.value
+      ?.trim();
+
+
+  const status =
+    $("#contentEditorStatus")
+      ?.value ||
+    "draft";
+
+
+  const body =
+    $("#contentEditorBody")
+      ?.value
+      ?.trim();
+
+
+  const goal =
+    $("#contentEditorGoal")
+      ?.value
+      ?.trim();
+
+
+  const scheduledInput =
+    $("#contentEditorScheduledFor")
+      ?.value;
+
+
+  if (!id) {
+    showToast(
+      "The content item is missing.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (!title) {
+    showToast(
+      "Give this content a title.",
+      "error"
+    );
+
+
+    $("#contentEditorTitle")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  if (!body) {
+    showToast(
+      "Content cannot be empty.",
+      "error"
+    );
+
+
+    $("#contentEditorBody")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  if (
+    status ===
+      "scheduled" &&
+    !scheduledInput
+  ) {
+    showToast(
+      "Choose a date and time before scheduling.",
+      "error"
+    );
+
+
+    $("#contentEditorScheduledFor")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  const button =
+    $("#saveContentEditorButton");
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    const scheduledFor =
+      status ===
+        "scheduled"
+        ? new Date(
+            scheduledInput
+          ).toISOString()
+        : null;
+
+
+    const payload = {
+      title,
+      body,
+
+      platform:
+        nullableText(
+          platform
+        ),
+
+      goal:
+        nullableText(
+          goal
+        ),
+
+      status,
+
+      scheduled_for:
+        scheduledFor,
+
+      updated_at:
+        new Date()
+          .toISOString()
+    };
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "content_items"
+        )
+        .update(
+          payload
+        )
+        .eq(
+          "id",
+          id
+        )
+        .select()
+        .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (!data?.id) {
+      throw new Error(
+        "The content update did not return a saved item."
+      );
+    }
+
+
+    safeDialogClose(
+      $("#contentEditorDialog")
+    );
+
+
+    await refreshWorkingData();
+
+
+    renderDashboard();
+
+    renderCampaigns();
+
+    renderContentLibrary();
+
+    renderCalendar();
+
+    renderAssets();
+
+
+    showToast(
+      status ===
+        "scheduled"
+        ? "Content scheduled."
+        : "Changes saved.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to update content:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the content.",
+      "error",
+      5000
+    );
+
+  } finally {
+    const currentButton =
+      $("#saveContentEditorButton");
+
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+
+      currentButton.textContent =
+        "Save Changes";
+    }
+  }
+}
 
 /* =========================================================
    CONTENT CARD
