@@ -9399,7 +9399,37 @@ function ensureContentEditorDialog() {
   return dialog;
 }
 
+  /*
+    Open Calendar Item
+  */
 
+  const calendarCard =
+    event.target.closest(
+      "[data-calendar-action]"
+    );
+
+
+  if (calendarCard) {
+    const action =
+      calendarCard.dataset
+        .calendarAction;
+
+    const itemId =
+      calendarCard.dataset
+        .calendarItemId;
+
+
+    if (
+      action === "content" &&
+      itemId
+    ) {
+      openContentEditor(
+        itemId
+      );
+
+      return;
+    }
+  }
 /* =========================================================
    OPEN CONTENT EDITOR
    ========================================================= */
