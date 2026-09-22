@@ -14715,7 +14715,7 @@ function handleGlobalClick(
     return;
   }
 
-  /*
+   /*
     Open Content Editor
   */
 
@@ -14726,51 +14726,47 @@ function handleGlobalClick(
 
 
   if (contentCard) {
-  openContentEditor(
-    contentCard.dataset
-      .openContent
-  );
-
-  return;
-}
-
-
-/*
-  Open Calendar Card
-*/
-
-const calendarCard =
-  event.target.closest(
-    "[data-calendar-action]"
-  );
-
-
-if (calendarCard) {
-  const action =
-    calendarCard.dataset
-      .calendarAction;
-
-  const itemId =
-    calendarCard.dataset
-      .calendarItemId;
-
-
-  if (
-    action === "content" &&
-    itemId
-  ) {
     openContentEditor(
-      itemId
+      contentCard.dataset
+        .openContent
     );
 
     return;
   }
-}
 
 
-/*
-  Content filters
-*/
+  /*
+    Open Calendar Card
+  */
+
+  const calendarCard =
+    event.target.closest(
+      "[data-calendar-action]"
+    );
+
+
+  if (calendarCard) {
+    const action =
+      calendarCard.dataset
+        .calendarAction;
+
+    const itemId =
+      calendarCard.dataset
+        .calendarItemId;
+
+
+    if (
+      action === "content" &&
+      itemId
+    ) {
+      openContentEditor(
+        itemId
+      );
+
+      return;
+    }
+  }
+
 
   /*
     Content filters
