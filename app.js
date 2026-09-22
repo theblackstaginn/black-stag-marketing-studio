@@ -11171,13 +11171,35 @@ function renderCalendarItem(
       : "";
 
 
-  return `
-    <article
-      class="content-panel"
-      style="
-        margin-bottom:10px;
-      "
-    >
+  const isScheduledContent =
+  item.itemType === "scheduled-content" &&
+  item.contentId;
+
+const calendarItemId =
+  isScheduledContent
+    ? item.contentId
+    : item.id;
+
+const calendarAction =
+  isScheduledContent
+    ? "content"
+    : "calendar";
+
+return `
+  <article
+    class="content-panel calendar-item-card"
+    data-calendar-action="${escapeHtml(calendarAction)}"
+    data-calendar-item-id="${escapeHtml(calendarItemId)}"
+    role="button"
+    tabindex="0"
+    aria-label="Open ${escapeHtml(
+      item.title || "calendar item"
+    )}"
+    style="
+      margin-bottom:10px;
+      cursor:pointer;
+    "
+  >
 
       <div
         style="
