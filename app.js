@@ -12540,9 +12540,6 @@ async function handleAssetUploadSubmit(
 
 
     const payload = {
-      user_id:
-        APP_STATE.user.id,
-
       brand_id:
         brand.id,
 
