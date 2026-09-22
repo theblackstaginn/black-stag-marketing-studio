@@ -13093,20 +13093,24 @@ function handleGlobalClick(
     Open Brand Brain
   */
 
-  const brandBrainButton =
-    event.target.closest(
-      "[data-brand-brain]"
-    );
+  /*
+  Open Brand Brain
+*/
+
+const brandBrainButton =
+  event.target.closest(
+    "[data-open-brand]"
+  );
 
 
-  if (brandBrainButton) {
-    openBrandBrain(
-      brandBrainButton.dataset
-        .brandBrain
-    );
+if (brandBrainButton) {
+  openBrandBrain(
+    brandBrainButton.dataset
+      .openBrand
+  );
 
-    return;
-  }
+  return;
+}
 
 
   /*
