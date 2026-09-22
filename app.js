@@ -14853,14 +14853,76 @@ function bindEvents() {
 
 
       const contentCard =
-        event.target.closest(
-          "[data-open-content]"
-        );
 
+    event.target.closest(
 
-      if (!contentCard) {
-        return;
-      }
+      "[data-open-content]"
+
+    );
+
+  if (contentCard) {
+
+    openContentEditor(
+
+      contentCard.dataset
+
+        .openContent
+
+    );
+
+    return;
+
+  }
+
+  /*
+
+    Open Calendar Card
+
+  */
+
+  const calendarCard =
+
+    event.target.closest(
+
+      "[data-calendar-action]"
+
+    );
+
+  if (calendarCard) {
+
+    const action =
+
+      calendarCard.dataset
+
+        .calendarAction;
+
+    const itemId =
+
+      calendarCard.dataset
+
+        .calendarItemId;
+
+    if (
+
+      action === "content" &&
+
+      itemId
+
+    ) {
+
+      openContentEditor(
+
+        itemId
+
+      );
+
+      return;
+
+    }
+
+  }
+
+  /*
 
 
       event.preventDefault();
