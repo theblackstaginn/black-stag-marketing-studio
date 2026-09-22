@@ -1,29 +1,23 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    app.js
-   v4
+   v5 — BRAND BRAIN V1
 
-   Supabase-connected application shell:
+   Supabase-connected application:
    - Authentication
    - Persistent authenticated session
-   - Supabase Brand Brain loading
-   - Supabase content persistence
-   - Campaign loading
-   - Calendar loading
-   - Asset metadata loading
-   - Navigation
-   - Brand switching
-   - Quick Create
-   - Manual ChatGPT AI workflow
-   - AI brief generation
-   - Copy-to-clipboard
-   - Paste-result workflow
-   - Filters
-   - Dialogs
-   - Toasts
-
-   V1 AI MODE:
-   ChatGPT Manual
+   - Brand loading / switching
+   - Brand Brain editor
+   - Identity
+   - Voice
+   - Source of Truth
+   - AI Guardrails
+   - Milestones
+   - Campaigns
+   - Content Studio
+   - Calendar
+   - Asset Vault
+   - Manual ChatGPT workflow
 
    ========================================================= */
 
@@ -42,7 +36,7 @@ const $$ = (selector, root = document) =>
 
 
 function escapeHtml(value = "") {
-  return String(value)
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -70,6 +64,114 @@ function safeDialogClose(dialog) {
   if (dialog.open) {
     dialog.close();
   }
+}
+
+
+function arrayToText(value) {
+  if (!Array.isArray(value)) {
+    return "";
+  }
+
+  return value.join(", ");
+}
+
+
+function textToArray(value) {
+  return String(value || "")
+    .split(",")
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+
+function nullableText(value) {
+  const cleaned =
+    String(value || "").trim();
+
+  return cleaned || null;
+}
+
+
+function nullableDate(value) {
+  const cleaned =
+    String(value || "").trim();
+
+  return cleaned || null;
+}
+
+
+function formatDateTime(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date =
+    new Date(value);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }
+  ).format(date);
+}
+
+
+function formatDate(value) {
+  if (!value) {
+    return "";
+  }
+
+  const date =
+    new Date(`${value}T12:00:00`);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat(
+    undefined,
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    }
+  ).format(date);
+}
+
+
+function makeSlug(value) {
+  return String(value || "")
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+
+function titleCaseStatus(value) {
+  return String(value || "")
+    .replaceAll("_", " ")
+    .replace(/\b\w/g, character =>
+      character.toUpperCase()
+    );
 }
 
 
@@ -244,22 +346,33 @@ const APP_STATE = {
 
   loading: true,
 
-  campaignFilter: "all",
+  campaignFilter:
+    "all",
 
-  contentFilter: "all",
+  contentFilter:
+    "all",
 
-  assetFilter: "all",
+  assetFilter:
+    "all",
 
-  createType: "social-post",
+  createType:
+    "social-post",
 
-  currentAiBrief: "",
+  currentAiBrief:
+    "",
 
   currentAiRequest: {
     brandId: null,
     type: null,
     goal: null,
     prompt: null
-  }
+  },
+
+  brandBrainBrandId:
+    null,
+
+  brandBrainTab:
+    "identity"
 };
 
 
@@ -267,25 +380,39 @@ const APP_STATE = {
    VIEW DEFINITIONS
    ========================================================= */
 
-const VALID_VIEWS = new Set([
-  "dashboard",
-  "brands",
-  "campaigns",
-  "studio",
-  "calendar",
-  "vault",
-  "settings"
-]);
+const VALID_VIEWS =
+  new Set([
+    "dashboard",
+    "brands",
+    "campaigns",
+    "studio",
+    "calendar",
+    "vault",
+    "settings"
+  ]);
 
 
 const VIEW_TITLES = {
-  dashboard: "Dashboard",
-  brands: "Brands",
-  campaigns: "Campaigns",
-  studio: "Content Studio",
-  calendar: "Calendar",
-  vault: "Asset Vault",
-  settings: "Settings"
+  dashboard:
+    "Dashboard",
+
+  brands:
+    "Brands",
+
+  campaigns:
+    "Campaigns",
+
+  studio:
+    "Content Studio",
+
+  calendar:
+    "Calendar",
+
+  vault:
+    "Asset Vault",
+
+  settings:
+    "Settings"
 };
 
 
@@ -295,72 +422,135 @@ const VIEW_TITLES = {
 
 const CREATE_TYPES = {
   "social-post": {
-    label: "Social Post",
-    dbType: "social_post",
+    label:
+      "Social Post",
+
+    dbType:
+      "social_post",
+
     instruction:
       "Create a polished social media post.",
-    defaultGoal: "awareness"
+
+    defaultGoal:
+      "awareness"
   },
+
 
   story: {
-    label: "Story",
-    dbType: "story",
+    label:
+      "Story",
+
+    dbType:
+      "story",
+
     instruction:
       "Create concise social story content suitable for a short sequence or single story.",
-    defaultGoal: "awareness"
+
+    defaultGoal:
+      "awareness"
   },
+
 
   reel: {
-    label: "Reel / Video Script",
-    dbType: "reel_script",
+    label:
+      "Reel / Video Script",
+
+    dbType:
+      "reel_script",
+
     instruction:
       "Create a short-form video or reel concept and script.",
-    defaultGoal: "engagement"
+
+    defaultGoal:
+      "engagement"
   },
+
 
   graphic: {
-    label: "Promotional Graphic",
-    dbType: "promotional_graphic",
+    label:
+      "Promotional Graphic",
+
+    dbType:
+      "promotional_graphic",
+
     instruction:
       "Develop the concept, visual direction, headline, supporting copy, and call to action for a promotional graphic.",
-    defaultGoal: "awareness"
+
+    defaultGoal:
+      "awareness"
   },
+
 
   email: {
-    label: "Email",
-    dbType: "email",
+    label:
+      "Email",
+
+    dbType:
+      "email",
+
     instruction:
       "Create a marketing email with a subject line, preview text, body copy, and appropriate call to action.",
-    defaultGoal: "awareness"
+
+    defaultGoal:
+      "awareness"
   },
+
 
   campaign: {
-    label: "Campaign",
-    dbType: "campaign",
+    label:
+      "Campaign",
+
+    dbType:
+      "campaign",
+
     instruction:
       "Develop a coordinated marketing campaign concept with objective, message, content ideas, recommended sequence, and calls to action.",
-    defaultGoal: "awareness"
+
+    defaultGoal:
+      "awareness"
   },
 
+
   "website-copy": {
-    label: "Website Copy",
-    dbType: "website_copy",
+    label:
+      "Website Copy",
+
+    dbType:
+      "website_copy",
+
     instruction:
       "Create polished website copy appropriate for the requested page, section, or purpose.",
-    defaultGoal: "traffic"
+
+    defaultGoal:
+      "traffic"
   }
 };
 
 
 const DB_TYPE_TO_APP_TYPE = {
-  social_post: "social-post",
-  story: "story",
-  reel_script: "reel",
-  email: "email",
-  website_copy: "website-copy",
-  promotional_graphic: "graphic",
-  campaign: "campaign",
-  other: "social-post"
+  social_post:
+    "social-post",
+
+  story:
+    "story",
+
+  reel_script:
+    "reel",
+
+  email:
+    "email",
+
+  website_copy:
+    "website-copy",
+
+  promotional_graphic:
+    "graphic",
+
+  campaign:
+    "campaign",
+
+  other:
+    "social-post"
 };
 
 
@@ -588,7 +778,6 @@ async function handleSignIn(
 
 
   try {
-
     const {
       data,
       error
@@ -630,7 +819,6 @@ async function handleSignIn(
     );
 
   } catch (error) {
-
     console.error(
       "Sign-in failed:",
       error
@@ -647,7 +835,6 @@ async function handleSignIn(
     }
 
   } finally {
-
     if (submitButton) {
       submitButton.disabled =
         false;
@@ -655,7 +842,6 @@ async function handleSignIn(
       submitButton.textContent =
         "Sign In";
     }
-
   }
 }
 
@@ -664,9 +850,7 @@ async function handleSignIn(
    DATABASE NORMALIZATION
    ========================================================= */
 
-function normalizeBrand(
-  row
-) {
+function normalizeBrand(row) {
   const voice =
     Array.isArray(
       row.brand_voice
@@ -686,6 +870,9 @@ function normalizeBrand(
   return {
     id:
       row.id,
+
+    ownerId:
+      row.owner_id,
 
     slug:
       row.slug,
@@ -711,7 +898,7 @@ function normalizeBrand(
 
     stage:
       row.business_stage ||
-      "",
+      "operating",
 
     stageLabel:
       row.stage_label ||
@@ -726,6 +913,34 @@ function normalizeBrand(
       row.campaign_phase ||
       "",
 
+    tagline:
+      row.tagline ||
+      "",
+
+    shortDescription:
+      row.short_description ||
+      "",
+
+    longDescription:
+      row.long_description ||
+      "",
+
+    brandStory:
+      row.brand_story ||
+      "",
+
+    mission:
+      row.mission ||
+      "",
+
+    differentiator:
+      row.differentiator ||
+      "",
+
+    brandPromise:
+      row.brand_promise ||
+      "",
+
     openingDate:
       row.opening_date ||
       null,
@@ -734,6 +949,9 @@ function normalizeBrand(
       Boolean(
         row.opening_date_confirmed
       ),
+
+    active:
+      row.active !== false,
 
     identity: {
       tagline:
@@ -749,22 +967,55 @@ function normalizeBrand(
     },
 
     voice: {
+      id:
+        voice?.id ||
+        null,
+
+      adjectives:
+        Array.isArray(
+          voice?.adjectives
+        )
+          ? voice.adjectives
+          : [],
+
       emotionalAtmosphere:
         voice?.emotional_atmosphere ||
         "",
 
-      writingNotes:
-        voice?.writing_notes ||
+      formality:
+        voice?.formality ||
         "",
 
-      phrasesToUse:
+      humorStyle:
+        voice?.humor_style ||
+        "",
+
+      mysteryLevel:
+        voice?.mystery_level ||
+        "",
+
+      preferredVocabulary:
+        Array.isArray(
+          voice?.preferred_vocabulary
+        )
+          ? voice.preferred_vocabulary
+          : [],
+
+      avoidVocabulary:
+        Array.isArray(
+          voice?.avoid_vocabulary
+        )
+          ? voice.avoid_vocabulary
+          : [],
+
+      preferredPhrases:
         Array.isArray(
           voice?.preferred_phrases
         )
           ? voice.preferred_phrases
           : [],
 
-      phrasesToAvoid:
+      avoidPhrases:
         Array.isArray(
           voice?.avoid_phrases
         )
@@ -776,14 +1027,45 @@ function normalizeBrand(
           voice?.cliches_to_avoid
         )
           ? voice.cliches_to_avoid
+          : [],
+
+      emojiPolicy:
+        voice?.emoji_policy ||
+        "",
+
+      profanityPolicy:
+        voice?.profanity_policy ||
+        "",
+
+      capitalizationStyle:
+        voice?.capitalization_style ||
+        "",
+
+      ctaStyle:
+        voice?.cta_style ||
+        "",
+
+      writingNotes:
+        voice?.writing_notes ||
+        "",
+
+      approvedExamples:
+        Array.isArray(
+          voice?.approved_examples
+        )
+          ? voice.approved_examples
           : []
     },
 
-    marketingStrategy:
-      [],
+    rules:
+      rules,
 
     aiRules:
       rules
+        .filter(
+          rule =>
+            rule.active !== false
+        )
         .slice()
         .sort(
           (a, b) =>
@@ -817,9 +1099,7 @@ function normalizeBrand(
 }
 
 
-function normalizeCampaign(
-  row
-) {
+function normalizeCampaign(row) {
   return {
     id:
       row.id,
@@ -845,9 +1125,7 @@ function normalizeCampaign(
 }
 
 
-function normalizeContent(
-  row
-) {
+function normalizeContent(row) {
   return {
     id:
       row.id,
@@ -900,9 +1178,7 @@ function normalizeContent(
 }
 
 
-function normalizeCalendarItem(
-  row
-) {
+function normalizeCalendarItem(row) {
   return {
     id:
       row.id,
@@ -931,9 +1207,7 @@ function normalizeCalendarItem(
 }
 
 
-function normalizeAsset(
-  row
-) {
+function normalizeAsset(row) {
   return {
     id:
       row.id,
@@ -983,7 +1257,6 @@ async function loadAppData() {
 
 
   try {
-
     const [
       brandsResult,
       campaignsResult,
@@ -1057,11 +1330,30 @@ async function loadAppData() {
 
 
     const results = [
-      ["brands", brandsResult],
-      ["campaigns", campaignsResult],
-      ["content", contentResult],
-      ["calendar", calendarResult],
-      ["assets", assetsResult]
+      [
+        "brands",
+        brandsResult
+      ],
+
+      [
+        "campaigns",
+        campaignsResult
+      ],
+
+      [
+        "content",
+        contentResult
+      ],
+
+      [
+        "calendar",
+        calendarResult
+      ],
+
+      [
+        "assets",
+        assetsResult
+      ]
     ];
 
 
@@ -1127,11 +1419,73 @@ async function loadAppData() {
     ensureValidActiveBrand();
 
   } finally {
-
     APP_STATE.loading =
       false;
-
   }
+}
+
+
+/* =========================================================
+   RELOAD ONE BRAND
+
+   Used after Brand Brain saves so we get the authoritative
+   database version back from Supabase.
+   ========================================================= */
+
+async function reloadBrand(
+  brandId
+) {
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from("brands")
+      .select(`
+        *,
+        brand_voice (*),
+        brand_rules (*),
+        brand_facts (*),
+        milestones (*)
+      `)
+      .eq(
+        "id",
+        brandId
+      )
+      .single();
+
+
+  if (error) {
+    throw error;
+  }
+
+
+  const normalized =
+    normalizeBrand(
+      data
+    );
+
+
+  const index =
+    APP_DATA.brands.findIndex(
+      brand =>
+        brand.id === brandId
+    );
+
+
+  if (index >= 0) {
+    APP_DATA.brands[
+      index
+    ] =
+      normalized;
+  } else {
+    APP_DATA.brands.push(
+      normalized
+    );
+  }
+
+
+  return normalized;
 }
 
 
@@ -1142,10 +1496,13 @@ async function loadAppData() {
 function getBrandById(
   brandId
 ) {
-  return APP_DATA.brands.find(
-    brand =>
-      brand.id === brandId
-  ) ?? null;
+  return (
+    APP_DATA.brands.find(
+      brand =>
+        brand.id === brandId
+    ) ??
+    null
+  );
 }
 
 
@@ -1297,7 +1654,6 @@ function renderActiveBrand() {
       selector,
       value
     ]) => {
-
       const element =
         $(selector);
 
@@ -1306,7 +1662,6 @@ function renderActiveBrand() {
         element.textContent =
           value || "";
       }
-
     }
   );
 }
@@ -1355,7 +1710,6 @@ function renderBrandPicker() {
   list.innerHTML =
     APP_DATA.brands
       .map(brand => {
-
         const isActive =
           brand.id ===
           APP_STATE.activeBrandId;
@@ -1430,7 +1784,6 @@ function renderBrandPicker() {
 
           </button>
         `;
-
       })
       .join("");
 }
@@ -1481,7 +1834,6 @@ function renderBrandGrid() {
   grid.innerHTML =
     APP_DATA.brands
       .map(brand => {
-
         const isActive =
           brand.id ===
           APP_STATE.activeBrandId;
@@ -1625,12 +1977,8504 @@ function renderBrandGrid() {
 
           </article>
         `;
-
       })
+      .join("");
+}
+/* =========================================================
+   BRAND BRAIN
+   ========================================================= */
+
+function getBrandBrainBrand() {
+  return getBrandById(
+    APP_STATE.brandBrainBrandId
+  );
+}
+
+
+function ensureBrandBrainDialog() {
+  let dialog =
+    $("#brandBrainDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "brandBrainDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(1040px,94vw);
+        max-width:100%;
+        max-height:88vh;
+        display:flex;
+        flex-direction:column;
+        overflow:hidden;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span
+            class="eyebrow"
+            id="brandBrainEyebrow"
+          >
+            Brand Brain
+          </span>
+
+          <h2
+            id="brandBrainTitle"
+            style="
+              margin-bottom:4px;
+            "
+          >
+            Brand Brain
+          </h2>
+
+          <p
+            id="brandBrainSubtitle"
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.78rem;
+              line-height:1.5;
+            "
+          ></p>
+
+        </div>
+
+        <button
+          id="closeBrandBrainButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close Brand Brain"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div
+        id="brandBrainTabs"
+        style="
+          display:flex;
+          gap:8px;
+          overflow-x:auto;
+          flex-shrink:0;
+          padding:2px 0 14px;
+          scrollbar-width:thin;
+        "
+      >
+
+        <button
+          class="filter-button is-active"
+          type="button"
+          data-brain-tab="identity"
+        >
+          Identity
+        </button>
+
+        <button
+          class="filter-button"
+          type="button"
+          data-brain-tab="voice"
+        >
+          Voice
+        </button>
+
+        <button
+          class="filter-button"
+          type="button"
+          data-brain-tab="facts"
+        >
+          Source of Truth
+        </button>
+
+        <button
+          class="filter-button"
+          type="button"
+          data-brain-tab="rules"
+        >
+          AI Guardrails
+        </button>
+
+        <button
+          class="filter-button"
+          type="button"
+          data-brain-tab="milestones"
+        >
+          Milestones
+        </button>
+
+      </div>
+
+
+      <div
+        id="brandBrainContent"
+        style="
+          overflow-y:auto;
+          padding-right:4px;
+          min-height:300px;
+          flex:1;
+        "
+      ></div>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeBrandBrainButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#brandBrainTabs")
+    ?.addEventListener(
+      "click",
+      event => {
+        const button =
+          event.target.closest(
+            "[data-brain-tab]"
+          );
+
+
+        if (!button) {
+          return;
+        }
+
+
+        setBrandBrainTab(
+          button.dataset
+            .brainTab
+        );
+      }
+    );
+
+
+  dialog.addEventListener(
+    "cancel",
+    () => {
+      APP_STATE.brandBrainBrandId =
+        null;
+    }
+  );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   OPEN BRAND BRAIN
+   ========================================================= */
+
+function openBrandBrain(
+  brandId
+) {
+  const brand =
+    getBrandById(
+      brandId
+    );
+
+
+  if (!brand) {
+    showToast(
+      "That Brand Brain could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  APP_STATE.brandBrainBrandId =
+    brand.id;
+
+
+  APP_STATE.brandBrainTab =
+    "identity";
+
+
+  setActiveBrand(
+    brand.id,
+    {
+      toast:
+        false
+    }
+  );
+
+
+  const dialog =
+    ensureBrandBrainDialog();
+
+
+  renderBrandBrainHeader();
+
+  renderBrandBrainTabs();
+
+  renderBrandBrainContent();
+
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+/* =========================================================
+   BRAND BRAIN HEADER
+   ========================================================= */
+
+function renderBrandBrainHeader() {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const eyebrow =
+    $("#brandBrainEyebrow");
+
+
+  const title =
+    $("#brandBrainTitle");
+
+
+  const subtitle =
+    $("#brandBrainSubtitle");
+
+
+  if (eyebrow) {
+    eyebrow.textContent =
+      `${brand.mark} Brand Brain`;
+  }
+
+
+  if (title) {
+    title.textContent =
+      brand.name;
+  }
+
+
+  if (subtitle) {
+    const parts = [
+      brand.stageLabel,
+      brand.businessType
+    ]
+      .filter(Boolean);
+
+
+    subtitle.textContent =
+      parts.join(" · ");
+  }
+}
+
+
+/* =========================================================
+   BRAND BRAIN TABS
+   ========================================================= */
+
+function setBrandBrainTab(
+  tab
+) {
+  const allowed =
+    new Set([
+      "identity",
+      "voice",
+      "facts",
+      "rules",
+      "milestones"
+    ]);
+
+
+  APP_STATE.brandBrainTab =
+    allowed.has(tab)
+      ? tab
+      : "identity";
+
+
+  renderBrandBrainTabs();
+
+  renderBrandBrainContent();
+}
+
+
+function renderBrandBrainTabs() {
+  $$(
+    "[data-brain-tab]",
+    $("#brandBrainDialog") ||
+    document
+  ).forEach(button => {
+
+    button.classList.toggle(
+      "is-active",
+      button.dataset.brainTab ===
+        APP_STATE.brandBrainTab
+    );
+
+  });
+}
+
+
+/* =========================================================
+   BRAND BRAIN CONTENT ROUTER
+   ========================================================= */
+
+function renderBrandBrainContent() {
+  const container =
+    $("#brandBrainContent");
+
+
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (
+    !container ||
+    !brand
+  ) {
+    return;
+  }
+
+
+  switch (
+    APP_STATE.brandBrainTab
+  ) {
+
+    case "voice":
+      renderBrandVoiceEditor(
+        container,
+        brand
+      );
+      break;
+
+
+    case "facts":
+      renderBrandFactsEditor(
+        container,
+        brand
+      );
+      break;
+
+
+    case "rules":
+      renderBrandRulesEditor(
+        container,
+        brand
+      );
+      break;
+
+
+    case "milestones":
+      renderBrandMilestonesEditor(
+        container,
+        brand
+      );
+      break;
+
+
+    case "identity":
+    default:
+      renderBrandIdentityEditor(
+        container,
+        brand
+      );
+      break;
+  }
+}
+
+
+/* =========================================================
+   BRAND BRAIN SECTION HEADER
+   ========================================================= */
+
+function brandBrainSectionHeader(
+  eyebrow,
+  title,
+  description
+) {
+  return `
+    <div
+      style="
+        margin-bottom:22px;
+      "
+    >
+
+      <span class="eyebrow">
+        ${escapeHtml(eyebrow)}
+      </span>
+
+      <h3
+        style="
+          margin:
+            5px 0 7px;
+          font-family:
+            Georgia,
+            'Times New Roman',
+            serif;
+          font-size:
+            1.3rem;
+          font-weight:
+            400;
+        "
+      >
+        ${escapeHtml(title)}
+      </h3>
+
+      <p
+        style="
+          margin:0;
+          max-width:720px;
+          color:var(--muted);
+          font-size:.8rem;
+          line-height:1.65;
+        "
+      >
+        ${escapeHtml(description)}
+      </p>
+
+    </div>
+  `;
+}
+
+
+/* =========================================================
+   TWO-COLUMN FORM HELPER
+
+   CSS grid collapses naturally when there is not enough
+   horizontal space.
+   ========================================================= */
+
+function brandBrainGridOpen() {
+  return `
+    <div
+      style="
+        display:grid;
+        grid-template-columns:
+          repeat(
+            auto-fit,
+            minmax(
+              min(100%,260px),
+              1fr
+            )
+          );
+        gap:14px;
+      "
+    >
+  `;
+}
+
+
+/* =========================================================
+   IDENTITY EDITOR
+   ========================================================= */
+
+function renderBrandIdentityEditor(
+  container,
+  brand
+) {
+  container.innerHTML = `
+    ${brandBrainSectionHeader(
+      "Core Identity",
+      "Who this brand is",
+      "These are foundational business facts. Marketing Studio uses them throughout campaigns, content briefs, and future AI workflows."
+    )}
+
+    <form
+      id="brandIdentityForm"
+      class="create-form"
+    >
+
+      ${brandBrainGridOpen()}
+
+        <label class="field">
+
+          <span>
+            Official Name
+          </span>
+
+          <input
+            id="brainOfficialName"
+            type="text"
+            value="${
+              escapeHtml(
+                brand.name
+              )
+            }"
+            required
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Short Name
+          </span>
+
+          <input
+            id="brainShortName"
+            type="text"
+            value="${
+              escapeHtml(
+                brand.shortName
+              )
+            }"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Brand Mark
+          </span>
+
+          <input
+            id="brainMark"
+            type="text"
+            value="${
+              escapeHtml(
+                brand.mark
+              )
+            }"
+            maxlength="12"
+            placeholder="S&S"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Website
+          </span>
+
+          <input
+            id="brainDomain"
+            type="url"
+            value="${
+              escapeHtml(
+                brand.website
+              )
+            }"
+            placeholder="https://example.com"
+          />
+
+        </label>
+
+      </div>
+
+
+      ${brandBrainGridOpen()}
+
+        <label class="field">
+
+          <span>
+            Business Type
+          </span>
+
+          <input
+            id="brainBusinessType"
+            type="text"
+            value="${
+              escapeHtml(
+                brand.businessType
+              )
+            }"
+            placeholder="Coffee shop, web studio, creative shop..."
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Business Stage
+          </span>
+
+          <select
+            id="brainBusinessStage"
+          >
+
+            <option
+              value="pre-opening"
+              ${
+                brand.stage ===
+                "pre-opening"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Pre-opening
+            </option>
+
+            <option
+              value="operating"
+              ${
+                brand.stage ===
+                "operating"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Operating
+            </option>
+
+            <option
+              value="paused"
+              ${
+                brand.stage ===
+                "paused"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Paused
+            </option>
+
+            <option
+              value="seasonal"
+              ${
+                brand.stage ===
+                "seasonal"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Seasonal
+            </option>
+
+            <option
+              value="development"
+              ${
+                brand.stage ===
+                "development"
+                  ? "selected"
+                  : ""
+              }
+            >
+              In Development
+            </option>
+
+          </select>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Display Stage
+          </span>
+
+          <input
+            id="brainStageLabel"
+            type="text"
+            value="${
+              escapeHtml(
+                brand.stageLabel
+              )
+            }"
+            placeholder="Pre-opening"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Campaign Phase
+          </span>
+
+          <input
+            id="brainCampaignPhase"
+            type="text"
+            value="${
+              escapeHtml(
+                brand.campaignPhase
+              )
+            }"
+            placeholder="Early ramp, launch, evergreen..."
+          />
+
+        </label>
+
+      </div>
+
+
+      <label class="field">
+
+        <span>
+          Primary Marketing Goal
+        </span>
+
+        <textarea
+          id="brainPrimaryGoal"
+          style="
+            min-height:90px;
+          "
+          placeholder="What should marketing accomplish right now?"
+        >${
+          escapeHtml(
+            brand.primaryGoal
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Tagline
+        </span>
+
+        <input
+          id="brainTagline"
+          type="text"
+          value="${
+            escapeHtml(
+              brand.tagline
+            )
+          }"
+        />
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Short Description
+        </span>
+
+        <textarea
+          id="brainShortDescription"
+          style="
+            min-height:90px;
+          "
+          placeholder="A concise description of the business."
+        >${
+          escapeHtml(
+            brand.shortDescription
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Long Description
+        </span>
+
+        <textarea
+          id="brainLongDescription"
+          style="
+            min-height:130px;
+          "
+          placeholder="A fuller description of the brand, its offering, and its place in the market."
+        >${
+          escapeHtml(
+            brand.longDescription
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Brand Story
+        </span>
+
+        <textarea
+          id="brainBrandStory"
+          style="
+            min-height:150px;
+          "
+          placeholder="Where did the brand come from? What is the story behind it?"
+        >${
+          escapeHtml(
+            brand.brandStory
+          )
+        }</textarea>
+
+      </label>
+
+
+      ${brandBrainGridOpen()}
+
+        <label class="field">
+
+          <span>
+            Mission
+          </span>
+
+          <textarea
+            id="brainMission"
+            style="
+              min-height:120px;
+            "
+          >${
+            escapeHtml(
+              brand.mission
+            )
+          }</textarea>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Differentiator
+          </span>
+
+          <textarea
+            id="brainDifferentiator"
+            style="
+              min-height:120px;
+            "
+          >${
+            escapeHtml(
+              brand.differentiator
+            )
+          }</textarea>
+
+        </label>
+
+      </div>
+
+
+      <label class="field">
+
+        <span>
+          Brand Promise
+        </span>
+
+        <textarea
+          id="brainBrandPromise"
+          style="
+            min-height:100px;
+          "
+        >${
+          escapeHtml(
+            brand.brandPromise
+          )
+        }</textarea>
+
+      </label>
+
+
+      <div
+        style="
+          margin-top:8px;
+          padding:16px;
+          border:1px solid var(--line);
+          border-radius:var(--radius);
+          background:rgba(255,255,255,.018);
+        "
+      >
+
+        <span class="eyebrow">
+          Opening Information
+        </span>
+
+        <p
+          style="
+            margin:
+              6px 0 16px;
+            color:var(--muted);
+            font-size:.76rem;
+            line-height:1.55;
+          "
+        >
+          Especially important for pre-opening brands.
+          An unconfirmed opening date should never be
+          presented by AI as fact.
+        </p>
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Opening Date
+            </span>
+
+            <input
+              id="brainOpeningDate"
+              type="date"
+              value="${
+                escapeHtml(
+                  brand.openingDate ||
+                  ""
+                )
+              }"
+            />
+
+          </label>
+
+
+          <label
+            class="field"
+            style="
+              justify-content:flex-end;
+            "
+          >
+
+            <span>
+              Date Status
+            </span>
+
+            <label
+              style="
+                display:flex;
+                align-items:center;
+                gap:10px;
+                min-height:46px;
+                padding:0 2px;
+                color:var(--ink);
+                font-size:.8rem;
+              "
+            >
+
+              <input
+                id="brainOpeningConfirmed"
+                type="checkbox"
+                ${
+                  brand.openingDateConfirmed
+                    ? "checked"
+                    : ""
+                }
+              />
+
+              Opening date is confirmed
+
+            </label>
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="form-actions"
+        style="
+          position:sticky;
+          bottom:0;
+          padding-top:14px;
+          padding-bottom:2px;
+          background:
+            linear-gradient(
+              180deg,
+              transparent,
+              rgba(7,8,11,.96) 25%
+            );
+        "
+      >
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-close-brand-brain
+        >
+          Close
+        </button>
+
+        <button
+          class="primary-button"
+          id="saveBrandIdentityButton"
+          type="submit"
+        >
+          Save Identity
+        </button>
+
+      </div>
+
+    </form>
+  `;
+
+
+  $("#brandIdentityForm")
+    ?.addEventListener(
+      "submit",
+      handleBrandIdentitySave
+    );
+}
+
+
+/* =========================================================
+   SAVE IDENTITY
+   ========================================================= */
+
+async function handleBrandIdentitySave(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const button =
+    $("#saveBrandIdentityButton");
+
+
+  const officialName =
+    $("#brainOfficialName")
+      ?.value
+      ?.trim();
+
+
+  if (!officialName) {
+    showToast(
+      "Official Name is required.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const shortName =
+    nullableText(
+      $("#brainShortName")
+        ?.value
+    );
+
+
+  const stage =
+    $("#brainBusinessStage")
+      ?.value ||
+    "operating";
+
+
+  const stageLabelInput =
+    nullableText(
+      $("#brainStageLabel")
+        ?.value
+    );
+
+
+  const openingDate =
+    nullableDate(
+      $("#brainOpeningDate")
+        ?.value
+    );
+
+
+  const openingConfirmed =
+    Boolean(
+      $("#brainOpeningConfirmed")
+        ?.checked
+    );
+
+
+  /*
+    Safety rule:
+
+    A date cannot remain "confirmed" if there
+    is no actual opening date stored.
+  */
+
+  const finalOpeningConfirmed =
+    Boolean(
+      openingDate &&
+      openingConfirmed
+    );
+
+
+  const payload = {
+    official_name:
+      officialName,
+
+    short_name:
+      shortName,
+
+    mark:
+      nullableText(
+        $("#brainMark")
+          ?.value
+      ),
+
+    domain:
+      nullableText(
+        $("#brainDomain")
+          ?.value
+      ),
+
+    business_type:
+      nullableText(
+        $("#brainBusinessType")
+          ?.value
+      ),
+
+    business_stage:
+      stage,
+
+    stage_label:
+      stageLabelInput ||
+      titleCaseStatus(
+        stage
+      ),
+
+    primary_marketing_goal:
+      nullableText(
+        $("#brainPrimaryGoal")
+          ?.value
+      ),
+
+    campaign_phase:
+      nullableText(
+        $("#brainCampaignPhase")
+          ?.value
+      ),
+
+    tagline:
+      nullableText(
+        $("#brainTagline")
+          ?.value
+      ),
+
+    short_description:
+      nullableText(
+        $("#brainShortDescription")
+          ?.value
+      ),
+
+    long_description:
+      nullableText(
+        $("#brainLongDescription")
+          ?.value
+      ),
+
+    brand_story:
+      nullableText(
+        $("#brainBrandStory")
+          ?.value
+      ),
+
+    mission:
+      nullableText(
+        $("#brainMission")
+          ?.value
+      ),
+
+    differentiator:
+      nullableText(
+        $("#brainDifferentiator")
+          ?.value
+      ),
+
+    brand_promise:
+      nullableText(
+        $("#brainBrandPromise")
+          ?.value
+      ),
+
+    opening_date:
+      openingDate,
+
+    opening_date_confirmed:
+      finalOpeningConfirmed
+  };
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("brands")
+        .update(
+          payload
+        )
+        .eq(
+          "id",
+          brand.id
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const updatedBrand =
+      await reloadBrand(
+        brand.id
+      );
+
+
+    APP_STATE.brandBrainBrandId =
+      updatedBrand.id;
+
+
+    renderActiveBrand();
+
+    renderBrandPicker();
+
+    renderBrandGrid();
+
+    renderDashboard();
+
+    renderCampaigns();
+
+    renderContentLibrary();
+
+    renderAssets();
+
+    renderQuickCreateBrandOptions();
+
+    renderBrandBrainHeader();
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      `${updatedBrand.shortName} identity saved.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to save brand identity:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the brand identity.",
+      "error",
+      5000
+    );
+
+  } finally {
+    const currentButton =
+      $("#saveBrandIdentityButton");
+
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+
+      currentButton.textContent =
+        "Save Identity";
+    }
+  }
+}
+
+
+/* =========================================================
+   BRAND BRAIN CLOSE
+   ========================================================= */
+
+function closeBrandBrain() {
+  safeDialogClose(
+    $("#brandBrainDialog")
+  );
+
+
+  APP_STATE.brandBrainBrandId =
+    null;
+}
+/* =========================================================
+   BRAND VOICE EDITOR
+   ========================================================= */
+
+function renderBrandVoiceEditor(
+  container,
+  brand
+) {
+  const voice =
+    brand.voice || {};
+
+
+  container.innerHTML = `
+    ${brandBrainSectionHeader(
+      "Brand Voice",
+      "How this brand speaks",
+      "These settings teach Marketing Studio how the brand should sound, what language belongs to it, and what habits the AI should avoid."
+    )}
+
+
+    <form
+      id="brandVoiceForm"
+      class="create-form"
+    >
+
+      <label class="field">
+
+        <span>
+          Voice Adjectives
+        </span>
+
+        <input
+          id="brainVoiceAdjectives"
+          type="text"
+          value="${
+            escapeHtml(
+              arrayToText(
+                voice.adjectives
+              )
+            )
+          }"
+          placeholder="warm, old-world, grounded, mysterious"
+        />
+
+        <small
+          style="
+            color:var(--muted);
+            font-size:.7rem;
+            line-height:1.5;
+          "
+        >
+          Separate each adjective with a comma.
+        </small>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Emotional Atmosphere
+        </span>
+
+        <textarea
+          id="brainVoiceAtmosphere"
+          style="
+            min-height:110px;
+          "
+          placeholder="Describe how the brand should feel when someone reads it."
+        >${
+          escapeHtml(
+            voice.emotionalAtmosphere
+          )
+        }</textarea>
+
+      </label>
+
+
+      ${brandBrainGridOpen()}
+
+        <label class="field">
+
+          <span>
+            Formality
+          </span>
+
+          <input
+            id="brainVoiceFormality"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.formality
+              )
+            }"
+            placeholder="Relaxed but polished"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Humor Style
+          </span>
+
+          <input
+            id="brainVoiceHumor"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.humorStyle
+              )
+            }"
+            placeholder="Dry, playful, minimal..."
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Mystery Level
+          </span>
+
+          <input
+            id="brainVoiceMystery"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.mysteryLevel
+              )
+            }"
+            placeholder="Subtle, moderate, none..."
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Capitalization Style
+          </span>
+
+          <input
+            id="brainVoiceCapitalization"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.capitalizationStyle
+              )
+            }"
+            placeholder="Standard sentence case"
+          />
+
+        </label>
+
+      </div>
+
+
+      <div
+        style="
+          margin-top:8px;
+          padding:16px;
+          border:1px solid var(--line);
+          border-radius:var(--radius);
+          background:rgba(255,255,255,.018);
+        "
+      >
+
+        <span class="eyebrow">
+          Vocabulary
+        </span>
+
+        <p
+          style="
+            margin:
+              6px 0 16px;
+            color:var(--muted);
+            font-size:.76rem;
+            line-height:1.55;
+          "
+        >
+          Give the AI language that feels natural
+          for this brand—and language that does not.
+        </p>
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Preferred Vocabulary
+            </span>
+
+            <textarea
+              id="brainPreferredVocabulary"
+              style="
+                min-height:120px;
+              "
+              placeholder="ritual, crafted, hearth, Appalachian..."
+            >${
+              escapeHtml(
+                arrayToText(
+                  voice.preferredVocabulary
+                )
+              )
+            }</textarea>
+
+            <small
+              style="
+                color:var(--muted);
+                font-size:.7rem;
+              "
+            >
+              Comma-separated.
+            </small>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Vocabulary to Avoid
+            </span>
+
+            <textarea
+              id="brainAvoidVocabulary"
+              style="
+                min-height:120px;
+              "
+              placeholder="spooky, fang-tastic, corporate buzzwords..."
+            >${
+              escapeHtml(
+                arrayToText(
+                  voice.avoidVocabulary
+                )
+              )
+            }</textarea>
+
+            <small
+              style="
+                color:var(--muted);
+                font-size:.7rem;
+              "
+            >
+              Comma-separated.
+            </small>
+
+          </label>
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          margin-top:8px;
+          padding:16px;
+          border:1px solid var(--line);
+          border-radius:var(--radius);
+          background:rgba(255,255,255,.018);
+        "
+      >
+
+        <span class="eyebrow">
+          Phrases & Language Habits
+        </span>
+
+        <p
+          style="
+            margin:
+              6px 0 16px;
+            color:var(--muted);
+            font-size:.76rem;
+            line-height:1.55;
+          "
+        >
+          Capture recurring language that feels
+          right—or immediately makes the brand
+          sound wrong.
+        </p>
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Preferred Phrases
+            </span>
+
+            <textarea
+              id="brainPreferredPhrases"
+              style="
+                min-height:120px;
+              "
+              placeholder="Crafted for the morning ritual, coming to life..."
+            >${
+              escapeHtml(
+                arrayToText(
+                  voice.preferredPhrases
+                )
+              )
+            }</textarea>
+
+            <small
+              style="
+                color:var(--muted);
+                font-size:.7rem;
+              "
+            >
+              Comma-separated.
+            </small>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Phrases to Avoid
+            </span>
+
+            <textarea
+              id="brainAvoidPhrases"
+              style="
+                min-height:120px;
+              "
+              placeholder="Don't miss out, something for everyone..."
+            >${
+              escapeHtml(
+                arrayToText(
+                  voice.avoidPhrases
+                )
+              )
+            }</textarea>
+
+            <small
+              style="
+                color:var(--muted);
+                font-size:.7rem;
+              "
+            >
+              Comma-separated.
+            </small>
+
+          </label>
+
+        </div>
+
+
+        <label class="field">
+
+          <span>
+            Clichés to Avoid
+          </span>
+
+          <textarea
+            id="brainCliches"
+            style="
+              min-height:100px;
+            "
+            placeholder="Halloween clichés, generic small-business clichés..."
+          >${
+            escapeHtml(
+              arrayToText(
+                voice.clichesToAvoid
+              )
+            )
+          }</textarea>
+
+          <small
+            style="
+              color:var(--muted);
+              font-size:.7rem;
+            "
+          >
+            Comma-separated.
+          </small>
+
+        </label>
+
+      </div>
+
+
+      ${brandBrainGridOpen()}
+
+        <label class="field">
+
+          <span>
+            Emoji Policy
+          </span>
+
+          <textarea
+            id="brainEmojiPolicy"
+            style="
+              min-height:100px;
+            "
+            placeholder="Rare, restrained, never in formal website copy..."
+          >${
+            escapeHtml(
+              voice.emojiPolicy
+            )
+          }</textarea>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Profanity Policy
+          </span>
+
+          <textarea
+            id="brainProfanityPolicy"
+            style="
+              min-height:100px;
+            "
+            placeholder="None, mild only, acceptable in specific contexts..."
+          >${
+            escapeHtml(
+              voice.profanityPolicy
+            )
+          }</textarea>
+
+        </label>
+
+      </div>
+
+
+      <label class="field">
+
+        <span>
+          Call-to-Action Style
+        </span>
+
+        <textarea
+          id="brainCtaStyle"
+          style="
+            min-height:100px;
+          "
+          placeholder="How should the brand ask people to visit, book, order, inquire, follow, or act?"
+        >${
+          escapeHtml(
+            voice.ctaStyle
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Writing Notes
+        </span>
+
+        <textarea
+          id="brainWritingNotes"
+          style="
+            min-height:150px;
+          "
+          placeholder="Anything else the AI should understand about how this brand writes."
+        >${
+          escapeHtml(
+            voice.writingNotes
+          )
+        }</textarea>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Approved Examples
+        </span>
+
+        <textarea
+          id="brainApprovedExamples"
+          style="
+            min-height:150px;
+          "
+          placeholder="Paste examples of language that sounds exactly right for this brand."
+        >${
+          escapeHtml(
+            Array.isArray(
+              voice.approvedExamples
+            )
+              ? voice.approvedExamples
+                  .join("\n\n---\n\n")
+              : ""
+          )
+        }</textarea>
+
+        <small
+          style="
+            color:var(--muted);
+            font-size:.7rem;
+            line-height:1.5;
+          "
+        >
+          Separate multiple examples with a line containing
+          three dashes: ---
+        </small>
+
+      </label>
+
+
+      <div
+        class="form-actions"
+        style="
+          position:sticky;
+          bottom:0;
+          padding-top:14px;
+          padding-bottom:2px;
+          background:
+            linear-gradient(
+              180deg,
+              transparent,
+              rgba(7,8,11,.96) 25%
+            );
+        "
+      >
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-close-brand-brain
+        >
+          Close
+        </button>
+
+        <button
+          class="primary-button"
+          id="saveBrandVoiceButton"
+          type="submit"
+        >
+          Save Voice
+        </button>
+
+      </div>
+
+    </form>
+  `;
+
+
+  $("#brandVoiceForm")
+    ?.addEventListener(
+      "submit",
+      handleBrandVoiceSave
+    );
+}
+
+
+/* =========================================================
+   APPROVED EXAMPLES PARSER
+   ========================================================= */
+
+function parseApprovedExamples(
+  value
+) {
+  return String(value || "")
+    .split(
+      /\n\s*---\s*\n/g
+    )
+    .map(
+      item =>
+        item.trim()
+    )
+    .filter(Boolean);
+}
+
+
+/* =========================================================
+   SAVE BRAND VOICE
+   ========================================================= */
+
+async function handleBrandVoiceSave(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const button =
+    $("#saveBrandVoiceButton");
+
+
+  const payload = {
+    brand_id:
+      brand.id,
+
+    adjectives:
+      textToArray(
+        $("#brainVoiceAdjectives")
+          ?.value
+      ),
+
+    emotional_atmosphere:
+      nullableText(
+        $("#brainVoiceAtmosphere")
+          ?.value
+      ),
+
+    formality:
+      nullableText(
+        $("#brainVoiceFormality")
+          ?.value
+      ),
+
+    humor_style:
+      nullableText(
+        $("#brainVoiceHumor")
+          ?.value
+      ),
+
+    mystery_level:
+      nullableText(
+        $("#brainVoiceMystery")
+          ?.value
+      ),
+
+    preferred_vocabulary:
+      textToArray(
+        $("#brainPreferredVocabulary")
+          ?.value
+      ),
+
+    avoid_vocabulary:
+      textToArray(
+        $("#brainAvoidVocabulary")
+          ?.value
+      ),
+
+    preferred_phrases:
+      textToArray(
+        $("#brainPreferredPhrases")
+          ?.value
+      ),
+
+    avoid_phrases:
+      textToArray(
+        $("#brainAvoidPhrases")
+          ?.value
+      ),
+
+    cliches_to_avoid:
+      textToArray(
+        $("#brainCliches")
+          ?.value
+      ),
+
+    emoji_policy:
+      nullableText(
+        $("#brainEmojiPolicy")
+          ?.value
+      ),
+
+    profanity_policy:
+      nullableText(
+        $("#brainProfanityPolicy")
+          ?.value
+      ),
+
+    capitalization_style:
+      nullableText(
+        $("#brainVoiceCapitalization")
+          ?.value
+      ),
+
+    cta_style:
+      nullableText(
+        $("#brainCtaStyle")
+          ?.value
+      ),
+
+    writing_notes:
+      nullableText(
+        $("#brainWritingNotes")
+          ?.value
+      ),
+
+    approved_examples:
+      parseApprovedExamples(
+        $("#brainApprovedExamples")
+          ?.value
+      )
+  };
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+
+    /*
+      brand_id is UNIQUE in the schema, so upsert gives
+      us one authoritative Brand Voice row per brand.
+
+      This also means a brand that does not yet have a
+      voice row can be created from this same editor.
+    */
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("brand_voice")
+        .upsert(
+          payload,
+          {
+            onConflict:
+              "brand_id"
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const updatedBrand =
+      await reloadBrand(
+        brand.id
+      );
+
+
+    APP_STATE.brandBrainBrandId =
+      updatedBrand.id;
+
+
+    renderActiveBrand();
+
+    renderBrandPicker();
+
+    renderBrandGrid();
+
+    renderBrandBrainHeader();
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      `${updatedBrand.shortName} voice saved.`,
+      "success"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Unable to save brand voice:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the brand voice.",
+      "error",
+      5000
+    );
+
+  } finally {
+
+    const currentButton =
+      $("#saveBrandVoiceButton");
+
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+
+      currentButton.textContent =
+        "Save Voice";
+    }
+
+  }
+}
+/* =========================================================
+   SOURCE OF TRUTH
+   ========================================================= */
+
+function renderBrandFactsEditor(
+  container,
+  brand
+) {
+  const facts =
+    Array.isArray(
+      brand.facts
+    )
+      ? brand.facts
+          .filter(
+            fact =>
+              fact.active !== false
+          )
+          .slice()
+          .sort(
+            (a, b) =>
+              new Date(
+                b.updated_at ||
+                b.created_at ||
+                0
+              ).getTime() -
+              new Date(
+                a.updated_at ||
+                a.created_at ||
+                0
+              ).getTime()
+          )
+      : [];
+
+
+  container.innerHTML = `
+    ${brandBrainSectionHeader(
+      "Source of Truth",
+      "What the AI is allowed to know as fact",
+      "Store verified business information, owner-approved information, ideas that still need confirmation, and AI suggestions without mixing them together."
+    )}
+
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:14px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+      "
+    >
+
+      <div
+        style="
+          max-width:620px;
+        "
+      >
+
+        <p
+          style="
+            margin:0;
+            color:var(--muted);
+            font-size:.78rem;
+            line-height:1.6;
+          "
+        >
+          Verified and owner-approved facts can be
+          included in AI briefs. Anything marked
+          Needs Confirmation or AI Suggested remains
+          separated from factual marketing claims.
+        </p>
+
+      </div>
+
+
+      <button
+        class="primary-button"
+        type="button"
+        id="addBrandFactButton"
+      >
+        + Add Fact
+      </button>
+
+    </div>
+
+
+    <div
+      id="brandFactsList"
+    >
+
+      ${
+        facts.length
+          ? facts
+              .map(
+                fact =>
+                  renderBrandFactCard(
+                    fact
+                  )
+              )
+              .join("")
+          : `
+            <div class="empty-state">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ◇
+              </span>
+
+              <h3>
+                No Source of Truth facts yet.
+              </h3>
+
+              <p>
+                Add confirmed business details here so
+                Marketing Studio knows what it may safely
+                use in future content.
+              </p>
+
+              <button
+                class="secondary-button"
+                type="button"
+                data-add-brand-fact
+              >
+                Add First Fact
+              </button>
+
+            </div>
+          `
+      }
+
+    </div>
+
+
+    <div
+      class="form-actions"
+      style="
+        position:sticky;
+        bottom:0;
+        padding-top:14px;
+        padding-bottom:2px;
+        background:
+          linear-gradient(
+            180deg,
+            transparent,
+            rgba(7,8,11,.96) 25%
+          );
+      "
+    >
+
+      <button
+        class="secondary-button"
+        type="button"
+        data-close-brand-brain
+      >
+        Close
+      </button>
+
+    </div>
+  `;
+
+
+  $("#addBrandFactButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        showBrandFactDialog();
+      }
+    );
+}
+
+
+/* =========================================================
+   SOURCE OF TRUTH CARD
+   ========================================================= */
+
+function renderBrandFactCard(
+  fact
+) {
+  const status =
+    fact.status ||
+    "needs_confirmation";
+
+
+  const statusLabel =
+    titleCaseStatus(
+      status
+    );
+
+
+  const category =
+    fact.category ||
+    "general";
+
+
+  const heading =
+    fact.subject ||
+    fact.fact_key ||
+    titleCaseStatus(
+      category
+    );
+
+
+  const value =
+    fact.value_text ||
+    (
+      fact.value_jsonb != null
+        ? JSON.stringify(
+            fact.value_jsonb
+          )
+        : ""
+    );
+
+
+  const sourceParts = [
+    fact.source_type
+      ? `Source: ${
+          titleCaseStatus(
+            fact.source_type
+          )
+        }`
+      : "",
+
+    fact.last_verified_at
+      ? `Verified ${
+          formatDateTime(
+            fact.last_verified_at
+          )
+        }`
+      : ""
+  ].filter(Boolean);
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        margin-bottom:12px;
+      "
+      data-fact-card="${
+        escapeHtml(
+          fact.id
+        )
+      }"
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          gap:14px;
+          align-items:flex-start;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:8px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    category
+                  )
+                )
+              }
+            </span>
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              ${
+                escapeHtml(
+                  statusLabel
+                )
+              }
+            </span>
+
+            ${
+              fact.is_sensitive
+                ? `
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      min-height:24px;
+                      padding:4px 8px;
+                      border:1px solid var(--line);
+                      border-radius:999px;
+                      color:var(--muted);
+                      font-size:.65rem;
+                      letter-spacing:.05em;
+                      text-transform:uppercase;
+                    "
+                  >
+                    Sensitive
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+
+          <h3
+            style="
+              margin:
+                0 0 8px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                heading ||
+                "Brand Fact"
+              )
+            }
+          </h3>
+
+
+          ${
+            value
+              ? `
+                <p
+                  style="
+                    margin:
+                      0 0 10px;
+                    color:var(--ink);
+                    font-size:.82rem;
+                    line-height:1.65;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      value
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            fact.source_note
+              ? `
+                <p
+                  style="
+                    margin:
+                      0 0 8px;
+                    color:var(--muted);
+                    font-size:.74rem;
+                    line-height:1.55;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      fact.source_note
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            sourceParts.length
+              ? `
+                <small
+                  style="
+                    display:block;
+                    color:var(--muted);
+                    font-size:.68rem;
+                    line-height:1.5;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      sourceParts.join(
+                        " · "
+                      )
+                    )
+                  }
+                </small>
+              `
+              : ""
+          }
+
+
+          ${
+            fact.source_url
+              ? `
+                <small
+                  style="
+                    display:block;
+                    margin-top:4px;
+                    color:var(--muted);
+                    font-size:.68rem;
+                    line-height:1.5;
+                    overflow-wrap:anywhere;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      fact.source_url
+                    )
+                  }
+                </small>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <button
+            class="secondary-button"
+            type="button"
+            data-edit-brand-fact="${
+              escapeHtml(
+                fact.id
+              )
+            }"
+          >
+            Edit
+          </button>
+
+          <button
+            class="text-button"
+            type="button"
+            data-archive-brand-fact="${
+              escapeHtml(
+                fact.id
+              )
+            }"
+          >
+            Archive
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        style="
+          display:flex;
+          gap:8px;
+          flex-wrap:wrap;
+          margin-top:14px;
+          padding-top:12px;
+          border-top:1px solid var(--line);
+          color:var(--muted);
+          font-size:.68rem;
+        "
+      >
+
+        <span>
+          AI may modify:
+          ${
+            fact.ai_can_modify
+              ? "Yes"
+              : "No"
+          }
+        </span>
+
+        ${
+          fact.expires_at
+            ? `
+              <span>
+                ·
+              </span>
+
+              <span>
+                Expires:
+                ${
+                  escapeHtml(
+                    formatDateTime(
+                      fact.expires_at
+                    )
+                  )
+                }
+              </span>
+            `
+            : ""
+        }
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   FIND FACT
+   ========================================================= */
+
+function getBrandFactById(
+  factId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return null;
+  }
+
+
+  return (
+    brand.facts.find(
+      fact =>
+        fact.id === factId
+    ) ||
+    null
+  );
+}
+
+
+/* =========================================================
+   FACT EDITOR DIALOG
+   ========================================================= */
+
+function ensureBrandFactDialog() {
+  let dialog =
+    $("#brandFactDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "brandFactDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(760px,92vw);
+        max-width:100%;
+        max-height:88vh;
+        overflow-y:auto;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span class="eyebrow">
+            Source of Truth
+          </span>
+
+          <h2
+            id="brandFactDialogTitle"
+          >
+            Add Fact
+          </h2>
+
+        </div>
+
+        <button
+          id="closeBrandFactDialogButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="brandFactForm"
+        class="create-form"
+      >
+
+        <input
+          id="brandFactId"
+          type="hidden"
+        />
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Category
+            </span>
+
+            <input
+              id="brandFactCategory"
+              type="text"
+              placeholder="pricing, hours, location, product, policy..."
+              required
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Fact Key
+            </span>
+
+            <input
+              id="brandFactKey"
+              type="text"
+              placeholder="tier_one_price"
+            />
+
+          </label>
+
+        </div>
+
+
+        <label class="field">
+
+          <span>
+            Subject / Label
+          </span>
+
+          <input
+            id="brandFactSubject"
+            type="text"
+            placeholder="Tier One Website Price"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Value
+          </span>
+
+          <textarea
+            id="brandFactValue"
+            style="
+              min-height:130px;
+            "
+            placeholder="The exact information Marketing Studio should remember."
+          ></textarea>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Status
+          </span>
+
+          <select
+            id="brandFactStatus"
+          >
+
+            <option value="verified">
+              Verified
+            </option>
+
+            <option value="owner_approved">
+              Owner Approved
+            </option>
+
+            <option value="needs_confirmation">
+              Needs Confirmation
+            </option>
+
+            <option value="ai_suggested">
+              AI Suggested
+            </option>
+
+          </select>
+
+        </label>
+
+
+        <div
+          style="
+            padding:16px;
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            background:rgba(255,255,255,.018);
+          "
+        >
+
+          <span class="eyebrow">
+            Provenance
+          </span>
+
+          <p
+            style="
+              margin:
+                6px 0 16px;
+              color:var(--muted);
+              font-size:.76rem;
+              line-height:1.55;
+            "
+          >
+            Record where this information came from so
+            future AI workflows can distinguish a known
+            fact from an assumption.
+          </p>
+
+
+          ${brandBrainGridOpen()}
+
+            <label class="field">
+
+              <span>
+                Source Type
+              </span>
+
+              <input
+                id="brandFactSourceType"
+                type="text"
+                placeholder="owner, website, menu, contract..."
+              />
+
+            </label>
+
+
+            <label class="field">
+
+              <span>
+                Source URL
+              </span>
+
+              <input
+                id="brandFactSourceUrl"
+                type="url"
+                placeholder="https://..."
+              />
+
+            </label>
+
+          </div>
+
+
+          <label class="field">
+
+            <span>
+              Source Note
+            </span>
+
+            <textarea
+              id="brandFactSourceNote"
+              style="
+                min-height:90px;
+              "
+              placeholder="Where or how this was confirmed."
+            ></textarea>
+
+          </label>
+
+
+          ${brandBrainGridOpen()}
+
+            <label class="field">
+
+              <span>
+                Last Verified
+              </span>
+
+              <input
+                id="brandFactLastVerified"
+                type="datetime-local"
+              />
+
+            </label>
+
+
+            <label class="field">
+
+              <span>
+                Expires
+              </span>
+
+              <input
+                id="brandFactExpires"
+                type="datetime-local"
+              />
+
+            </label>
+
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            display:grid;
+            gap:12px;
+            padding:16px;
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            background:rgba(255,255,255,.018);
+          "
+        >
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              color:var(--ink);
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="brandFactAiCanModify"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+            />
+
+            <span>
+              <strong>
+                AI may modify this value
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                Leave this off for fixed business facts
+                such as prices, addresses, policies,
+                confirmed dates, and official names.
+              </small>
+            </span>
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              color:var(--ink);
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="brandFactSensitive"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+            />
+
+            <span>
+              <strong>
+                Sensitive information
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                Sensitive facts should not be included
+                in ordinary AI marketing briefs.
+              </small>
+            </span>
+
+          </label>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            id="cancelBrandFactButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveBrandFactButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Fact
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeBrandFactDialogButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelBrandFactButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#brandFactForm")
+    ?.addEventListener(
+      "submit",
+      handleBrandFactSave
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   DATETIME-LOCAL CONVERSION
+   ========================================================= */
+
+function toDateTimeLocalValue(
+  value
+) {
+  if (!value) {
+    return "";
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+
+  const offset =
+    date.getTimezoneOffset();
+
+
+  const local =
+    new Date(
+      date.getTime() -
+      offset * 60 * 1000
+    );
+
+
+  return local
+    .toISOString()
+    .slice(
+      0,
+      16
+    );
+}
+
+
+function fromDateTimeLocalValue(
+  value
+) {
+  if (!value) {
+    return null;
+  }
+
+
+  const date =
+    new Date(value);
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return null;
+  }
+
+
+  return date.toISOString();
+}
+
+
+/* =========================================================
+   SHOW FACT EDITOR
+   ========================================================= */
+
+function showBrandFactDialog(
+  factId = null
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const dialog =
+    ensureBrandFactDialog();
+
+
+  const fact =
+    factId
+      ? getBrandFactById(
+          factId
+        )
+      : null;
+
+
+  const title =
+    $("#brandFactDialogTitle");
+
+
+  if (title) {
+    title.textContent =
+      fact
+        ? "Edit Fact"
+        : "Add Fact";
+  }
+
+
+  const idField =
+    $("#brandFactId");
+
+
+  const categoryField =
+    $("#brandFactCategory");
+
+
+  const keyField =
+    $("#brandFactKey");
+
+
+  const subjectField =
+    $("#brandFactSubject");
+
+
+  const valueField =
+    $("#brandFactValue");
+
+
+  const statusField =
+    $("#brandFactStatus");
+
+
+  const sourceTypeField =
+    $("#brandFactSourceType");
+
+
+  const sourceUrlField =
+    $("#brandFactSourceUrl");
+
+
+  const sourceNoteField =
+    $("#brandFactSourceNote");
+
+
+  const lastVerifiedField =
+    $("#brandFactLastVerified");
+
+
+  const expiresField =
+    $("#brandFactExpires");
+
+
+  const aiCanModifyField =
+    $("#brandFactAiCanModify");
+
+
+  const sensitiveField =
+    $("#brandFactSensitive");
+
+
+  if (idField) {
+    idField.value =
+      fact?.id ||
+      "";
+  }
+
+
+  if (categoryField) {
+    categoryField.value =
+      fact?.category ||
+      "";
+  }
+
+
+  if (keyField) {
+    keyField.value =
+      fact?.fact_key ||
+      "";
+  }
+
+
+  if (subjectField) {
+    subjectField.value =
+      fact?.subject ||
+      "";
+  }
+
+
+  if (valueField) {
+    valueField.value =
+      fact?.value_text ||
+      (
+        fact?.value_jsonb != null
+          ? JSON.stringify(
+              fact.value_jsonb,
+              null,
+              2
+            )
+          : ""
+      );
+  }
+
+
+  if (statusField) {
+    statusField.value =
+      fact?.status ||
+      "needs_confirmation";
+  }
+
+
+  if (sourceTypeField) {
+    sourceTypeField.value =
+      fact?.source_type ||
+      "";
+  }
+
+
+  if (sourceUrlField) {
+    sourceUrlField.value =
+      fact?.source_url ||
+      "";
+  }
+
+
+  if (sourceNoteField) {
+    sourceNoteField.value =
+      fact?.source_note ||
+      "";
+  }
+
+
+  if (lastVerifiedField) {
+    lastVerifiedField.value =
+      toDateTimeLocalValue(
+        fact?.last_verified_at
+      );
+  }
+
+
+  if (expiresField) {
+    expiresField.value =
+      toDateTimeLocalValue(
+        fact?.expires_at
+      );
+  }
+
+
+  if (aiCanModifyField) {
+    aiCanModifyField.checked =
+      Boolean(
+        fact?.ai_can_modify
+      );
+  }
+
+
+  if (sensitiveField) {
+    sensitiveField.checked =
+      Boolean(
+        fact?.is_sensitive
+      );
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      categoryField?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   SAVE SOURCE OF TRUTH FACT
+   ========================================================= */
+
+async function handleBrandFactSave(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const factId =
+    $("#brandFactId")
+      ?.value
+      ?.trim();
+
+
+  const category =
+    $("#brandFactCategory")
+      ?.value
+      ?.trim();
+
+
+  const value =
+    $("#brandFactValue")
+      ?.value
+      ?.trim();
+
+
+  const button =
+    $("#saveBrandFactButton");
+
+
+  if (!category) {
+    showToast(
+      "Give this fact a category.",
+      "error"
+    );
+
+    $("#brandFactCategory")
+      ?.focus();
+
+    return;
+  }
+
+
+  if (!value) {
+    showToast(
+      "Give this fact a value.",
+      "error"
+    );
+
+    $("#brandFactValue")
+      ?.focus();
+
+    return;
+  }
+
+
+  const status =
+    $("#brandFactStatus")
+      ?.value ||
+    "needs_confirmation";
+
+
+  /*
+    If the owner marks something verified but does not
+    manually supply a verification time, record the
+    current time as the verification timestamp.
+
+    Owner-approved information is intentionally distinct
+    from externally verified information, so it does not
+    automatically receive a verified timestamp.
+  */
+
+  let lastVerified =
+    fromDateTimeLocalValue(
+      $("#brandFactLastVerified")
+        ?.value
+    );
+
+
+  if (
+    status === "verified" &&
+    !lastVerified
+  ) {
+    lastVerified =
+      new Date().toISOString();
+  }
+
+
+  const payload = {
+    brand_id:
+      brand.id,
+
+    category,
+
+    fact_key:
+      nullableText(
+        $("#brandFactKey")
+          ?.value
+      ),
+
+    subject:
+      nullableText(
+        $("#brandFactSubject")
+          ?.value
+      ),
+
+    value_text:
+      value,
+
+    value_jsonb:
+      null,
+
+    status,
+
+    source_type:
+      nullableText(
+        $("#brandFactSourceType")
+          ?.value
+      ),
+
+    source_url:
+      nullableText(
+        $("#brandFactSourceUrl")
+          ?.value
+      ),
+
+    source_note:
+      nullableText(
+        $("#brandFactSourceNote")
+          ?.value
+      ),
+
+    last_verified_at:
+      lastVerified,
+
+    expires_at:
+      fromDateTimeLocalValue(
+        $("#brandFactExpires")
+          ?.value
+      ),
+
+    ai_can_modify:
+      Boolean(
+        $("#brandFactAiCanModify")
+          ?.checked
+      ),
+
+    is_sensitive:
+      Boolean(
+        $("#brandFactSensitive")
+          ?.checked
+      ),
+
+    active:
+      true
+  };
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    let result;
+
+
+    if (factId) {
+      result =
+        await supabaseClient
+          .from("brand_facts")
+          .update(
+            payload
+          )
+          .eq(
+            "id",
+            factId
+          )
+          .eq(
+            "brand_id",
+            brand.id
+          );
+    } else {
+      result =
+        await supabaseClient
+          .from("brand_facts")
+          .insert(
+            payload
+          );
+    }
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    await reloadBrand(
+      brand.id
+    );
+
+
+    safeDialogClose(
+      $("#brandFactDialog")
+    );
+
+
+    renderBrandBrainHeader();
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      factId
+        ? "Source of Truth updated."
+        : "Source of Truth fact added.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to save Source of Truth fact:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the fact.",
+      "error",
+      5000
+    );
+
+  } finally {
+    const currentButton =
+      $("#saveBrandFactButton");
+
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+
+      currentButton.textContent =
+        "Save Fact";
+    }
+  }
+}
+
+
+/* =========================================================
+   ARCHIVE SOURCE OF TRUTH FACT
+   ========================================================= */
+
+async function archiveBrandFact(
+  factId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  const fact =
+    getBrandFactById(
+      factId
+    );
+
+
+  if (
+    !brand ||
+    !fact
+  ) {
+    return;
+  }
+
+
+  const label =
+    fact.subject ||
+    fact.fact_key ||
+    "this fact";
+
+
+  const confirmed =
+    window.confirm(
+      `Archive "${label}"?\n\nIt will stop appearing in the active Source of Truth and will not be used in normal AI briefs.`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("brand_facts")
+        .update({
+          status:
+            "archived",
+
+          active:
+            false
+        })
+        .eq(
+          "id",
+          fact.id
+        )
+        .eq(
+          "brand_id",
+          brand.id
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    await reloadBrand(
+      brand.id
+    );
+
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      "Fact archived.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to archive fact:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to archive the fact.",
+      "error",
+      5000
+    );
+  }
+}
+
+
+/* =========================================================
+   SOURCE OF TRUTH CLICK HANDLING
+   ========================================================= */
+
+function handleBrandFactsClick(
+  event
+) {
+  const addButton =
+    event.target.closest(
+      "[data-add-brand-fact]"
+    );
+
+
+  if (addButton) {
+    showBrandFactDialog();
+
+    return;
+  }
+
+
+  const editButton =
+    event.target.closest(
+      "[data-edit-brand-fact]"
+    );
+
+
+  if (editButton) {
+    showBrandFactDialog(
+      editButton.dataset
+        .editBrandFact
+    );
+
+    return;
+  }
+
+
+  const archiveButton =
+    event.target.closest(
+      "[data-archive-brand-fact]"
+    );
+
+
+  if (archiveButton) {
+    archiveBrandFact(
+      archiveButton.dataset
+        .archiveBrandFact
+    );
+  }
+}
+/* =========================================================
+   AI GUARDRAILS
+   ========================================================= */
+
+function renderBrandRulesEditor(
+  container,
+  brand
+) {
+  const rules =
+    Array.isArray(
+      brand.rules
+    )
+      ? brand.rules
+          .filter(
+            rule =>
+              rule.active !== false
+          )
+          .slice()
+          .sort(
+            (a, b) =>
+              Number(
+                a.priority || 100
+              ) -
+              Number(
+                b.priority || 100
+              )
+          )
+      : [];
+
+
+  container.innerHTML = `
+    ${brandBrainSectionHeader(
+      "AI Guardrails",
+      "The rules the AI must obey",
+      "Guardrails control how Marketing Studio handles this brand. Use them for hard boundaries, approval requirements, factual restrictions, tone limits, and anything the AI must never invent."
+    )}
+
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:14px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+      "
+    >
+
+      <div
+        style="
+          max-width:620px;
+        "
+      >
+
+        <p
+          style="
+            margin:0;
+            color:var(--muted);
+            font-size:.78rem;
+            line-height:1.6;
+          "
+        >
+          Lower priority numbers are treated as more
+          important. Hard factual and safety rules should
+          normally receive the strongest priority.
+        </p>
+
+      </div>
+
+
+      <button
+        class="primary-button"
+        id="addBrandRuleButton"
+        type="button"
+      >
+        + Add Guardrail
+      </button>
+
+    </div>
+
+
+    <div
+      id="brandRulesList"
+    >
+
+      ${
+        rules.length
+          ? rules
+              .map(
+                rule =>
+                  renderBrandRuleCard(
+                    rule
+                  )
+              )
+              .join("")
+          : `
+            <div class="empty-state">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ◈
+              </span>
+
+              <h3>
+                No AI guardrails yet.
+              </h3>
+
+              <p>
+                Add rules that tell Marketing Studio
+                what the AI may do, what it must confirm,
+                and what it must never invent.
+              </p>
+
+              <button
+                class="secondary-button"
+                type="button"
+                data-add-brand-rule
+              >
+                Add First Guardrail
+              </button>
+
+            </div>
+          `
+      }
+
+    </div>
+
+
+    <div
+      class="form-actions"
+      style="
+        position:sticky;
+        bottom:0;
+        padding-top:14px;
+        padding-bottom:2px;
+        background:
+          linear-gradient(
+            180deg,
+            transparent,
+            rgba(7,8,11,.96) 25%
+          );
+      "
+    >
+
+      <button
+        class="secondary-button"
+        type="button"
+        data-close-brand-brain
+      >
+        Close
+      </button>
+
+    </div>
+  `;
+
+
+  $("#addBrandRuleButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        showBrandRuleDialog();
+      }
+    );
+}
+
+
+/* =========================================================
+   AI GUARDRAIL CARD
+   ========================================================= */
+
+function renderBrandRuleCard(
+  rule
+) {
+  const priority =
+    Number(
+      rule.priority || 100
+    );
+
+
+  const ruleType =
+    rule.rule_type ||
+    "general";
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        margin-bottom:12px;
+      "
+      data-rule-card="${
+        escapeHtml(
+          rule.id
+        )
+      }"
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:10px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    ruleType
+                  )
+                )
+              }
+            </span>
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              Priority
+              ${priority}
+            </span>
+
+          </div>
+
+
+          <p
+            style="
+              margin:0;
+              color:var(--ink);
+              font-size:.84rem;
+              line-height:1.7;
+              white-space:pre-wrap;
+            "
+          >
+            ${
+              escapeHtml(
+                rule.rule_text ||
+                ""
+              )
+            }
+          </p>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <button
+            class="secondary-button"
+            type="button"
+            data-edit-brand-rule="${
+              escapeHtml(
+                rule.id
+              )
+            }"
+          >
+            Edit
+          </button>
+
+          <button
+            class="text-button"
+            type="button"
+            data-archive-brand-rule="${
+              escapeHtml(
+                rule.id
+              )
+            }"
+          >
+            Archive
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   FIND AI GUARDRAIL
+   ========================================================= */
+
+function getBrandRuleById(
+  ruleId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return null;
+  }
+
+
+  return (
+    brand.rules.find(
+      rule =>
+        rule.id === ruleId
+    ) ||
+    null
+  );
+}
+
+
+/* =========================================================
+   AI GUARDRAIL DIALOG
+   ========================================================= */
+
+function ensureBrandRuleDialog() {
+  let dialog =
+    $("#brandRuleDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "brandRuleDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(680px,92vw);
+        max-width:100%;
+        max-height:88vh;
+        overflow-y:auto;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span class="eyebrow">
+            AI Guardrails
+          </span>
+
+          <h2
+            id="brandRuleDialogTitle"
+          >
+            Add Guardrail
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeBrandRuleDialogButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="brandRuleForm"
+        class="create-form"
+      >
+
+        <input
+          id="brandRuleId"
+          type="hidden"
+        />
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Rule Type
+            </span>
+
+            <select
+              id="brandRuleType"
+            >
+
+              <option value="general">
+                General
+              </option>
+
+              <option value="factual">
+                Factual
+              </option>
+
+              <option value="voice">
+                Voice
+              </option>
+
+              <option value="content">
+                Content
+              </option>
+
+              <option value="approval">
+                Approval
+              </option>
+
+              <option value="privacy">
+                Privacy
+              </option>
+
+              <option value="pricing">
+                Pricing
+              </option>
+
+              <option value="promotion">
+                Promotion
+              </option>
+
+              <option value="competitor">
+                Competitor
+              </option>
+
+              <option value="visual">
+                Visual
+              </option>
+
+              <option value="publishing">
+                Publishing
+              </option>
+
+            </select>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Priority
+            </span>
+
+            <input
+              id="brandRulePriority"
+              type="number"
+              min="1"
+              step="1"
+              value="100"
+            />
+
+            <small
+              style="
+                color:var(--muted);
+                font-size:.7rem;
+                line-height:1.5;
+              "
+            >
+              Lower number = stronger priority.
+            </small>
+
+          </label>
+
+        </div>
+
+
+        <label class="field">
+
+          <span>
+            Guardrail
+          </span>
+
+          <textarea
+            id="brandRuleText"
+            style="
+              min-height:180px;
+            "
+            placeholder="Example: Never imply the physical cafe is currently open until the opening milestone has been confirmed."
+            required
+          ></textarea>
+
+        </label>
+
+
+        <div
+          style="
+            padding:16px;
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            background:rgba(255,255,255,.018);
+          "
+        >
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.76rem;
+              line-height:1.6;
+            "
+          >
+            Guardrails should be direct instructions.
+            They are not marketing copy. Write them as
+            rules the AI can clearly follow.
+          </p>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            id="cancelBrandRuleButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveBrandRuleButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Guardrail
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeBrandRuleDialogButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelBrandRuleButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#brandRuleForm")
+    ?.addEventListener(
+      "submit",
+      handleBrandRuleSave
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   SHOW AI GUARDRAIL EDITOR
+   ========================================================= */
+
+function showBrandRuleDialog(
+  ruleId = null
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const dialog =
+    ensureBrandRuleDialog();
+
+
+  const rule =
+    ruleId
+      ? getBrandRuleById(
+          ruleId
+        )
+      : null;
+
+
+  const title =
+    $("#brandRuleDialogTitle");
+
+
+  if (title) {
+    title.textContent =
+      rule
+        ? "Edit Guardrail"
+        : "Add Guardrail";
+  }
+
+
+  const idField =
+    $("#brandRuleId");
+
+
+  const typeField =
+    $("#brandRuleType");
+
+
+  const priorityField =
+    $("#brandRulePriority");
+
+
+  const textField =
+    $("#brandRuleText");
+
+
+  if (idField) {
+    idField.value =
+      rule?.id ||
+      "";
+  }
+
+
+  if (typeField) {
+    typeField.value =
+      rule?.rule_type ||
+      "general";
+  }
+
+
+  if (priorityField) {
+    priorityField.value =
+      Number(
+        rule?.priority ||
+        100
+      );
+  }
+
+
+  if (textField) {
+    textField.value =
+      rule?.rule_text ||
+      "";
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      textField?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   SAVE AI GUARDRAIL
+   ========================================================= */
+
+async function handleBrandRuleSave(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const ruleId =
+    $("#brandRuleId")
+      ?.value
+      ?.trim();
+
+
+  const ruleText =
+    $("#brandRuleText")
+      ?.value
+      ?.trim();
+
+
+  const ruleType =
+    $("#brandRuleType")
+      ?.value ||
+    "general";
+
+
+  let priority =
+    Number(
+      $("#brandRulePriority")
+        ?.value
+    );
+
+
+  const button =
+    $("#saveBrandRuleButton");
+
+
+  if (!ruleText) {
+    showToast(
+      "Enter the guardrail the AI should follow.",
+      "error"
+    );
+
+
+    $("#brandRuleText")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  if (
+    !Number.isFinite(
+      priority
+    ) ||
+    priority < 1
+  ) {
+    priority =
+      100;
+  }
+
+
+  priority =
+    Math.round(
+      priority
+    );
+
+
+  const payload = {
+    brand_id:
+      brand.id,
+
+    rule_type:
+      ruleType,
+
+    rule_text:
+      ruleText,
+
+    priority,
+
+    active:
+      true
+  };
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    let result;
+
+
+    if (ruleId) {
+      result =
+        await supabaseClient
+          .from("brand_rules")
+          .update(
+            payload
+          )
+          .eq(
+            "id",
+            ruleId
+          )
+          .eq(
+            "brand_id",
+            brand.id
+          );
+    } else {
+      result =
+        await supabaseClient
+          .from("brand_rules")
+          .insert(
+            payload
+          );
+    }
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    await reloadBrand(
+      brand.id
+    );
+
+
+    safeDialogClose(
+      $("#brandRuleDialog")
+    );
+
+
+    renderBrandBrainHeader();
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      ruleId
+        ? "AI guardrail updated."
+        : "AI guardrail added.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to save AI guardrail:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the AI guardrail.",
+      "error",
+      5000
+    );
+
+  } finally {
+    const currentButton =
+      $("#saveBrandRuleButton");
+
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+
+      currentButton.textContent =
+        "Save Guardrail";
+    }
+  }
+}
+
+
+/* =========================================================
+   ARCHIVE AI GUARDRAIL
+   ========================================================= */
+
+async function archiveBrandRule(
+  ruleId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  const rule =
+    getBrandRuleById(
+      ruleId
+    );
+
+
+  if (
+    !brand ||
+    !rule
+  ) {
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      `Archive this AI guardrail?\n\n"${rule.rule_text}"\n\nIt will stop being included in future AI instructions.`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("brand_rules")
+        .update({
+          active:
+            false
+        })
+        .eq(
+          "id",
+          rule.id
+        )
+        .eq(
+          "brand_id",
+          brand.id
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    await reloadBrand(
+      brand.id
+    );
+
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      "AI guardrail archived.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to archive AI guardrail:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to archive the AI guardrail.",
+      "error",
+      5000
+    );
+  }
+}
+
+
+/* =========================================================
+   AI GUARDRAIL CLICK HANDLING
+   ========================================================= */
+
+function handleBrandRulesClick(
+  event
+) {
+  const addButton =
+    event.target.closest(
+      "[data-add-brand-rule]"
+    );
+
+
+  if (addButton) {
+    showBrandRuleDialog();
+
+    return;
+  }
+
+
+  const editButton =
+    event.target.closest(
+      "[data-edit-brand-rule]"
+    );
+
+
+  if (editButton) {
+    showBrandRuleDialog(
+      editButton.dataset
+        .editBrandRule
+    );
+
+    return;
+  }
+
+
+  const archiveButton =
+    event.target.closest(
+      "[data-archive-brand-rule]"
+    );
+
+
+  if (archiveButton) {
+    archiveBrandRule(
+      archiveButton.dataset
+        .archiveBrandRule
+    );
+  }
+}
+/* =========================================================
+   BRAND MILESTONES
+   ========================================================= */
+
+function renderBrandMilestonesEditor(
+  container,
+  brand
+) {
+  const milestones =
+    Array.isArray(
+      brand.milestones
+    )
+      ? brand.milestones
+          .slice()
+          .sort(
+            (a, b) => {
+              const aCompleted =
+                a.status === "completed";
+
+              const bCompleted =
+                b.status === "completed";
+
+
+              if (
+                aCompleted !==
+                bCompleted
+              ) {
+                return aCompleted
+                  ? 1
+                  : -1;
+              }
+
+
+              const aDate =
+                a.milestone_date
+                  ? new Date(
+                      `${a.milestone_date}T12:00:00`
+                    ).getTime()
+                  : Number.MAX_SAFE_INTEGER;
+
+
+              const bDate =
+                b.milestone_date
+                  ? new Date(
+                      `${b.milestone_date}T12:00:00`
+                    ).getTime()
+                  : Number.MAX_SAFE_INTEGER;
+
+
+              return aDate - bDate;
+            }
+          )
+      : [];
+
+
+  const completedCount =
+    milestones.filter(
+      milestone =>
+        milestone.status ===
+        "completed"
+    ).length;
+
+
+  const opportunityCount =
+    milestones.filter(
+      milestone =>
+        milestone.status ===
+          "completed" &&
+        milestone.marketing_worthy &&
+        !milestone.content_created
+    ).length;
+
+
+  container.innerHTML = `
+    ${brandBrainSectionHeader(
+      "Milestones",
+      "Turn real progress into marketing",
+      "Track meaningful business progress here. Marketing-worthy milestones give Marketing Studio confirmed events it can safely turn into content."
+    )}
+
+
+    <div
+      style="
+        display:grid;
+        grid-template-columns:
+          repeat(
+            auto-fit,
+            minmax(150px,1fr)
+          );
+        gap:10px;
+        margin-bottom:20px;
+      "
+    >
+
+      <div
+        style="
+          padding:14px;
+          border:1px solid var(--line);
+          border-radius:var(--radius);
+          background:rgba(255,255,255,.018);
+        "
+      >
+        <span class="eyebrow">
+          Total
+        </span>
+
+        <strong
+          style="
+            display:block;
+            margin-top:5px;
+            font-family:
+              Georgia,
+              'Times New Roman',
+              serif;
+            font-size:1.4rem;
+            font-weight:400;
+          "
+        >
+          ${milestones.length}
+        </strong>
+      </div>
+
+
+      <div
+        style="
+          padding:14px;
+          border:1px solid var(--line);
+          border-radius:var(--radius);
+          background:rgba(255,255,255,.018);
+        "
+      >
+        <span class="eyebrow">
+          Completed
+        </span>
+
+        <strong
+          style="
+            display:block;
+            margin-top:5px;
+            font-family:
+              Georgia,
+              'Times New Roman',
+              serif;
+            font-size:1.4rem;
+            font-weight:400;
+          "
+        >
+          ${completedCount}
+        </strong>
+      </div>
+
+
+      <div
+        style="
+          padding:14px;
+          border:1px solid var(--line);
+          border-radius:var(--radius);
+          background:rgba(255,255,255,.018);
+        "
+      >
+        <span class="eyebrow">
+          Content Opportunities
+        </span>
+
+        <strong
+          style="
+            display:block;
+            margin-top:5px;
+            font-family:
+              Georgia,
+              'Times New Roman',
+              serif;
+            font-size:1.4rem;
+            font-weight:400;
+          "
+        >
+          ${opportunityCount}
+        </strong>
+      </div>
+
+    </div>
+
+
+    <div
+      style="
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:14px;
+        flex-wrap:wrap;
+        margin-bottom:18px;
+      "
+    >
+
+      <p
+        style="
+          margin:0;
+          max-width:620px;
+          color:var(--muted);
+          font-size:.78rem;
+          line-height:1.6;
+        "
+      >
+        Completing a milestone does not publish anything.
+        It simply records a confirmed event that can be
+        used in future marketing.
+      </p>
+
+
+      <button
+        class="primary-button"
+        id="addBrandMilestoneButton"
+        type="button"
+      >
+        + Add Milestone
+      </button>
+
+    </div>
+
+
+    <div id="brandMilestonesList">
+
+      ${
+        milestones.length
+          ? milestones
+              .map(
+                milestone =>
+                  renderBrandMilestoneCard(
+                    milestone
+                  )
+              )
+              .join("")
+          : `
+            <div class="empty-state">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ◇
+              </span>
+
+              <h3>
+                No milestones yet.
+              </h3>
+
+              <p>
+                Add the real-world moments that mark
+                this brand's progress.
+              </p>
+
+              <button
+                class="secondary-button"
+                type="button"
+                data-add-brand-milestone
+              >
+                Add First Milestone
+              </button>
+
+            </div>
+          `
+      }
+
+    </div>
+
+
+    <div
+      class="form-actions"
+      style="
+        position:sticky;
+        bottom:0;
+        padding-top:14px;
+        padding-bottom:2px;
+        background:
+          linear-gradient(
+            180deg,
+            transparent,
+            rgba(7,8,11,.96) 25%
+          );
+      "
+    >
+      <button
+        class="secondary-button"
+        type="button"
+        data-close-brand-brain
+      >
+        Close
+      </button>
+    </div>
+  `;
+
+
+  $("#addBrandMilestoneButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        showBrandMilestoneDialog();
+      }
+    );
+}
+
+
+/* =========================================================
+   MILESTONE CARD
+   ========================================================= */
+
+function renderBrandMilestoneCard(
+  milestone
+) {
+  const status =
+    milestone.status ||
+    "planned";
+
+
+  const completed =
+    status === "completed";
+
+
+  const contentOpportunity =
+    completed &&
+    milestone.marketing_worthy &&
+    !milestone.content_created;
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        margin-bottom:12px;
+        ${
+          completed
+            ? "opacity:.86;"
+            : ""
+        }
+      "
+      data-milestone-card="${
+        escapeHtml(
+          milestone.id
+        )
+      }"
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:9px;
+            "
+          >
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    status
+                  )
+                )
+              }
+            </span>
+
+
+            ${
+              milestone.marketing_worthy
+                ? `
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      min-height:24px;
+                      padding:4px 8px;
+                      border:1px solid var(--line);
+                      border-radius:999px;
+                      color:var(--muted);
+                      font-size:.65rem;
+                      letter-spacing:.05em;
+                      text-transform:uppercase;
+                    "
+                  >
+                    Marketing Worthy
+                  </span>
+                `
+                : ""
+            }
+
+
+            ${
+              milestone.content_created
+                ? `
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      min-height:24px;
+                      padding:4px 8px;
+                      border:1px solid var(--line);
+                      border-radius:999px;
+                      color:var(--muted);
+                      font-size:.65rem;
+                      letter-spacing:.05em;
+                      text-transform:uppercase;
+                    "
+                  >
+                    Content Created
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+
+          <h3
+            style="
+              margin:0 0 8px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                milestone.title ||
+                "Milestone"
+              )
+            }
+          </h3>
+
+
+          ${
+            milestone.description
+              ? `
+                <p
+                  style="
+                    margin:0 0 10px;
+                    color:var(--muted);
+                    font-size:.78rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      milestone.description
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          <div
+            style="
+              display:flex;
+              gap:10px;
+              flex-wrap:wrap;
+              color:var(--muted);
+              font-size:.68rem;
+              line-height:1.5;
+            "
+          >
+
+            ${
+              milestone.milestone_date
+                ? `
+                  <span>
+                    Date:
+                    ${
+                      escapeHtml(
+                        formatDate(
+                          milestone.milestone_date
+                        )
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+
+            ${
+              milestone.completed_at
+                ? `
+                  <span>
+                    Completed:
+                    ${
+                      escapeHtml(
+                        formatDateTime(
+                          milestone.completed_at
+                        )
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          "
+        >
+
+          ${
+            !completed &&
+            status !== "cancelled"
+              ? `
+                <button
+                  class="secondary-button"
+                  type="button"
+                  data-complete-brand-milestone="${
+                    escapeHtml(
+                      milestone.id
+                    )
+                  }"
+                >
+                  Complete
+                </button>
+              `
+              : ""
+          }
+
+
+          ${
+            contentOpportunity
+              ? `
+                <button
+                  class="primary-button"
+                  type="button"
+                  data-create-from-milestone="${
+                    escapeHtml(
+                      milestone.id
+                    )
+                  }"
+                >
+                  Create Post
+                </button>
+              `
+              : ""
+          }
+
+
+          <button
+            class="secondary-button"
+            type="button"
+            data-edit-brand-milestone="${
+              escapeHtml(
+                milestone.id
+              )
+            }"
+          >
+            Edit
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   FIND MILESTONE
+   ========================================================= */
+
+function getBrandMilestoneById(
+  milestoneId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return null;
+  }
+
+
+  return (
+    brand.milestones.find(
+      milestone =>
+        milestone.id ===
+        milestoneId
+    ) ||
+    null
+  );
+}
+/* =========================================================
+   MILESTONE EDITOR DIALOG
+   ========================================================= */
+
+function ensureBrandMilestoneDialog() {
+  let dialog =
+    $("#brandMilestoneDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "brandMilestoneDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(700px,92vw);
+        max-width:100%;
+        max-height:88vh;
+        overflow-y:auto;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span class="eyebrow">
+            Brand Progress
+          </span>
+
+          <h2
+            id="brandMilestoneDialogTitle"
+          >
+            Add Milestone
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeBrandMilestoneDialogButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="brandMilestoneForm"
+        class="create-form"
+      >
+
+        <input
+          id="brandMilestoneId"
+          type="hidden"
+        />
+
+
+        <label class="field">
+
+          <span>
+            Milestone
+          </span>
+
+          <input
+            id="brandMilestoneTitle"
+            type="text"
+            placeholder="Lease signed"
+            required
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Description
+          </span>
+
+          <textarea
+            id="brandMilestoneDescription"
+            style="
+              min-height:120px;
+            "
+            placeholder="Add any context Marketing Studio should remember about this milestone."
+          ></textarea>
+
+        </label>
+
+
+        ${brandBrainGridOpen()}
+
+          <label class="field">
+
+            <span>
+              Status
+            </span>
+
+            <select
+              id="brandMilestoneStatus"
+            >
+
+              <option value="planned">
+                Planned
+              </option>
+
+              <option value="in_progress">
+                In Progress
+              </option>
+
+              <option value="completed">
+                Completed
+              </option>
+
+              <option value="cancelled">
+                Cancelled
+              </option>
+
+            </select>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Milestone Date
+            </span>
+
+            <input
+              id="brandMilestoneDate"
+              type="date"
+            />
+
+          </label>
+
+        </div>
+
+
+        <div
+          style="
+            display:grid;
+            gap:14px;
+            padding:16px;
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            background:rgba(255,255,255,.018);
+          "
+        >
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              color:var(--ink);
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="brandMilestoneMarketingWorthy"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+              checked
+            />
+
+            <span>
+
+              <strong>
+                Marketing worthy
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                This milestone may be worth turning
+                into customer-facing content.
+              </small>
+
+            </span>
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              color:var(--ink);
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="brandMilestoneContentCreated"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+            />
+
+            <span>
+
+              <strong>
+                Content already created
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                Prevent this milestone from appearing
+                as an unused content opportunity.
+              </small>
+
+            </span>
+
+          </label>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            id="cancelBrandMilestoneButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveBrandMilestoneButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Milestone
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeBrandMilestoneDialogButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelBrandMilestoneButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#brandMilestoneForm")
+    ?.addEventListener(
+      "submit",
+      handleBrandMilestoneSave
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   SHOW MILESTONE EDITOR
+   ========================================================= */
+
+function showBrandMilestoneDialog(
+  milestoneId = null
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const dialog =
+    ensureBrandMilestoneDialog();
+
+
+  const milestone =
+    milestoneId
+      ? getBrandMilestoneById(
+          milestoneId
+        )
+      : null;
+
+
+  const title =
+    $("#brandMilestoneDialogTitle");
+
+
+  if (title) {
+    title.textContent =
+      milestone
+        ? "Edit Milestone"
+        : "Add Milestone";
+  }
+
+
+  $("#brandMilestoneId").value =
+    milestone?.id ||
+    "";
+
+
+  $("#brandMilestoneTitle").value =
+    milestone?.title ||
+    "";
+
+
+  $("#brandMilestoneDescription").value =
+    milestone?.description ||
+    "";
+
+
+  $("#brandMilestoneStatus").value =
+    milestone?.status ||
+    "planned";
+
+
+  $("#brandMilestoneDate").value =
+    milestone?.milestone_date ||
+    "";
+
+
+  $("#brandMilestoneMarketingWorthy").checked =
+    milestone
+      ? Boolean(
+          milestone.marketing_worthy
+        )
+      : true;
+
+
+  $("#brandMilestoneContentCreated").checked =
+    Boolean(
+      milestone?.content_created
+    );
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      $("#brandMilestoneTitle")
+        ?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   SAVE MILESTONE
+   ========================================================= */
+
+async function handleBrandMilestoneSave(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getBrandBrainBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const milestoneId =
+    $("#brandMilestoneId")
+      ?.value
+      ?.trim();
+
+
+  const existing =
+    milestoneId
+      ? getBrandMilestoneById(
+          milestoneId
+        )
+      : null;
+
+
+  const title =
+    $("#brandMilestoneTitle")
+      ?.value
+      ?.trim();
+
+
+  const status =
+    $("#brandMilestoneStatus")
+      ?.value ||
+    "planned";
+
+
+  const button =
+    $("#saveBrandMilestoneButton");
+
+
+  if (!title) {
+    showToast(
+      "Give the milestone a title.",
+      "error"
+    );
+
+
+    $("#brandMilestoneTitle")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  let completedAt =
+    existing?.completed_at ||
+    null;
+
+
+  if (
+    status === "completed" &&
+    !completedAt
+  ) {
+    completedAt =
+      new Date()
+        .toISOString();
+  }
+
+
+  if (
+    status !== "completed"
+  ) {
+    completedAt =
+      null;
+  }
+
+
+  const payload = {
+    brand_id:
+      brand.id,
+
+    title,
+
+    description:
+      nullableText(
+        $("#brandMilestoneDescription")
+          ?.value
+      ),
+
+    status,
+
+    milestone_date:
+      nullableDate(
+        $("#brandMilestoneDate")
+          ?.value
+      ),
+
+    completed_at:
+      completedAt,
+
+    marketing_worthy:
+      Boolean(
+        $("#brandMilestoneMarketingWorthy")
+          ?.checked
+      ),
+
+    content_created:
+      Boolean(
+        $("#brandMilestoneContentCreated")
+          ?.checked
+      )
+  };
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    let result;
+
+
+    if (milestoneId) {
+      result =
+        await supabaseClient
+          .from("milestones")
+          .update(
+            payload
+          )
+          .eq(
+            "id",
+            milestoneId
+          )
+          .eq(
+            "brand_id",
+            brand.id
+          );
+    } else {
+      result =
+        await supabaseClient
+          .from("milestones")
+          .insert(
+            payload
+          );
+    }
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    await reloadBrand(
+      brand.id
+    );
+
+
+    safeDialogClose(
+      $("#brandMilestoneDialog")
+    );
+
+
+    renderBrandBrainHeader();
+
+    renderBrandBrainContent();
+
+
+    showToast(
+      milestoneId
+        ? "Milestone updated."
+        : "Milestone added.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to save milestone:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to save the milestone.",
+      "error",
+      5000
+    );
+
+  } finally {
+    const currentButton =
+      $("#saveBrandMilestoneButton");
+
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+
+      currentButton.textContent =
+        "Save Milestone";
+    }
+  }
+}
+
+
+/* =========================================================
+   QUICK-COMPLETE MILESTONE
+   ========================================================= */
+
+async function completeBrandMilestone(
+  milestoneId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  const milestone =
+    getBrandMilestoneById(
+      milestoneId
+    );
+
+
+  if (
+    !brand ||
+    !milestone
+  ) {
+    return;
+  }
+
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("milestones")
+        .update({
+          status:
+            "completed",
+
+          completed_at:
+            milestone.completed_at ||
+            new Date()
+              .toISOString()
+        })
+        .eq(
+          "id",
+          milestone.id
+        )
+        .eq(
+          "brand_id",
+          brand.id
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    await reloadBrand(
+      brand.id
+    );
+
+
+    renderBrandBrainContent();
+
+
+    if (
+      milestone.marketing_worthy &&
+      !milestone.content_created
+    ) {
+      showToast(
+        "Milestone completed — this one is worth talking about.",
+        "success"
+      );
+    } else {
+      showToast(
+        "Milestone completed.",
+        "success"
+      );
+    }
+
+  } catch (error) {
+    console.error(
+      "Unable to complete milestone:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to complete the milestone.",
+      "error",
+      5000
+    );
+  }
+}
+
+
+/* =========================================================
+   CREATE CONTENT FROM MILESTONE
+   ========================================================= */
+
+function createContentFromMilestone(
+  milestoneId
+) {
+  const brand =
+    getBrandBrainBrand();
+
+
+  const milestone =
+    getBrandMilestoneById(
+      milestoneId
+    );
+
+
+  if (
+    !brand ||
+    !milestone
+  ) {
+    return;
+  }
+
+
+  /*
+    We close Brand Brain first so Quick Create becomes
+    the active dialog instead of stacking dialogs.
+  */
+
+  safeDialogClose(
+    $("#brandBrainDialog")
+  );
+
+
+  setActiveBrand(
+    brand.id,
+    {
+      toast:
+        false
+    }
+  );
+
+
+  openQuickCreate(
+    "social-post"
+  );
+
+
+  window.setTimeout(
+    () => {
+      const brandField =
+        $("#createBrand");
+
+
+      const promptField =
+        $("#createPrompt");
+
+
+      const goalField =
+        $("#createGoal");
+
+
+      if (brandField) {
+        brandField.value =
+          brand.id;
+      }
+
+
+      if (promptField) {
+        const description =
+          milestone.description
+            ? ` Context: ${milestone.description}`
+            : "";
+
+
+        promptField.value =
+          `Create a social post about this confirmed business milestone: "${milestone.title}".${description} The milestone is complete. Build the post around the real progress without inventing any additional facts, dates, offers, products, or availability.`;
+      }
+
+
+      if (goalField) {
+        /*
+          Only set a value if the existing Quick Create
+          goal selector actually supports it.
+        */
+
+        const availableValues =
+          Array.from(
+            goalField.options ||
+            []
+          ).map(
+            option =>
+              option.value
+          );
+
+
+        if (
+          availableValues.includes(
+            "awareness"
+          )
+        ) {
+          goalField.value =
+            "awareness";
+        }
+      }
+
+
+      promptField?.focus();
+    },
+    50
+  );
+}
+
+
+/* =========================================================
+   MILESTONE CLICK HANDLING
+   ========================================================= */
+
+function handleBrandMilestonesClick(
+  event
+) {
+  const addButton =
+    event.target.closest(
+      "[data-add-brand-milestone]"
+    );
+
+
+  if (addButton) {
+    showBrandMilestoneDialog();
+
+    return;
+  }
+
+
+  const editButton =
+    event.target.closest(
+      "[data-edit-brand-milestone]"
+    );
+
+
+  if (editButton) {
+    showBrandMilestoneDialog(
+      editButton.dataset
+        .editBrandMilestone
+    );
+
+    return;
+  }
+
+
+  const completeButton =
+    event.target.closest(
+      "[data-complete-brand-milestone]"
+    );
+
+
+  if (completeButton) {
+    completeBrandMilestone(
+      completeButton.dataset
+        .completeBrandMilestone
+    );
+
+    return;
+  }
+
+
+  const createButton =
+    event.target.closest(
+      "[data-create-from-milestone]"
+    );
+
+
+  if (createButton) {
+    createContentFromMilestone(
+      createButton.dataset
+        .createFromMilestone
+    );
+  }
+}
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+function renderDashboard() {
+  const brand =
+    getActiveBrand();
+
+
+  const greeting =
+    $("#dashboardGreeting");
+
+
+  if (greeting) {
+    greeting.textContent =
+      brand
+        ? `Working on ${brand.shortName}`
+        : "Your marketing workspace";
+  }
+
+
+  if (!brand) {
+    setDashboardStat(
+      "#reviewDraftCount",
+      0
+    );
+
+    setDashboardStat(
+      "#upcomingContentCount",
+      0
+    );
+
+    setDashboardStat(
+      "#activeCampaignCount",
+      0
+    );
+
+
+    renderDashboardUpcoming(
+      []
+    );
+
+
+    return;
+  }
+
+
+  const brandContent =
+    APP_DATA.content.filter(
+      item =>
+        item.brandId ===
+        brand.id
+    );
+
+
+  const reviewDrafts =
+    brandContent.filter(
+      item =>
+        item.status ===
+          "draft" ||
+        item.status ===
+          "review"
+    );
+
+
+  const now =
+    new Date();
+
+
+  const upcomingContent =
+    brandContent
+      .filter(
+        item => {
+          if (
+            item.status !==
+              "scheduled" ||
+            !item.scheduledFor
+          ) {
+            return false;
+          }
+
+
+          const scheduled =
+            new Date(
+              item.scheduledFor
+            );
+
+
+          return (
+            !Number.isNaN(
+              scheduled.getTime()
+            ) &&
+            scheduled >= now
+          );
+        }
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            a.scheduledFor
+          ) -
+          new Date(
+            b.scheduledFor
+          )
+      );
+
+
+  const activeCampaigns =
+    APP_DATA.campaigns.filter(
+      campaign =>
+        campaign.brandId ===
+          brand.id &&
+        campaign.status ===
+          "active"
+    );
+
+
+  setDashboardStat(
+    "#reviewDraftCount",
+    reviewDrafts.length
+  );
+
+
+  setDashboardStat(
+    "#upcomingContentCount",
+    upcomingContent.length
+  );
+
+
+  setDashboardStat(
+    "#activeCampaignCount",
+    activeCampaigns.length
+  );
+
+
+  renderDashboardUpcoming(
+    upcomingContent
+  );
+}
+
+
+function setDashboardStat(
+  selector,
+  value
+) {
+  const element =
+    $(selector);
+
+
+  if (element) {
+    element.textContent =
+      String(
+        value
+      );
+  }
+}
+
+
+/* =========================================================
+   DASHBOARD UPCOMING CONTENT
+   ========================================================= */
+
+function renderDashboardUpcoming(
+  items
+) {
+  const container =
+    $("#dashboardUpcoming");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          Nothing scheduled yet.
+        </h3>
+
+        <p>
+          Approved and scheduled content for the
+          working brand will appear here.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    items
+      .slice(
+        0,
+        5
+      )
+      .map(
+        item => `
+          <article
+            class="content-panel"
+            style="
+              margin-bottom:10px;
+            "
+          >
+
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:12px;
+                flex-wrap:wrap;
+              "
+            >
+
+              <div>
+
+                <span class="eyebrow">
+                  ${
+                    escapeHtml(
+                      getContentTypeLabel(
+                        item.type
+                      )
+                    )
+                  }
+                </span>
+
+                <h3
+                  style="
+                    margin:
+                      5px 0 6px;
+                    font-family:
+                      Georgia,
+                      'Times New Roman',
+                      serif;
+                    font-size:1rem;
+                    font-weight:400;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      item.title ||
+                      "Untitled Content"
+                    )
+                  }
+                </h3>
+
+              </div>
+
+
+              <span
+                style="
+                  color:var(--muted);
+                  font-size:.72rem;
+                  white-space:nowrap;
+                "
+              >
+                ${
+                  escapeHtml(
+                    formatDateTime(
+                      item.scheduledFor
+                    )
+                  )
+                }
+              </span>
+
+            </div>
+
+          </article>
+        `
+      )
       .join("");
 }
 
 
+/* =========================================================
+   CONTENT TYPE LABEL
+   ========================================================= */
+
+function getContentTypeLabel(
+  type
+) {
+  const normalized =
+    DB_TYPE_TO_APP_TYPE[
+      type
+    ] ||
+    type ||
+    "content";
+
+
+  return (
+    CREATE_TYPES[
+      normalized
+    ]?.label ||
+    titleCaseStatus(
+      normalized
+    )
+  );
+}
+
+
+/* =========================================================
+   CAMPAIGNS
+   ========================================================= */
+
+function renderCampaigns() {
+  const container =
+    $("#campaignList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <h3>
+          Choose a working brand.
+        </h3>
+
+        <p>
+          Campaigns are organized by brand.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const activeFilter =
+    document.querySelector(
+      "[data-campaign-filter].is-active"
+    )
+      ?.dataset
+      ?.campaignFilter ||
+    "all";
+
+
+  let campaigns =
+    APP_DATA.campaigns
+      .filter(
+        campaign =>
+          campaign.brandId ===
+          brand.id
+      )
+      .slice();
+
+
+  if (
+    activeFilter !==
+    "all"
+  ) {
+    campaigns =
+      campaigns.filter(
+        campaign =>
+          campaign.status ===
+          activeFilter
+      );
+  }
+
+
+  campaigns.sort(
+    (a, b) =>
+      new Date(
+        b.updatedAt ||
+        b.createdAt ||
+        0
+      ) -
+      new Date(
+        a.updatedAt ||
+        a.createdAt ||
+        0
+      )
+  );
+
+
+  if (!campaigns.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          ${
+            activeFilter ===
+              "all"
+              ? "No campaigns yet."
+              : `No ${escapeHtml(
+                  titleCaseStatus(
+                    activeFilter
+                  )
+                )} campaigns.`
+          }
+        </h3>
+
+        <p>
+          Build campaigns around real goals,
+          launches, offers, events, or brand
+          milestones.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-create-type="campaign"
+        >
+          Create Campaign
+        </button>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    campaigns
+      .map(
+        campaign =>
+          renderCampaignCard(
+            campaign
+          )
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   CAMPAIGN CARD
+   ========================================================= */
+
+function renderCampaignCard(
+  campaign
+) {
+  const channels =
+    Array.isArray(
+      campaign.channels
+    )
+      ? campaign.channels
+      : [];
+
+
+  const dateParts = [];
+
+
+  if (campaign.startsOn) {
+    dateParts.push(
+      `Starts ${
+        formatDate(
+          campaign.startsOn
+        )
+      }`
+    );
+  }
+
+
+  if (campaign.endsOn) {
+    dateParts.push(
+      `Ends ${
+        formatDate(
+          campaign.endsOn
+        )
+      }`
+    );
+  }
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        margin-bottom:12px;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:8px;
+            "
+          >
+
+            <span class="eyebrow">
+              Campaign
+            </span>
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    campaign.status
+                  )
+                )
+              }
+            </span>
+
+          </div>
+
+
+          <h3
+            style="
+              margin:
+                0 0 8px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                campaign.name ||
+                "Untitled Campaign"
+              )
+            }
+          </h3>
+
+
+          ${
+            campaign.description
+              ? `
+                <p
+                  style="
+                    margin:
+                      0 0 10px;
+                    color:var(--muted);
+                    font-size:.78rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      campaign.description
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            campaign.objective
+              ? `
+                <p
+                  style="
+                    margin:
+                      0 0 8px;
+                    color:var(--ink);
+                    font-size:.76rem;
+                    line-height:1.55;
+                  "
+                >
+                  <strong>
+                    Objective:
+                  </strong>
+
+                  ${
+                    escapeHtml(
+                      campaign.objective
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            channels.length
+              ? `
+                <p
+                  style="
+                    margin:
+                      0 0 8px;
+                    color:var(--muted);
+                    font-size:.7rem;
+                    line-height:1.5;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      channels.join(
+                        " · "
+                      )
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            dateParts.length
+              ? `
+                <small
+                  style="
+                    display:block;
+                    color:var(--muted);
+                    font-size:.68rem;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      dateParts.join(
+                        " · "
+                      )
+                    )
+                  }
+                </small>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-create-type="campaign"
+          data-campaign-id="${
+            escapeHtml(
+              campaign.id
+            )
+          }"
+        >
+          Build Content
+        </button>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   CAMPAIGN FILTERS
+   ========================================================= */
+
+function setCampaignFilter(
+  filter
+) {
+  $$(
+    "[data-campaign-filter]"
+  ).forEach(
+    button => {
+      button.classList.toggle(
+        "is-active",
+        button.dataset
+          .campaignFilter ===
+          filter
+      );
+    }
+  );
+
+
+  renderCampaigns();
+}
+
+
+/* =========================================================
+   CONTENT LIBRARY
+   ========================================================= */
+
+function renderContentLibrary() {
+  const container =
+    $("#contentLibrary");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <h3>
+          Choose a working brand.
+        </h3>
+
+        <p>
+          Content is organized by brand.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const activeFilter =
+    document.querySelector(
+      "[data-content-filter].is-active"
+    )
+      ?.dataset
+      ?.contentFilter ||
+    "all";
+
+
+  let items =
+    APP_DATA.content
+      .filter(
+        item =>
+          item.brandId ===
+          brand.id
+      )
+      .slice();
+
+
+  if (
+    activeFilter !==
+    "all"
+  ) {
+    items =
+      items.filter(
+        item =>
+          item.status ===
+          activeFilter
+      );
+  }
+
+
+  items.sort(
+    (a, b) =>
+      new Date(
+        b.updatedAt ||
+        b.createdAt ||
+        0
+      ) -
+      new Date(
+        a.updatedAt ||
+        a.createdAt ||
+        0
+      )
+  );
+
+
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          ${
+            activeFilter ===
+              "all"
+              ? "No content yet."
+              : `No ${escapeHtml(
+                  titleCaseStatus(
+                    activeFilter
+                  )
+                )} content.`
+          }
+        </h3>
+
+        <p>
+          Start with Quick Create or one of the
+          Content Studio tools.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    items
+      .map(
+        item =>
+          renderContentCard(
+            item
+          )
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   CONTENT CARD
+   ========================================================= */
+
+function renderContentCard(
+  item
+) {
+  const preview =
+    item.body ||
+    item.originalRequest ||
+    "";
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        margin-bottom:12px;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:8px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  getContentTypeLabel(
+                    item.type
+                  )
+                )
+              }
+            </span>
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    item.status
+                  )
+                )
+              }
+            </span>
+
+          </div>
+
+
+          <h3
+            style="
+              margin:
+                0 0 8px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                item.title ||
+                "Untitled Content"
+              )
+            }
+          </h3>
+
+
+          ${
+            preview
+              ? `
+                <p
+                  style="
+                    margin:
+                      0 0 9px;
+                    color:var(--muted);
+                    font-size:.78rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      truncateText(
+                        preview,
+                        260
+                      )
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          <div
+            style="
+              display:flex;
+              gap:10px;
+              flex-wrap:wrap;
+              color:var(--muted);
+              font-size:.68rem;
+            "
+          >
+
+            ${
+              item.platform
+                ? `
+                  <span>
+                    ${
+                      escapeHtml(
+                        item.platform
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+
+            ${
+              item.scheduledFor
+                ? `
+                  <span>
+                    Scheduled:
+                    ${
+                      escapeHtml(
+                        formatDateTime(
+                          item.scheduledFor
+                        )
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   TEXT PREVIEW
+   ========================================================= */
+
+function truncateText(
+  value,
+  maxLength = 220
+) {
+  const text =
+    String(
+      value ||
+      ""
+    )
+      .trim();
+
+
+  if (
+    text.length <=
+    maxLength
+  ) {
+    return text;
+  }
+
+
+  return (
+    text
+      .slice(
+        0,
+        maxLength
+      )
+      .trimEnd() +
+    "…"
+  );
+}
+
+
+/* =========================================================
+   CONTENT FILTERS
+   ========================================================= */
+
+function setContentFilter(
+  filter
+) {
+  $$(
+    "[data-content-filter]"
+  ).forEach(
+    button => {
+      button.classList.toggle(
+        "is-active",
+        button.dataset
+          .contentFilter ===
+          filter
+      );
+    }
+  );
+
+
+  renderContentLibrary();
+}
+/* =========================================================
+   CALENDAR
+   ========================================================= */
+
+function renderCalendar() {
+  const container =
+    $("#calendarShell");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <h3>
+          Choose a working brand.
+        </h3>
+
+        <p>
+          Calendar items are organized by brand.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const items =
+    APP_DATA.calendar
+      .filter(
+        item =>
+          item.brandId ===
+          brand.id
+      )
+      .slice()
+      .sort(
+        (a, b) => {
+          const aTime =
+            a.startsAt
+              ? new Date(
+                  a.startsAt
+                ).getTime()
+              : Number.MAX_SAFE_INTEGER;
+
+
+          const bTime =
+            b.startsAt
+              ? new Date(
+                  b.startsAt
+                ).getTime()
+              : Number.MAX_SAFE_INTEGER;
+
+
+          return aTime - bTime;
+        }
+      );
+
+
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          The calendar is clear.
+        </h3>
+
+        <p>
+          Scheduled content, launches, events,
+          holidays, and other marketing-relevant
+          dates will appear here.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const grouped =
+    groupCalendarItemsByMonth(
+      items
+    );
+
+
+  container.innerHTML =
+    Object.entries(
+      grouped
+    )
+      .map(
+        ([month, monthItems]) => `
+          <section
+            style="
+              margin-bottom:26px;
+            "
+          >
+
+            <div
+              style="
+                display:flex;
+                align-items:center;
+                gap:12px;
+                margin-bottom:12px;
+              "
+            >
+
+              <span class="eyebrow">
+                ${escapeHtml(month)}
+              </span>
+
+              <div
+                style="
+                  flex:1;
+                  height:1px;
+                  background:var(--line);
+                "
+              ></div>
+
+            </div>
+
+
+            <div>
+
+              ${
+                monthItems
+                  .map(
+                    item =>
+                      renderCalendarItem(
+                        item
+                      )
+                  )
+                  .join("")
+              }
+
+            </div>
+
+          </section>
+        `
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   GROUP CALENDAR ITEMS
+   ========================================================= */
+
+function groupCalendarItemsByMonth(
+  items
+) {
+  const groups = {};
+
+
+  items.forEach(
+    item => {
+      if (!item.startsAt) {
+        const key =
+          "Unscheduled";
+
+
+        groups[key] ||= [];
+
+        groups[key].push(
+          item
+        );
+
+        return;
+      }
+
+
+      const date =
+        new Date(
+          item.startsAt
+        );
+
+
+      if (
+        Number.isNaN(
+          date.getTime()
+        )
+      ) {
+        const key =
+          "Unscheduled";
+
+
+        groups[key] ||= [];
+
+        groups[key].push(
+          item
+        );
+
+        return;
+      }
+
+
+      const key =
+        date.toLocaleDateString(
+          undefined,
+          {
+            month:
+              "long",
+
+            year:
+              "numeric"
+          }
+        );
+
+
+      groups[key] ||= [];
+
+      groups[key].push(
+        item
+      );
+    }
+  );
+
+
+  return groups;
+}
+
+
+/* =========================================================
+   CALENDAR ITEM
+   ========================================================= */
+
+function renderCalendarItem(
+  item
+) {
+  const startLabel =
+    item.startsAt
+      ? (
+          item.allDay
+            ? formatDate(
+                item.startsAt
+              )
+            : formatDateTime(
+                item.startsAt
+              )
+        )
+      : "No date";
+
+
+  const endLabel =
+    item.endsAt
+      ? (
+          item.allDay
+            ? formatDate(
+                item.endsAt
+              )
+            : formatDateTime(
+                item.endsAt
+              )
+        )
+      : "";
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        margin-bottom:10px;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:7px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    item.type ||
+                    "calendar"
+                  )
+                )
+              }
+            </span>
+
+
+            ${
+              item.marketingRelevant
+                ? `
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      min-height:24px;
+                      padding:4px 8px;
+                      border:1px solid var(--line);
+                      border-radius:999px;
+                      color:var(--muted);
+                      font-size:.65rem;
+                      letter-spacing:.05em;
+                      text-transform:uppercase;
+                    "
+                  >
+                    Marketing Relevant
+                  </span>
+                `
+                : ""
+            }
+
+
+            ${
+              item.confirmed
+                ? `
+                  <span
+                    style="
+                      display:inline-flex;
+                      align-items:center;
+                      min-height:24px;
+                      padding:4px 8px;
+                      border:1px solid var(--line);
+                      border-radius:999px;
+                      color:var(--muted);
+                      font-size:.65rem;
+                      letter-spacing:.05em;
+                      text-transform:uppercase;
+                    "
+                  >
+                    Confirmed
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+
+          <h3
+            style="
+              margin:
+                0 0 7px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.04rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                item.title ||
+                "Calendar Item"
+              )
+            }
+          </h3>
+
+
+          ${
+            item.description
+              ? `
+                <p
+                  style="
+                    margin:0;
+                    color:var(--muted);
+                    font-size:.76rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      item.description
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <div
+          style="
+            color:var(--muted);
+            font-size:.7rem;
+            line-height:1.5;
+            text-align:right;
+          "
+        >
+
+          <div>
+            ${escapeHtml(startLabel)}
+          </div>
+
+
+          ${
+            endLabel
+              ? `
+                <div>
+                  to
+                  ${escapeHtml(endLabel)}
+                </div>
+              `
+              : ""
+          }
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   ASSET VAULT
+   ========================================================= */
+
+function renderAssets() {
+  const container =
+    $("#assetGrid");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <h3>
+          Choose a working brand.
+        </h3>
+
+        <p>
+          Brand assets are organized by brand.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const activeFilter =
+    document.querySelector(
+      "[data-asset-filter].is-active"
+    )
+      ?.dataset
+      ?.assetFilter ||
+    "all";
+
+
+  let assets =
+    APP_DATA.assets
+      .filter(
+        asset =>
+          asset.brandId ===
+            brand.id &&
+          asset.active !==
+            false
+      )
+      .slice();
+
+
+  if (
+    activeFilter !==
+    "all"
+  ) {
+    assets =
+      assets.filter(
+        asset =>
+          assetMatchesFilter(
+            asset,
+            activeFilter
+          )
+      );
+  }
+
+
+  assets.sort(
+    (a, b) =>
+      new Date(
+        b.updatedAt ||
+        b.createdAt ||
+        0
+      ) -
+      new Date(
+        a.updatedAt ||
+        a.createdAt ||
+        0
+      )
+  );
+
+
+  if (!assets.length) {
+    container.innerHTML = `
+      <div
+        class="empty-state"
+        style="
+          grid-column:1 / -1;
+        "
+      >
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          ${
+            activeFilter ===
+              "all"
+              ? "The Asset Vault is empty."
+              : `No ${escapeHtml(
+                  titleCaseStatus(
+                    activeFilter
+                  )
+                )} here yet.`
+          }
+        </h3>
+
+        <p>
+          Logos, photography, generated artwork,
+          and reusable brand assets will live here.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-add-asset
+        >
+          Add Asset
+        </button>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    assets
+      .map(
+        asset =>
+          renderAssetCard(
+            asset
+          )
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   ASSET FILTER MATCHING
+   ========================================================= */
+
+function assetMatchesFilter(
+  asset,
+  filter
+) {
+  const type =
+    asset.category ||
+    "other";
+
+
+  switch (filter) {
+    case "logos":
+      return (
+        type === "logo"
+      );
+
+
+    case "photos":
+      return (
+        type === "photo"
+      );
+
+
+    case "generated":
+      return (
+        type ===
+        "generated_artwork"
+      );
+
+
+    case "brand":
+      return (
+        type ===
+        "brand_asset"
+      );
+
+
+    default:
+      return true;
+  }
+}
+
+
+/* =========================================================
+   ASSET CARD
+   ========================================================= */
+
+function renderAssetCard(
+  asset
+) {
+  const imageUrl =
+    asset.externalUrl ||
+    "";
+
+
+  const isImage =
+    asset.mimeType
+      ?.startsWith(
+        "image/"
+      ) ||
+    [
+      "logo",
+      "photo",
+      "generated_artwork",
+      "brand_asset"
+    ].includes(
+      asset.category
+    );
+
+
+  return `
+    <article
+      class="content-panel"
+      style="
+        min-width:0;
+        overflow:hidden;
+      "
+    >
+
+      ${
+        imageUrl &&
+        isImage
+          ? `
+            <div
+              style="
+                aspect-ratio:4 / 3;
+                margin-bottom:12px;
+                border:1px solid var(--line);
+                border-radius:calc(
+                  var(--radius) - 4px
+                );
+                overflow:hidden;
+                background:
+                  rgba(255,255,255,.02);
+              "
+            >
+
+              <img
+                src="${
+                  escapeHtml(
+                    imageUrl
+                  )
+                }"
+                alt="${
+                  escapeHtml(
+                    asset.altText ||
+                    asset.name ||
+                    ""
+                  )
+                }"
+                loading="lazy"
+                style="
+                  display:block;
+                  width:100%;
+                  height:100%;
+                  object-fit:cover;
+                "
+              />
+
+            </div>
+          `
+          : `
+            <div
+              style="
+                display:grid;
+                place-items:center;
+                aspect-ratio:4 / 3;
+                margin-bottom:12px;
+                border:1px solid var(--line);
+                border-radius:calc(
+                  var(--radius) - 4px
+                );
+                background:
+                  rgba(255,255,255,.018);
+                color:var(--muted);
+                font-family:
+                  Georgia,
+                  'Times New Roman',
+                  serif;
+                font-size:2rem;
+              "
+              aria-hidden="true"
+            >
+              ◇
+            </div>
+          `
+      }
+
+
+      <span class="eyebrow">
+        ${
+          escapeHtml(
+            titleCaseStatus(
+              asset.category ||
+              "asset"
+            )
+          )
+        }
+      </span>
+
+
+      <h3
+        style="
+          margin:
+            5px 0 6px;
+          font-family:
+            Georgia,
+            'Times New Roman',
+            serif;
+          font-size:1rem;
+          font-weight:400;
+        "
+      >
+        ${
+          escapeHtml(
+            asset.name ||
+            "Untitled Asset"
+          )
+        }
+      </h3>
+
+
+      ${
+        asset.description
+          ? `
+            <p
+              style="
+                margin:
+                  0 0 10px;
+                color:var(--muted);
+                font-size:.74rem;
+                line-height:1.55;
+              "
+            >
+              ${
+                escapeHtml(
+                  truncateText(
+                    asset.description,
+                    160
+                  )
+                )
+              }
+            </p>
+          `
+          : ""
+      }
+
+
+      <div
+        style="
+          display:flex;
+          gap:7px;
+          flex-wrap:wrap;
+          margin-top:9px;
+        "
+      >
+
+        ${
+          asset.approvedForAi
+            ? `
+              <span
+                style="
+                  display:inline-flex;
+                  align-items:center;
+                  min-height:22px;
+                  padding:3px 7px;
+                  border:1px solid var(--line);
+                  border-radius:999px;
+                  color:var(--muted);
+                  font-size:.62rem;
+                  text-transform:uppercase;
+                  letter-spacing:.04em;
+                "
+              >
+                AI Approved
+              </span>
+            `
+            : ""
+        }
+
+
+        ${
+          asset.approvedForMarketing
+            ? `
+              <span
+                style="
+                  display:inline-flex;
+                  align-items:center;
+                  min-height:22px;
+                  padding:3px 7px;
+                  border:1px solid var(--line);
+                  border-radius:999px;
+                  color:var(--muted);
+                  font-size:.62rem;
+                  text-transform:uppercase;
+                  letter-spacing:.04em;
+                "
+              >
+                Marketing Approved
+              </span>
+            `
+            : ""
+        }
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   ASSET FILTERS
+   ========================================================= */
+
+function setAssetFilter(
+  filter
+) {
+  $$(
+    "[data-asset-filter]"
+  ).forEach(
+    button => {
+      button.classList.toggle(
+        "is-active",
+        button.dataset
+          .assetFilter ===
+          filter
+      );
+    }
+  );
+
+
+  renderAssets();
+}
+
+
+/* =========================================================
+   ADD ASSET PLACEHOLDER
+   ========================================================= */
+
+function handleAddAsset() {
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    showToast(
+      "Choose a working brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  showToast(
+    `Asset uploads for ${brand.shortName} are next on the build list.`,
+    "success"
+  );
+}
 /* =========================================================
    QUICK CREATE BRAND OPTIONS
    ========================================================= */
@@ -1645,1261 +10489,57 @@ function renderQuickCreateBrandOptions() {
   }
 
 
-  if (!APP_DATA.brands.length) {
-    select.innerHTML = `
-      <option value="">
-        No brands connected
-      </option>
-    `;
-
-    return;
-  }
+  const currentValue =
+    select.value;
 
 
   select.innerHTML =
     APP_DATA.brands
-      .map(brand => `
-        <option
-          value="${
-            escapeHtml(
-              brand.id
-            )
-          }"
-        >
-          ${
-            escapeHtml(
-              brand.shortName
-            )
-          }
-        </option>
-      `)
+      .filter(
+        brand =>
+          brand.active !== false
+      )
+      .map(
+        brand => `
+          <option
+            value="${
+              escapeHtml(
+                brand.id
+              )
+            }"
+          >
+            ${
+              escapeHtml(
+                brand.name
+              )
+            }
+          </option>
+        `
+      )
       .join("");
-
-
-  syncQuickCreateBrand();
-}
-
-
-function syncQuickCreateBrand() {
-  const select =
-    $("#createBrand");
 
 
   const activeBrand =
     getActiveBrand();
 
 
-  if (
-    !select ||
-    !activeBrand
-  ) {
-    return;
-  }
-
-
-  select.value =
-    activeBrand.id;
-}
-
-
-/* =========================================================
-   GREETING
-   ========================================================= */
-
-function renderGreeting() {
-  const heading =
-    $("#dashboardGreeting");
-
-
-  if (!heading) {
-    return;
-  }
-
-
-  const hour =
-    new Date().getHours();
-
-
-  let greeting =
-    "Good evening.";
-
-
-  if (
-    hour >= 5 &&
-    hour < 12
-  ) {
-    greeting =
-      "Good morning.";
-  } else if (
-    hour >= 12 &&
-    hour < 17
-  ) {
-    greeting =
-      "Good afternoon.";
-  }
-
-
-  heading.textContent =
-    greeting;
-}
-
-
-/* =========================================================
-   BRAND SCOPING
-   ========================================================= */
-
-function getBrandScopedItems(
-  items,
-  brandId
-) {
-  if (!brandId) {
-    return [];
-  }
-
-
-  return items.filter(
-    item =>
-      item.brandId ===
-      brandId
-  );
-}
-
-
-/* =========================================================
-   DASHBOARD
-   ========================================================= */
-
-function renderDashboard() {
-  const brand =
-    getActiveBrand();
-
-
-  if (!brand) {
-    return;
-  }
-
-
-  const brandContent =
-    getBrandScopedItems(
-      APP_DATA.content,
-      brand.id
-    );
-
-
-  const brandCampaigns =
-    getBrandScopedItems(
-      APP_DATA.campaigns,
-      brand.id
-    );
-
-
-  const scheduledContent =
-    brandContent
-      .filter(item => {
-
-        if (!item.publishAt) {
-          return false;
-        }
-
-
-        const time =
-          new Date(
-            item.publishAt
-          ).getTime();
-
-
-        return (
-          Number.isFinite(time) &&
-          time >= Date.now()
-        );
-
-      })
-      .sort(
-        (a, b) =>
-          new Date(
-            a.publishAt
-          ).getTime() -
-          new Date(
-            b.publishAt
-          ).getTime()
-      );
-
-
-  const reviewCount =
-    brandContent.filter(
-      item =>
-        item.status ===
-        "review"
-    ).length;
-
-
-  const activeCampaignCount =
-    brandCampaigns.filter(
-      item =>
-        item.status ===
-        "active"
-    ).length;
-
-
-  const reviewElement =
-    $("#reviewDraftCount");
-
-
-  const upcomingElement =
-    $("#upcomingContentCount");
-
-
-  const campaignElement =
-    $("#activeCampaignCount");
-
-
-  if (reviewElement) {
-    reviewElement.textContent =
-      String(reviewCount);
-  }
-
-
-  if (upcomingElement) {
-    upcomingElement.textContent =
-      String(
-        scheduledContent.length
-      );
-  }
-
-
-  if (campaignElement) {
-    campaignElement.textContent =
-      String(
-        activeCampaignCount
-      );
-  }
-
-
-  renderDashboardUpcoming(
-    scheduledContent
-  );
-}
-
-
-function renderDashboardUpcoming(
-  upcomingItems
-) {
-  const panel =
-    $("#dashboardUpcoming");
-
-
-  if (!panel) {
-    return;
-  }
-
-
-  if (!upcomingItems.length) {
-    panel.innerHTML = `
-      <div class="empty-state">
-
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ◌
-        </span>
-
-        <h3>
-          Nothing scheduled yet.
-        </h3>
-
-        <p>
-          Approved content will appear here
-          once it has a publishing date.
-        </p>
-
-        <button
-          class="secondary-button"
-          type="button"
-          data-open-quick-create
-        >
-          Create Something
-        </button>
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  panel.innerHTML =
-    upcomingItems
-      .slice(0, 5)
-      .map(item => `
-        <article>
-          <strong>
-            ${
-              escapeHtml(
-                item.title ||
-                "Scheduled Content"
-              )
-            }
-          </strong>
-
-          <small>
-            ${
-              escapeHtml(
-                formatDateTime(
-                  item.publishAt
-                )
-              )
-            }
-          </small>
-        </article>
-      `)
-      .join("");
-}
-
-
-/* =========================================================
-   DATE FORMATTING
-   ========================================================= */
-
-function formatDateTime(
-  value
-) {
-  const date =
-    new Date(value);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
+  const desiredValue =
+    (
+      currentValue &&
+      APP_DATA.brands.some(
+        brand =>
+          brand.id ===
+          currentValue
+      )
     )
-  ) {
-    return "";
+      ? currentValue
+      : activeBrand?.id;
+
+
+  if (desiredValue) {
+    select.value =
+      desiredValue;
   }
-
-
-  return new Intl.DateTimeFormat(
-    undefined,
-    {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit"
-    }
-  ).format(date);
-}
-
-
-/* =========================================================
-   NAVIGATION
-   ========================================================= */
-
-function setView(
-  viewName,
-  options = {}
-) {
-  if (
-    !VALID_VIEWS.has(
-      viewName
-    )
-  ) {
-    viewName =
-      "dashboard";
-  }
-
-
-  APP_STATE.activeView =
-    viewName;
-
-
-  writeStorage(
-    STORAGE_KEYS.lastView,
-    viewName
-  );
-
-
-  $$("[data-view-panel]")
-    .forEach(panel => {
-
-      const matches =
-        panel.dataset.viewPanel ===
-        viewName;
-
-
-      panel.hidden =
-        !matches;
-
-
-      panel.classList.toggle(
-        "is-active",
-        matches
-      );
-
-    });
-
-
-  $$(
-    ".nav-button[data-view], " +
-    ".bottom-nav-button[data-view]"
-  ).forEach(button => {
-
-    button.classList.toggle(
-      "is-active",
-      button.dataset.view ===
-        viewName
-    );
-
-  });
-
-
-  document.title =
-    viewName === "dashboard"
-      ? "Black Stag Marketing Studio"
-      : `${
-          VIEW_TITLES[
-            viewName
-          ] ||
-          "Marketing Studio"
-        } | Black Stag`;
-
-
-  if (
-    options.scroll !== false
-  ) {
-    const main =
-      $(".app-main");
-
-
-    if (main) {
-      main.scrollTo({
-        top: 0,
-        behavior:
-          options.instant
-            ? "auto"
-            : "smooth"
-      });
-    }
-
-
-    window.scrollTo({
-      top: 0,
-      behavior:
-        options.instant
-          ? "auto"
-          : "smooth"
-    });
-  }
-}
-
-
-/* =========================================================
-   FILTERS
-   ========================================================= */
-
-function setFilterButtons(
-  selector,
-  dataKey,
-  activeValue
-) {
-  $$(selector)
-    .forEach(button => {
-
-      button.classList.toggle(
-        "is-active",
-        button.dataset[dataKey] ===
-          activeValue
-      );
-
-    });
-}
-
-
-function setCampaignFilter(
-  value
-) {
-  APP_STATE.campaignFilter =
-    value ||
-    "all";
-
-
-  setFilterButtons(
-    "[data-campaign-filter]",
-    "campaignFilter",
-    APP_STATE.campaignFilter
-  );
-
-
-  renderCampaigns();
-}
-
-
-function setContentFilter(
-  value
-) {
-  APP_STATE.contentFilter =
-    value ||
-    "all";
-
-
-  setFilterButtons(
-    "[data-content-filter]",
-    "contentFilter",
-    APP_STATE.contentFilter
-  );
-
-
-  renderContentLibrary();
-}
-
-
-function setAssetFilter(
-  value
-) {
-  APP_STATE.assetFilter =
-    value ||
-    "all";
-
-
-  setFilterButtons(
-    "[data-asset-filter]",
-    "assetFilter",
-    APP_STATE.assetFilter
-  );
-
-
-  renderAssets();
-}
-
-
-/* =========================================================
-   CAMPAIGNS
-   ========================================================= */
-
-function renderCampaigns() {
-  const list =
-    $("#campaignList");
-
-
-  const brand =
-    getActiveBrand();
-
-
-  if (
-    !list ||
-    !brand
-  ) {
-    return;
-  }
-
-
-  let campaigns =
-    getBrandScopedItems(
-      APP_DATA.campaigns,
-      brand.id
-    );
-
-
-  if (
-    APP_STATE.campaignFilter !==
-    "all"
-  ) {
-    campaigns =
-      campaigns.filter(
-        campaign =>
-          campaign.status ===
-          APP_STATE.campaignFilter
-      );
-  }
-
-
-  if (!campaigns.length) {
-
-    const filtered =
-      APP_STATE.campaignFilter !==
-      "all";
-
-
-    list.innerHTML = `
-      <div class="empty-state">
-
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ✦
-        </span>
-
-        <h3>
-          ${
-            filtered
-              ? "Nothing in this category."
-              : "No campaigns yet."
-          }
-        </h3>
-
-        <p>
-          ${
-            filtered
-              ? "Try another campaign filter."
-              : "Build your first coordinated marketing campaign for this brand."
-          }
-        </p>
-
-        ${
-          filtered
-            ? ""
-            : `
-              <button
-                class="secondary-button"
-                type="button"
-                data-create-type="campaign"
-              >
-                Create First Campaign
-              </button>
-            `
-        }
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  list.innerHTML =
-    campaigns
-      .map(campaign => `
-        <article
-          class="content-panel"
-          style="
-            margin-bottom:12px;
-          "
-        >
-
-          <span class="eyebrow">
-            ${
-              escapeHtml(
-                campaign.status ||
-                "draft"
-              )
-            }
-          </span>
-
-          <h3>
-            ${
-              escapeHtml(
-                campaign.name ||
-                "Untitled Campaign"
-              )
-            }
-          </h3>
-
-          ${
-            campaign.objective
-              ? `
-                <p
-                  style="
-                    color:var(--muted);
-                    font-size:.8rem;
-                    line-height:1.6;
-                  "
-                >
-                  ${
-                    escapeHtml(
-                      campaign.objective
-                    )
-                  }
-                </p>
-              `
-              : ""
-          }
-
-        </article>
-      `)
-      .join("");
-}
-
-
-/* =========================================================
-   CONTENT LIBRARY
-   ========================================================= */
-
-function renderContentLibrary() {
-  const library =
-    $("#contentLibrary");
-
-
-  const brand =
-    getActiveBrand();
-
-
-  if (
-    !library ||
-    !brand
-  ) {
-    return;
-  }
-
-
-  let content =
-    getBrandScopedItems(
-      APP_DATA.content,
-      brand.id
-    );
-
-
-  if (
-    APP_STATE.contentFilter !==
-    "all"
-  ) {
-    content =
-      content.filter(
-        item =>
-          item.status ===
-          APP_STATE.contentFilter
-      );
-  }
-
-
-  if (!content.length) {
-
-    const filtered =
-      APP_STATE.contentFilter !==
-      "all";
-
-
-    library.innerHTML = `
-      <div class="empty-state">
-
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ◈
-        </span>
-
-        <h3>
-          ${
-            filtered
-              ? "Nothing in this category."
-              : "No content yet."
-          }
-        </h3>
-
-        <p>
-          ${
-            filtered
-              ? "Try another content filter."
-              : "Create your first piece of content and it will enter the workflow here."
-          }
-        </p>
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  library.innerHTML =
-    content
-      .map(item => {
-
-        const typeDefinition =
-          CREATE_TYPES[
-            item.type
-          ];
-
-
-        return `
-          <article
-            class="content-panel"
-            style="
-              margin-bottom:12px;
-            "
-          >
-
-            <span class="eyebrow">
-              ${
-                escapeHtml(
-                  item.status ||
-                  "draft"
-                )
-              }
-            </span>
-
-            <h3
-              style="
-                margin-bottom:8px;
-              "
-            >
-              ${
-                escapeHtml(
-                  item.title ||
-                  typeDefinition?.label ||
-                  "Untitled Content"
-                )
-              }
-            </h3>
-
-            <p
-              style="
-                color:var(--muted);
-                font-size:.8rem;
-                line-height:1.6;
-                white-space:pre-wrap;
-              "
-            >
-              ${
-                escapeHtml(
-                  item.body ||
-                  ""
-                )
-              }
-            </p>
-
-          </article>
-        `;
-
-      })
-      .join("");
-}
-
-
-/* =========================================================
-   ASSETS
-   ========================================================= */
-
-function renderAssets() {
-  const grid =
-    $("#assetGrid");
-
-
-  const brand =
-    getActiveBrand();
-
-
-  if (
-    !grid ||
-    !brand
-  ) {
-    return;
-  }
-
-
-  let assets =
-    getBrandScopedItems(
-      APP_DATA.assets,
-      brand.id
-    );
-
-
-  if (
-    APP_STATE.assetFilter !==
-    "all"
-  ) {
-    assets =
-      assets.filter(
-        asset =>
-          asset.category ===
-          APP_STATE.assetFilter
-      );
-  }
-
-
-  if (!assets.length) {
-
-    const filtered =
-      APP_STATE.assetFilter !==
-      "all";
-
-
-    grid.innerHTML = `
-      <div
-        class="empty-state full-width"
-      >
-
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ▣
-        </span>
-
-        <h3>
-          ${
-            filtered
-              ? "No matching assets."
-              : "The vault is empty."
-          }
-        </h3>
-
-        <p>
-          ${
-            filtered
-              ? "Try another asset category."
-              : "Logos, photography, generated artwork, and reusable brand assets will live here."
-          }
-        </p>
-
-      </div>
-    `;
-
-    return;
-  }
-
-
-  grid.innerHTML =
-    assets
-      .map(asset => `
-        <article>
-          <strong>
-            ${
-              escapeHtml(
-                asset.name ||
-                "Untitled Asset"
-              )
-            }
-          </strong>
-        </article>
-      `)
-      .join("");
-}
-
-
-/* =========================================================
-   BRAND FACT FORMATTING
-   ========================================================= */
-
-function formatBrandFactForBrief(
-  fact
-) {
-  const label =
-    fact.fact_key ||
-    fact.subject ||
-    fact.category ||
-    "Fact";
-
-
-  let value =
-    fact.value_text ||
-    "";
-
-
-  if (
-    !value &&
-    fact.value_jsonb !==
-      null &&
-    fact.value_jsonb !==
-      undefined
-  ) {
-    try {
-      value =
-        typeof fact.value_jsonb ===
-          "string"
-          ? fact.value_jsonb
-          : JSON.stringify(
-              fact.value_jsonb
-            );
-    } catch (error) {
-      console.warn(
-        "Unable to format brand fact:",
-        error
-      );
-
-      value =
-        "";
-    }
-  }
-
-
-  if (!value) {
-    return "";
-  }
-
-
-  return `- ${label}: ${value}`;
-}
-
-
-/* =========================================================
-   AI BRIEF GENERATOR
-   ========================================================= */
-
-function buildAiBrief({
-  brand,
-  type,
-  goal,
-  userPrompt
-}) {
-  const definition =
-    CREATE_TYPES[type] ||
-    CREATE_TYPES[
-      "social-post"
-    ];
-
-
-  const personality =
-    brand.identity
-      ?.personality
-      ?.length
-      ? brand.identity.personality
-          .join(", ")
-      : "Use the established brand voice.";
-
-
-  const voiceNotes = [
-    brand.voice
-      ?.emotionalAtmosphere,
-
-    brand.voice
-      ?.writingNotes
-  ]
-    .filter(Boolean)
-    .join("\n");
-
-
-  const rules =
-    brand.aiRules?.length
-      ? brand.aiRules
-          .map(
-            rule =>
-              `- ${rule}`
-          )
-          .join("\n")
-      : "- Do not invent business facts.";
-
-
-  const verifiedFacts =
-    brand.facts
-      ?.filter(
-        fact =>
-          fact.active !== false &&
-          (
-            fact.status ===
-              "verified" ||
-            fact.status ===
-              "owner_approved"
-          )
-      )
-      .map(
-        formatBrandFactForBrief
-      )
-      .filter(Boolean)
-      .join("\n") ||
-    "No additional verified facts supplied.";
-
-
-  const tagline =
-    brand.identity?.tagline ||
-    "No official tagline supplied.";
-
-
-  const recentContent =
-    getRecentContentForBrief(
-      brand.id
-    );
-
-
-  return `BLACK STAG MARKETING STUDIO
-AI CONTENT BRIEF
-
-You are helping create marketing content for the following brand.
-
-==================================================
-BRAND
-==================================================
-
-Official Name:
-${brand.name}
-
-Short Name:
-${brand.shortName}
-
-Business Type:
-${brand.businessType}
-
-Website:
-${brand.website || "Not supplied"}
-
-Business Stage:
-${brand.stageLabel}
-
-Primary Marketing Goal:
-${brand.primaryGoal}
-
-Current Campaign Phase:
-${brand.campaignPhase || "Not specified"}
-
-Tagline:
-${tagline}
-
-
-==================================================
-BRAND VOICE
-==================================================
-
-${personality}
-
-${voiceNotes || ""}
-
-
-==================================================
-VERIFIED BRAND INFORMATION
-==================================================
-
-${verifiedFacts}
-
-
-==================================================
-SOURCE-OF-TRUTH RULES
-==================================================
-
-${rules}
-
-Treat supplied business information as factual only when it is explicitly included in this brief.
-
-Do not invent:
-- prices
-- dates
-- availability
-- operating hours
-- promotions
-- products
-- services
-- locations
-- policies
-- testimonials
-- performance claims
-- business milestones
-
-If information necessary to complete the request is missing, either write around the missing information or clearly identify what needs confirmation.
-
-
-==================================================
-CONTENT REQUEST
-==================================================
-
-Content Type:
-${definition.label}
-
-Marketing Goal:
-${goal}
-
-Task:
-${definition.instruction}
-
-User Request:
-${userPrompt}
-
-
-==================================================
-RECENT CONTENT
-==================================================
-
-${recentContent}
-
-
-==================================================
-INSTRUCTIONS
-==================================================
-
-Create content that sounds specific to this brand rather than generic AI marketing copy.
-
-Preserve the brand's established voice.
-
-Avoid repeating the same hooks, phrases, topics, or calls to action used in recent content.
-
-Do not invent business facts.
-
-Do not turn atmospheric branding into parody.
-
-Keep the writing natural and usable.
-
-When appropriate, give the strongest finished version first.
-
-If useful for this content type, you may also provide:
-- a shorter alternate version
-- a suggested call to action
-- a small number of relevant hashtags
-- a visual or photography suggestion
-
-Do not add unnecessary explanations before the finished marketing content.
-
-==================================================
-END BRIEF
-==================================================`;
-}
-
-
-/* =========================================================
-   RECENT CONTENT CONTEXT
-   ========================================================= */
-
-function getRecentContentForBrief(
-  brandId
-) {
-  const recent =
-    APP_DATA.content
-      .filter(
-        item =>
-          item.brandId ===
-          brandId
-      )
-      .sort(
-        (a, b) =>
-          new Date(
-            b.createdAt || 0
-          ).getTime() -
-          new Date(
-            a.createdAt || 0
-          ).getTime()
-      )
-      .slice(
-        0,
-        5
-      );
-
-
-  if (!recent.length) {
-    return "No previous content has been saved yet.";
-  }
-
-
-  return recent
-    .map(
-      (
-        item,
-        index
-      ) => {
-
-        const body =
-          String(
-            item.body || ""
-          )
-            .replace(
-              /\s+/g,
-              " "
-            )
-            .trim()
-            .slice(
-              0,
-              300
-            );
-
-
-        return `${index + 1}. ${
-          item.title ||
-          CREATE_TYPES[
-            item.type
-          ]?.label ||
-          "Content"
-        }
-
-${body || "No body text."}`;
-
-      }
-    )
-    .join("\n\n");
 }
 
 
@@ -2908,108 +10548,150 @@ ${body || "No body text."}`;
    ========================================================= */
 
 function openQuickCreate(
-  createType =
-    "social-post"
+  type = "social-post"
 ) {
-  const type =
-    CREATE_TYPES[
-      createType
-    ]
-      ? createType
+  const dialog =
+    $("#quickCreateDialog");
+
+
+  if (!dialog) {
+    showToast(
+      "Quick Create is unavailable.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const normalizedType =
+    CREATE_TYPES[type]
+      ? type
       : "social-post";
 
 
-  APP_STATE.createType =
-    type;
-
-
   const definition =
-    CREATE_TYPES[type];
+    CREATE_TYPES[
+      normalizedType
+    ];
+
+
+  const typeField =
+    $("#createContentType");
 
 
   const title =
     $("#quickCreateDialogTitle");
 
 
-  const hiddenType =
-    $("#createContentType");
-
-
-  const goal =
-    $("#createGoal");
-
-
-  const prompt =
+  const promptField =
     $("#createPrompt");
+
+
+  if (typeField) {
+    typeField.value =
+      normalizedType;
+  }
 
 
   if (title) {
     title.textContent =
-      definition.label;
+      `Create ${definition.label}`;
   }
 
 
-  if (hiddenType) {
-    hiddenType.value =
-      type;
+  renderQuickCreateBrandOptions();
+
+
+  const activeBrand =
+    getActiveBrand();
+
+
+  if (
+    activeBrand &&
+    $("#createBrand")
+  ) {
+    $("#createBrand").value =
+      activeBrand.id;
   }
 
 
-  if (goal) {
-    goal.value =
-      definition.defaultGoal;
+  if (promptField) {
+    promptField.value =
+      "";
   }
 
 
-  syncQuickCreateBrand();
+  const goalField =
+    $("#createGoal");
+
+
+  if (goalField) {
+    goalField.selectedIndex =
+      0;
+  }
 
 
   safeDialogOpen(
-    $("#quickCreateDialog")
+    dialog
   );
 
 
   window.setTimeout(
     () => {
-      prompt?.focus();
+      promptField?.focus();
     },
-    120
-  );
-}
-
-
-function closeQuickCreate() {
-  safeDialogClose(
-    $("#quickCreateDialog")
+    100
   );
 }
 
 
 /* =========================================================
-   QUICK CREATE SUBMIT
+   QUICK CREATE TYPE → DATABASE TYPE
    ========================================================= */
 
-function handleQuickCreateSubmit(
+function getDatabaseContentType(
+  appType
+) {
+  const map = {
+    "social-post":
+      "social_post",
+
+    story:
+      "story",
+
+    reel:
+      "reel_script",
+
+    email:
+      "email",
+
+    "website-copy":
+      "website_copy",
+
+    graphic:
+      "promotional_graphic",
+
+    campaign:
+      "campaign"
+  };
+
+
+  return (
+    map[appType] ||
+    "other"
+  );
+}
+
+
+/* =========================================================
+   QUICK CREATE SUBMISSION
+   ========================================================= */
+
+async function handleQuickCreateSubmit(
   event
 ) {
   event.preventDefault();
-
-
-  const brandId =
-    $("#createBrand")
-      ?.value;
-
-
-  const userPrompt =
-    $("#createPrompt")
-      ?.value
-      ?.trim();
-
-
-  const goal =
-    $("#createGoal")
-      ?.value ||
-    "awareness";
 
 
   const type =
@@ -3018,15 +10700,26 @@ function handleQuickCreateSubmit(
     "social-post";
 
 
-  const brand =
-    getBrandById(
-      brandId
-    );
+  const brandId =
+    $("#createBrand")
+      ?.value;
 
 
-  if (!brand) {
+  const request =
+    $("#createPrompt")
+      ?.value
+      ?.trim();
+
+
+  const goal =
+    $("#createGoal")
+      ?.value ||
+    "";
+
+
+  if (!brandId) {
     showToast(
-      "Choose a brand first.",
+      "Choose a brand.",
       "error"
     );
 
@@ -3034,9 +10727,9 @@ function handleQuickCreateSubmit(
   }
 
 
-  if (!userPrompt) {
+  if (!request) {
     showToast(
-      "Tell the studio what you want to market.",
+      "Tell Marketing Studio what you want to create.",
       "error"
     );
 
@@ -3049,46 +10742,938 @@ function handleQuickCreateSubmit(
   }
 
 
+  const brand =
+    APP_DATA.brands.find(
+      item =>
+        item.id ===
+        brandId
+    );
+
+
+  if (!brand) {
+    showToast(
+      "That brand could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  /*
+    Make the selected Quick Create brand the current
+    working brand so the rest of the app remains in
+    the same context.
+  */
+
+  setActiveBrand(
+    brand.id,
+    {
+      toast:
+        false
+    }
+  );
+
+
   const brief =
     buildAiBrief({
       brand,
       type,
-      goal,
-      userPrompt
+      request,
+      goal
     });
 
 
-  APP_STATE.currentAiBrief =
-    brief;
+  safeDialogClose(
+    $("#quickCreateDialog")
+  );
 
 
-  APP_STATE.currentAiRequest = {
-    brandId:
-      brand.id,
-
+  showManualAiDialog({
+    brand,
     type,
-
+    request,
     goal,
-
-    prompt:
-      userPrompt
-  };
-
-
-  closeQuickCreate();
-
-
-  showAiBriefDialog();
+    brief
+  });
 }
 
 
 /* =========================================================
-   AI BRIEF DIALOG
+   BRAND FACT ELIGIBILITY
    ========================================================= */
 
-function ensureAiBriefDialog() {
+function brandFactCanEnterAiBrief(
+  fact
+) {
+  if (!fact) {
+    return false;
+  }
+
+
+  if (
+    fact.active ===
+    false
+  ) {
+    return false;
+  }
+
+
+  if (
+    fact.is_sensitive
+  ) {
+    return false;
+  }
+
+
+  if (
+    fact.status ===
+      "archived"
+  ) {
+    return false;
+  }
+
+
+  /*
+    Only information that has actually been verified
+    or explicitly approved by the owner enters the
+    factual section of an ordinary marketing prompt.
+
+    AI suggestions and facts awaiting confirmation
+    remain stored in Brand Brain but are not treated
+    as factual marketing claims.
+  */
+
+  return (
+    fact.status ===
+      "verified" ||
+    fact.status ===
+      "owner_approved"
+  );
+}
+
+
+/* =========================================================
+   FORMAT BRAND FACT FOR AI
+   ========================================================= */
+
+function formatBrandFactForBrief(
+  fact
+) {
+  if (!fact) {
+    return "";
+  }
+
+
+  const label =
+    fact.subject ||
+    fact.fact_key ||
+    fact.category ||
+    "Brand fact";
+
+
+  let value =
+    fact.value_text;
+
+
+  if (
+    !value &&
+    fact.value_jsonb != null
+  ) {
+    try {
+      value =
+        JSON.stringify(
+          fact.value_jsonb
+        );
+    } catch {
+      value =
+        String(
+          fact.value_jsonb
+        );
+    }
+  }
+
+
+  if (!value) {
+    return "";
+  }
+
+
+  return (
+    `- ${label}: ${value}`
+  );
+}
+
+
+/* =========================================================
+   FORMAT ARRAY FOR AI
+   ========================================================= */
+
+function formatArrayForBrief(
+  values
+) {
+  if (
+    !Array.isArray(
+      values
+    ) ||
+    !values.length
+  ) {
+    return "";
+  }
+
+
+  return values
+    .filter(Boolean)
+    .join(", ");
+}
+
+
+/* =========================================================
+   BUILD BRAND IDENTITY SECTION
+   ========================================================= */
+
+function buildBrandIdentityBrief(
+  brand
+) {
+  const lines = [];
+
+
+  lines.push(
+    `Official name: ${brand.name}`
+  );
+
+
+  if (brand.shortName) {
+    lines.push(
+      `Short name: ${brand.shortName}`
+    );
+  }
+
+
+  if (brand.website) {
+    lines.push(
+      `Website: ${brand.website}`
+    );
+  }
+
+
+  if (brand.businessType) {
+    lines.push(
+      `Business type: ${brand.businessType}`
+    );
+  }
+
+
+  if (brand.stage) {
+    lines.push(
+      `Business stage: ${brand.stageLabel || brand.stage}`
+    );
+  }
+
+
+  if (brand.primaryGoal) {
+    lines.push(
+      `Primary marketing goal: ${brand.primaryGoal}`
+    );
+  }
+
+
+  if (brand.campaignPhase) {
+    lines.push(
+      `Current campaign phase: ${brand.campaignPhase}`
+    );
+  }
+
+
+  if (brand.tagline) {
+    lines.push(
+      `Tagline: ${brand.tagline}`
+    );
+  }
+
+
+  if (brand.shortDescription) {
+    lines.push(
+      `Short description: ${brand.shortDescription}`
+    );
+  }
+
+
+  if (brand.longDescription) {
+    lines.push(
+      `Long description: ${brand.longDescription}`
+    );
+  }
+
+
+  if (brand.brandStory) {
+    lines.push(
+      `Brand story: ${brand.brandStory}`
+    );
+  }
+
+
+  if (brand.mission) {
+    lines.push(
+      `Mission: ${brand.mission}`
+    );
+  }
+
+
+  if (brand.differentiator) {
+    lines.push(
+      `Differentiator: ${brand.differentiator}`
+    );
+  }
+
+
+  if (brand.brandPromise) {
+    lines.push(
+      `Brand promise: ${brand.brandPromise}`
+    );
+  }
+
+
+  if (brand.openingDate) {
+    lines.push(
+      brand.openingDateConfirmed
+        ? `Confirmed opening date: ${brand.openingDate}`
+        : `Unconfirmed possible opening date: ${brand.openingDate}`
+    );
+  }
+
+
+  return lines.join(
+    "\n"
+  );
+}
+
+
+/* =========================================================
+   BUILD BRAND VOICE SECTION
+   ========================================================= */
+
+function buildBrandVoiceBrief(
+  brand
+) {
+  const voice =
+    brand.voice ||
+    {};
+
+
+  const lines = [];
+
+
+  const adjectives =
+    formatArrayForBrief(
+      voice.adjectives
+    );
+
+
+  if (adjectives) {
+    lines.push(
+      `Voice adjectives: ${adjectives}`
+    );
+  }
+
+
+  if (
+    voice.emotionalAtmosphere
+  ) {
+    lines.push(
+      `Emotional atmosphere: ${voice.emotionalAtmosphere}`
+    );
+  }
+
+
+  if (voice.formality) {
+    lines.push(
+      `Formality: ${voice.formality}`
+    );
+  }
+
+
+  if (voice.humorStyle) {
+    lines.push(
+      `Humor style: ${voice.humorStyle}`
+    );
+  }
+
+
+  if (voice.mysteryLevel) {
+    lines.push(
+      `Mystery level: ${voice.mysteryLevel}`
+    );
+  }
+
+
+  const preferredVocabulary =
+    formatArrayForBrief(
+      voice.preferredVocabulary
+    );
+
+
+  if (preferredVocabulary) {
+    lines.push(
+      `Preferred vocabulary: ${preferredVocabulary}`
+    );
+  }
+
+
+  const avoidVocabulary =
+    formatArrayForBrief(
+      voice.avoidVocabulary
+    );
+
+
+  if (avoidVocabulary) {
+    lines.push(
+      `Vocabulary to avoid: ${avoidVocabulary}`
+    );
+  }
+
+
+  const preferredPhrases =
+    formatArrayForBrief(
+      voice.preferredPhrases
+    );
+
+
+  if (preferredPhrases) {
+    lines.push(
+      `Preferred phrases: ${preferredPhrases}`
+    );
+  }
+
+
+  const avoidPhrases =
+    formatArrayForBrief(
+      voice.avoidPhrases
+    );
+
+
+  if (avoidPhrases) {
+    lines.push(
+      `Phrases to avoid: ${avoidPhrases}`
+    );
+  }
+
+
+  const cliches =
+    formatArrayForBrief(
+      voice.clichesToAvoid
+    );
+
+
+  if (cliches) {
+    lines.push(
+      `Clichés to avoid: ${cliches}`
+    );
+  }
+
+
+  if (voice.emojiPolicy) {
+    lines.push(
+      `Emoji policy: ${voice.emojiPolicy}`
+    );
+  }
+
+
+  if (voice.profanityPolicy) {
+    lines.push(
+      `Profanity policy: ${voice.profanityPolicy}`
+    );
+  }
+
+
+  if (
+    voice.capitalizationStyle
+  ) {
+    lines.push(
+      `Capitalization style: ${voice.capitalizationStyle}`
+    );
+  }
+
+
+  if (voice.ctaStyle) {
+    lines.push(
+      `Call-to-action style: ${voice.ctaStyle}`
+    );
+  }
+
+
+  if (voice.writingNotes) {
+    lines.push(
+      `Additional writing notes: ${voice.writingNotes}`
+    );
+  }
+
+
+  if (
+    Array.isArray(
+      voice.approvedExamples
+    ) &&
+    voice.approvedExamples.length
+  ) {
+    lines.push(
+      "Approved examples of on-brand language:"
+    );
+
+
+    voice.approvedExamples
+      .forEach(
+        example => {
+          lines.push(
+            `- ${example}`
+          );
+        }
+      );
+  }
+
+
+  return lines.join(
+    "\n"
+  );
+}
+
+
+/* =========================================================
+   BUILD SOURCE OF TRUTH SECTION
+   ========================================================= */
+
+function buildBrandFactsBrief(
+  brand
+) {
+  const facts =
+    Array.isArray(
+      brand.facts
+    )
+      ? brand.facts
+          .filter(
+            brandFactCanEnterAiBrief
+          )
+      : [];
+
+
+  if (!facts.length) {
+    return (
+      "- No verified or owner-approved Source of Truth facts are currently stored. Do not invent missing business facts."
+    );
+  }
+
+
+  return facts
+    .map(
+      formatBrandFactForBrief
+    )
+    .filter(Boolean)
+    .join("\n");
+}
+
+
+/* =========================================================
+   BUILD AI GUARDRAILS SECTION
+   ========================================================= */
+
+function buildBrandRulesBrief(
+  brand
+) {
+  const rules =
+    Array.isArray(
+      brand.rules
+    )
+      ? brand.rules
+          .filter(
+            rule =>
+              rule.active !==
+              false
+          )
+          .slice()
+          .sort(
+            (a, b) =>
+              Number(
+                a.priority || 100
+              ) -
+              Number(
+                b.priority || 100
+              )
+          )
+      : [];
+
+
+  if (!rules.length) {
+    return (
+      "- Do not invent facts, prices, dates, offers, availability, policies, products, services, or business claims."
+    );
+  }
+
+
+  return rules
+    .map(
+      rule =>
+        `- [Priority ${
+          Number(
+            rule.priority ||
+            100
+          )
+        }] ${rule.rule_text}`
+    )
+    .join("\n");
+}
+
+
+/* =========================================================
+   BUILD MILESTONE SECTION
+   ========================================================= */
+
+function buildBrandMilestonesBrief(
+  brand
+) {
+  const milestones =
+    Array.isArray(
+      brand.milestones
+    )
+      ? brand.milestones
+      : [];
+
+
+  const useful =
+    milestones
+      .filter(
+        milestone =>
+          milestone.status ===
+            "completed" ||
+          milestone.status ===
+            "in_progress"
+      )
+      .slice()
+      .sort(
+        (a, b) => {
+          const aDate =
+            new Date(
+              a.completed_at ||
+              a.milestone_date ||
+              0
+            ).getTime();
+
+
+          const bDate =
+            new Date(
+              b.completed_at ||
+              b.milestone_date ||
+              0
+            ).getTime();
+
+
+          return bDate - aDate;
+        }
+      )
+      .slice(
+        0,
+        12
+      );
+
+
+  if (!useful.length) {
+    return (
+      "- No completed or in-progress milestones are stored."
+    );
+  }
+
+
+  return useful
+    .map(
+      milestone => {
+        const parts = [
+          milestone.title
+        ];
+
+
+        if (
+          milestone.status
+        ) {
+          parts.push(
+            `status: ${
+              titleCaseStatus(
+                milestone.status
+              )
+            }`
+          );
+        }
+
+
+        if (
+          milestone.milestone_date
+        ) {
+          parts.push(
+            `date: ${
+              milestone.milestone_date
+            }`
+          );
+        }
+
+
+        if (
+          milestone.description
+        ) {
+          parts.push(
+            milestone.description
+          );
+        }
+
+
+        return (
+          `- ${parts.join(" — ")}`
+        );
+      }
+    )
+    .join("\n");
+}
+
+
+/* =========================================================
+   CONTENT TYPE INSTRUCTIONS
+   ========================================================= */
+
+function getAiContentInstructions(
+  type
+) {
+  switch (type) {
+    case "social-post":
+      return [
+        "Write one polished social media post.",
+        "Use natural paragraphing.",
+        "Include a call to action only when appropriate.",
+        "Do not add hashtags unless they genuinely help.",
+        "Do not fabricate urgency or scarcity."
+      ];
+
+
+    case "story":
+      return [
+        "Create concise social Story copy.",
+        "Break the idea into short, readable frames when useful.",
+        "Keep each frame visually scannable.",
+        "Include a final action or response prompt only when appropriate."
+      ];
+
+
+    case "reel":
+      return [
+        "Create a short-form video or Reel script.",
+        "Include a strong opening hook without clickbait.",
+        "Separate spoken copy from visual or shot direction.",
+        "Keep the concept practical to film."
+      ];
+
+
+    case "email":
+      return [
+        "Write a complete marketing email.",
+        "Include a subject line.",
+        "Include preview text when useful.",
+        "Keep the body readable and purposeful.",
+        "Include a clear call to action when appropriate."
+      ];
+
+
+    case "website-copy":
+      return [
+        "Write polished website copy.",
+        "Use useful headings and concise sections.",
+        "Prioritize clarity before cleverness.",
+        "Do not invent claims, credentials, pricing, policies, or availability."
+      ];
+
+
+    case "graphic":
+      return [
+        "Create copy and art direction for a promotional graphic.",
+        "Keep on-image copy concise.",
+        "Separate visible text from visual direction.",
+        "Describe composition, mood, imagery, and typography without inventing business facts."
+      ];
+
+
+    case "campaign":
+      return [
+        "Build a practical marketing campaign concept.",
+        "Include the campaign idea, objective, audience, message, content opportunities, and call to action.",
+        "Use only confirmed business information.",
+        "Do not invent promotions, discounts, launch dates, or availability."
+      ];
+
+
+    default:
+      return [
+        "Create polished marketing content that follows the brand information and guardrails below."
+      ];
+  }
+}
+
+
+/* =========================================================
+   BUILD COMPLETE AI BRIEF
+   ========================================================= */
+
+function buildAiBrief({
+  brand,
+  type,
+  request,
+  goal
+}) {
+  const definition =
+    CREATE_TYPES[type];
+
+
+  const contentLabel =
+    definition?.label ||
+    getContentTypeLabel(
+      type
+    );
+
+
+  const contentInstructions =
+    getAiContentInstructions(
+      type
+    );
+
+
+  const sections = [];
+
+
+  sections.push(
+`BLACK STAG MARKETING STUDIO
+CONTENT BRIEF
+
+You are helping create marketing content for a real business.
+
+Your job is to produce useful, polished copy while obeying the Brand Brain below.
+
+IMPORTANT:
+- Treat verified and owner-approved information as factual.
+- Do not turn AI suggestions, guesses, or missing information into facts.
+- Do not invent prices, dates, operating hours, products, services, promotions, availability, policies, addresses, claims, credentials, events, or business status.
+- If the request depends on information that is not confirmed below, write around the missing detail or clearly flag what needs confirmation.
+- Follow the AI Guardrails even when they conflict with the creative request.
+- Preserve the brand's established voice without exaggerating it.`
+  );
+
+
+  sections.push(
+`CONTENT REQUEST
+
+Type: ${contentLabel}
+
+Goal: ${
+  goal ||
+  "Not specified"
+}
+
+Owner request:
+${request}`
+  );
+
+
+  sections.push(
+`OUTPUT INSTRUCTIONS
+
+${
+  contentInstructions
+    .map(
+      instruction =>
+        `- ${instruction}`
+    )
+    .join("\n")
+}
+
+Return the finished content first.
+
+After the finished content, include a short section titled:
+NOTES FOR OWNER
+
+Only use that section for:
+- factual details that still need confirmation,
+- optional creative alternatives,
+- or a brief explanation of an important choice.
+
+Do not pad the response with generic marketing advice.`
+  );
+
+
+  sections.push(
+`BRAND IDENTITY
+
+${buildBrandIdentityBrief(
+  brand
+)}`
+  );
+
+
+  sections.push(
+`BRAND VOICE
+
+${
+  buildBrandVoiceBrief(
+    brand
+  ) ||
+  "No detailed Brand Voice has been stored yet. Use the identity and guardrails conservatively."
+}`
+  );
+
+
+  sections.push(
+`SOURCE OF TRUTH
+
+${buildBrandFactsBrief(
+  brand
+)}`
+  );
+
+
+  sections.push(
+`AI GUARDRAILS
+
+${buildBrandRulesBrief(
+  brand
+)}`
+  );
+
+
+  sections.push(
+`CURRENT BUSINESS PROGRESS
+
+${buildBrandMilestonesBrief(
+  brand
+)}`
+  );
+
+
+  return sections
+    .join(
+      "\n\n========================================\n\n"
+    );
+}
+/* =========================================================
+   MANUAL AI WORKFLOW STATE
+   ========================================================= */
+
+const MANUAL_AI_STATE = {
+  brandId: null,
+  type: null,
+  request: "",
+  goal: "",
+  brief: ""
+};
+
+
+/* =========================================================
+   MANUAL AI DIALOG
+   ========================================================= */
+
+function ensureManualAiDialog() {
   let dialog =
-    $("#aiBriefDialog");
+    $("#manualAiDialog");
 
 
   if (dialog) {
@@ -3103,7 +11688,7 @@ function ensureAiBriefDialog() {
 
 
   dialog.id =
-    "aiBriefDialog";
+    "manualAiDialog";
 
 
   dialog.className =
@@ -3111,96 +11696,228 @@ function ensureAiBriefDialog() {
 
 
   dialog.innerHTML = `
-    <div class="dialog-header">
+    <div
+      style="
+        width:min(820px,94vw);
+        max-width:100%;
+        max-height:90vh;
+        overflow-y:auto;
+      "
+    >
 
-      <div>
+      <div class="dialog-header">
 
-        <span class="eyebrow">
-          ChatGPT — Manual
-        </span>
+        <div>
 
-        <h2>
-          AI Brief
-        </h2>
+          <span class="eyebrow">
+            Manual AI Mode
+          </span>
+
+          <h2 id="manualAiDialogTitle">
+            Create with ChatGPT
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeManualAiDialogButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
 
       </div>
 
-      <button
-        id="closeAiBriefButton"
-        class="dialog-close"
-        type="button"
-        aria-label="Close"
-      >
-        ×
-      </button>
-
-    </div>
-
-    <div class="create-form">
-
-      <p
-        style="
-          margin:0;
-          color:var(--muted);
-          font-size:.82rem;
-          line-height:1.65;
-        "
-      >
-        Marketing Studio assembled this prompt
-        from the active Brand Brain and your
-        request. Copy it into ChatGPT, then
-        return here with the finished result.
-      </p>
-
-      <label class="field">
-
-        <span>
-          Generated AI Brief
-        </span>
-
-        <textarea
-          id="aiBriefText"
-          readonly
-          style="
-            min-height:300px;
-          "
-        ></textarea>
-
-      </label>
 
       <div
         style="
           display:grid;
-          grid-template-columns:1fr 1fr;
-          gap:10px;
+          gap:20px;
         "
       >
 
-        <button
-          id="copyAiBriefButton"
-          class="primary-button"
-          type="button"
-        >
-          Copy Brief
-        </button>
+        <section>
 
-        <button
-          id="openChatGptButton"
-          class="secondary-button"
-          type="button"
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:flex-end;
+              gap:12px;
+              flex-wrap:wrap;
+              margin-bottom:10px;
+            "
+          >
+
+            <div>
+
+              <span class="eyebrow">
+                Step One
+              </span>
+
+              <h3
+                style="
+                  margin:4px 0 0;
+                  font-family:
+                    Georgia,
+                    'Times New Roman',
+                    serif;
+                  font-size:1.08rem;
+                  font-weight:400;
+                "
+              >
+                Copy the Brand-Aware Brief
+              </h3>
+
+            </div>
+
+
+            <button
+              id="copyManualAiBriefButton"
+              class="primary-button"
+              type="button"
+            >
+              Copy Brief
+            </button>
+
+          </div>
+
+
+          <p
+            style="
+              margin:
+                0 0 10px;
+              color:var(--muted);
+              font-size:.76rem;
+              line-height:1.6;
+            "
+          >
+            Paste this into ChatGPT. The brief already
+            includes the selected brand's identity,
+            voice, verified Source of Truth, AI
+            guardrails, and relevant business progress.
+          </p>
+
+
+          <textarea
+            id="manualAiBrief"
+            readonly
+            spellcheck="false"
+            style="
+              width:100%;
+              min-height:260px;
+              resize:vertical;
+            "
+          ></textarea>
+
+        </section>
+
+
+        <div
+          style="
+            height:1px;
+            background:var(--line);
+          "
+        ></div>
+
+
+        <section>
+
+          <div
+            style="
+              margin-bottom:10px;
+            "
+          >
+
+            <span class="eyebrow">
+              Step Two
+            </span>
+
+            <h3
+              style="
+                margin:4px 0 0;
+                font-family:
+                  Georgia,
+                  'Times New Roman',
+                  serif;
+                font-size:1.08rem;
+                font-weight:400;
+              "
+            >
+              Paste the Finished Result
+            </h3>
+
+          </div>
+
+
+          <p
+            style="
+              margin:
+                0 0 10px;
+              color:var(--muted);
+              font-size:.76rem;
+              line-height:1.6;
+            "
+          >
+            Review the ChatGPT result first, make any
+            edits you want, then paste the finished
+            version here. Saving creates a real draft
+            in Content Studio.
+          </p>
+
+
+          <textarea
+            id="manualAiResult"
+            placeholder="Paste the finished ChatGPT result here…"
+            style="
+              width:100%;
+              min-height:240px;
+              resize:vertical;
+            "
+          ></textarea>
+
+        </section>
+
+
+        <div
+          class="form-actions"
+          style="
+            position:sticky;
+            bottom:0;
+            padding-top:14px;
+            padding-bottom:2px;
+            background:
+              linear-gradient(
+                180deg,
+                transparent,
+                rgba(7,8,11,.97) 25%
+              );
+          "
         >
-          Open ChatGPT
-        </button>
+
+          <button
+            id="cancelManualAiButton"
+            class="secondary-button"
+            type="button"
+          >
+            Close
+          </button>
+
+
+          <button
+            id="saveManualAiDraftButton"
+            class="primary-button"
+            type="button"
+          >
+            Save as Draft
+          </button>
+
+        </div>
 
       </div>
-
-      <button
-        id="showPasteResultButton"
-        class="secondary-button full-button"
-        type="button"
-      >
-        I Have My Result
-      </button>
 
     </div>
   `;
@@ -3211,7 +11928,7 @@ function ensureAiBriefDialog() {
   );
 
 
-  $("#closeAiBriefButton")
+  $("#closeManualAiDialogButton")
     ?.addEventListener(
       "click",
       () => {
@@ -3222,33 +11939,28 @@ function ensureAiBriefDialog() {
     );
 
 
-  $("#copyAiBriefButton")
-    ?.addEventListener(
-      "click",
-      copyCurrentAiBrief
-    );
-
-
-  $("#openChatGptButton")
-    ?.addEventListener(
-      "click",
-      openChatGpt
-    );
-
-
-  $("#showPasteResultButton")
+  $("#cancelManualAiButton")
     ?.addEventListener(
       "click",
       () => {
-
         safeDialogClose(
           dialog
         );
-
-
-        showAiResultDialog();
-
       }
+    );
+
+
+  $("#copyManualAiBriefButton")
+    ?.addEventListener(
+      "click",
+      copyManualAiBrief
+    );
+
+
+  $("#saveManualAiDraftButton")
+    ?.addEventListener(
+      "click",
+      saveManualAiDraft
     );
 
 
@@ -3261,18 +11973,75 @@ function ensureAiBriefDialog() {
 }
 
 
-function showAiBriefDialog() {
+/* =========================================================
+   SHOW MANUAL AI DIALOG
+   ========================================================= */
+
+function showManualAiDialog({
+  brand,
+  type,
+  request,
+  goal,
+  brief
+}) {
   const dialog =
-    ensureAiBriefDialog();
+    ensureManualAiDialog();
 
 
-  const textarea =
-    $("#aiBriefText");
+  MANUAL_AI_STATE.brandId =
+    brand.id;
 
 
-  if (textarea) {
-    textarea.value =
-      APP_STATE.currentAiBrief;
+  MANUAL_AI_STATE.type =
+    type;
+
+
+  MANUAL_AI_STATE.request =
+    request;
+
+
+  MANUAL_AI_STATE.goal =
+    goal || "";
+
+
+  MANUAL_AI_STATE.brief =
+    brief;
+
+
+  const definition =
+    CREATE_TYPES[type];
+
+
+  const title =
+    $("#manualAiDialogTitle");
+
+
+  if (title) {
+    title.textContent =
+      `${
+        definition?.label ||
+        "Content"
+      } · ${brand.shortName}`;
+  }
+
+
+  const briefField =
+    $("#manualAiBrief");
+
+
+  if (briefField) {
+    briefField.value =
+      brief;
+  }
+
+
+  const resultField =
+    $("#manualAiResult");
+
+
+  if (resultField) {
+    resultField.value =
+      "";
   }
 
 
@@ -3286,14 +12055,16 @@ function showAiBriefDialog() {
    COPY AI BRIEF
    ========================================================= */
 
-async function copyCurrentAiBrief() {
+async function copyManualAiBrief() {
   const brief =
-    APP_STATE.currentAiBrief;
+    $("#manualAiBrief")
+      ?.value ||
+    MANUAL_AI_STATE.brief;
 
 
   if (!brief) {
     showToast(
-      "There is no AI brief to copy.",
+      "There is no brief to copy.",
       "error"
     );
 
@@ -3302,340 +12073,155 @@ async function copyCurrentAiBrief() {
 
 
   try {
+    if (
+      navigator.clipboard &&
+      window.isSecureContext
+    ) {
+      await navigator.clipboard
+        .writeText(
+          brief
+        );
+    } else {
+      const field =
+        $("#manualAiBrief");
 
-    await navigator.clipboard
-      .writeText(
-        brief
+
+      if (!field) {
+        throw new Error(
+          "Clipboard unavailable."
+        );
+      }
+
+
+      field.focus();
+
+      field.select();
+
+      field.setSelectionRange(
+        0,
+        field.value.length
       );
 
 
-    showToast(
-      "AI brief copied. Paste it into ChatGPT.",
-      "success"
-    );
-
-  } catch (error) {
-
-    const textarea =
-      $("#aiBriefText");
-
-
-    if (textarea) {
-      textarea.focus();
-      textarea.select();
-
-
-      try {
-
+      const copied =
         document.execCommand(
           "copy"
         );
 
 
-        showToast(
-          "AI brief copied. Paste it into ChatGPT.",
-          "success"
-        );
-
-
-        return;
-
-      } catch (
-        fallbackError
-      ) {
-        console.warn(
-          fallbackError
+      if (!copied) {
+        throw new Error(
+          "Clipboard unavailable."
         );
       }
     }
 
 
     showToast(
-      "Copy the brief from the text box.",
-      "error"
+      "Brief copied. Paste it into ChatGPT.",
+      "success"
     );
 
+  } catch (error) {
+    console.error(
+      "Unable to copy AI brief:",
+      error
+    );
+
+
+    showToast(
+      "Could not copy automatically. Select the brief and copy it manually.",
+      "error",
+      5000
+    );
   }
 }
 
 
 /* =========================================================
-   OPEN CHATGPT
+   CREATE CONTENT TITLE
    ========================================================= */
 
-function openChatGpt() {
-  window.open(
-    "https://chatgpt.com/",
-    "_blank",
-    "noopener,noreferrer"
-  );
-}
-
-
-/* =========================================================
-   AI RESULT DIALOG
-   ========================================================= */
-
-function ensureAiResultDialog() {
-  let dialog =
-    $("#aiResultDialog");
-
-
-  if (dialog) {
-    return dialog;
-  }
-
-
-  dialog =
-    document.createElement(
-      "dialog"
-    );
-
-
-  dialog.id =
-    "aiResultDialog";
-
-
-  dialog.className =
-    "app-dialog create-dialog";
-
-
-  dialog.innerHTML = `
-    <div class="dialog-header">
-
-      <div>
-
-        <span class="eyebrow">
-          Content Workflow
-        </span>
-
-        <h2>
-          Bring It Back
-        </h2>
-
-      </div>
-
-      <button
-        id="closeAiResultButton"
-        class="dialog-close"
-        type="button"
-        aria-label="Close"
-      >
-        ×
-      </button>
-
-    </div>
-
-    <form
-      id="aiResultForm"
-      class="create-form"
-    >
-
-      <p
-        style="
-          margin:0;
-          color:var(--muted);
-          font-size:.82rem;
-          line-height:1.65;
-        "
-      >
-        Paste the finished ChatGPT response
-        below. Marketing Studio will save it
-        to Supabase as a draft under the
-        correct brand.
-      </p>
-
-      <label class="field">
-
-        <span>
-          Draft Title
-        </span>
-
-        <input
-          id="aiResultTitle"
-          type="text"
-          placeholder="Optional title"
-          autocomplete="off"
-        />
-
-      </label>
-
-      <label class="field">
-
-        <span>
-          ChatGPT Result
-        </span>
-
-        <textarea
-          id="aiResultText"
-          placeholder="Paste the finished content here..."
-          style="
-            min-height:260px;
-          "
-          required
-        ></textarea>
-
-      </label>
-
-      <div class="form-actions">
-
-        <button
-          id="backToBriefButton"
-          class="secondary-button"
-          type="button"
-        >
-          Back
-        </button>
-
-        <button
-          id="saveAiDraftButton"
-          class="primary-button"
-          type="submit"
-        >
-          Save Draft
-        </button>
-
-      </div>
-
-    </form>
-  `;
-
-
-  document.body.appendChild(
-    dialog
-  );
-
-
-  $("#closeAiResultButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
-
-
-  $("#backToBriefButton")
-    ?.addEventListener(
-      "click",
-      () => {
-
-        safeDialogClose(
-          dialog
-        );
-
-
-        showAiBriefDialog();
-
-      }
-    );
-
-
-  $("#aiResultForm")
-    ?.addEventListener(
-      "submit",
-      handleAiResultSubmit
-    );
-
-
-  enableBackdropClose(
-    dialog
-  );
-
-
-  return dialog;
-}
-
-
-function showAiResultDialog() {
-  const dialog =
-    ensureAiResultDialog();
-
-
-  const title =
-    $("#aiResultTitle");
-
-
-  const text =
-    $("#aiResultText");
-
-
-  const definition =
-    CREATE_TYPES[
-      APP_STATE.currentAiRequest
-        .type
-    ];
-
-
-  if (
-    title &&
-    !title.value
-  ) {
-    title.value =
-      definition?.label ||
-      "Marketing Draft";
-  }
-
-
-  safeDialogOpen(
-    dialog
-  );
-
-
-  window.setTimeout(
-    () => {
-      text?.focus();
-    },
-    100
-  );
-}
-
-
-/* =========================================================
-   SAVE AI RESULT TO SUPABASE
-   ========================================================= */
-
-async function handleAiResultSubmit(
-  event
+function makeDraftTitle(
+  type,
+  request
 ) {
-  event.preventDefault();
+  const label =
+    CREATE_TYPES[type]
+      ?.label ||
+    "Content";
 
 
+  const cleaned =
+    String(
+      request ||
+      ""
+    )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim();
+
+
+  if (!cleaned) {
+    return (
+      `${label} Draft`
+    );
+  }
+
+
+  const shortRequest =
+    cleaned.length > 58
+      ? (
+          cleaned
+            .slice(
+              0,
+              58
+            )
+            .trimEnd() +
+          "…"
+        )
+      : cleaned;
+
+
+  return (
+    `${label} · ${shortRequest}`
+  );
+}
+
+
+/* =========================================================
+   SAVE MANUAL AI RESULT AS DRAFT
+   ========================================================= */
+
+async function saveManualAiDraft() {
   const result =
-    $("#aiResultText")
+    $("#manualAiResult")
       ?.value
       ?.trim();
-
-
-  const title =
-    $("#aiResultTitle")
-      ?.value
-      ?.trim();
-
-
-  const saveButton =
-    $("#saveAiDraftButton");
 
 
   if (!result) {
     showToast(
-      "Paste the finished ChatGPT content first.",
+      "Paste the finished ChatGPT result first.",
       "error"
     );
+
+
+    $("#manualAiResult")
+      ?.focus();
+
 
     return;
   }
 
 
-  const request =
-    APP_STATE.currentAiRequest;
-
-
   const brand =
-    getBrandById(
-      request.brandId
+    APP_DATA.brands.find(
+      item =>
+        item.id ===
+        MANUAL_AI_STATE.brandId
     );
 
 
@@ -3649,61 +12235,84 @@ async function handleAiResultSubmit(
   }
 
 
-  const typeDefinition =
-    CREATE_TYPES[
-      request.type
-    ] ||
-    CREATE_TYPES[
-      "social-post"
-    ];
+  const button =
+    $("#saveManualAiDraftButton");
 
 
-  if (saveButton) {
-    saveButton.disabled =
+  if (button) {
+    button.disabled =
       true;
 
-    saveButton.textContent =
+    button.textContent =
       "Saving…";
   }
 
 
+  const payload = {
+    brand_id:
+      brand.id,
+
+    campaign_id:
+      null,
+
+    content_type:
+      getDatabaseContentType(
+        MANUAL_AI_STATE.type
+      ),
+
+    status:
+      "draft",
+
+    title:
+      makeDraftTitle(
+        MANUAL_AI_STATE.type,
+        MANUAL_AI_STATE.request
+      ),
+
+    body:
+      result,
+
+    alternate_copy:
+      null,
+
+    visual_direction:
+      null,
+
+    cta:
+      null,
+
+    hashtags:
+      [],
+
+    platform:
+      null,
+
+    goal:
+      nullableText(
+        MANUAL_AI_STATE.goal
+      ),
+
+    original_request:
+      MANUAL_AI_STATE.request,
+
+    ai_mode:
+      "manual-chatgpt",
+
+    ai_brief:
+      MANUAL_AI_STATE.brief,
+
+    rejection_reason:
+      null,
+
+    scheduled_for:
+      null,
+
+    published_at:
+      null
+  };
+
+
   try {
-
-    const payload = {
-      brand_id:
-        brand.id,
-
-      campaign_id:
-        null,
-
-      content_type:
-        typeDefinition.dbType,
-
-      status:
-        "draft",
-
-      title:
-        title ||
-        typeDefinition.label ||
-        "Marketing Draft",
-
-      body:
-        result,
-
-      goal:
-        request.goal,
-
-      original_request:
-        request.prompt,
-
-      ai_mode:
-        "manual-chatgpt",
-
-      ai_brief:
-        APP_STATE.currentAiBrief
-    };
-
-
     const {
       data,
       error
@@ -3724,6 +12333,93 @@ async function handleAiResultSubmit(
     }
 
 
+    /*
+      Record the manual AI run separately from the
+      content item. This gives us useful history later
+      without pretending the app called an API.
+    */
+
+    const {
+      error:
+        aiRunError
+    } =
+      await supabaseClient
+        .from(
+          "ai_runs"
+        )
+        .insert({
+          brand_id:
+            brand.id,
+
+          content_id:
+            data.id,
+
+          campaign_id:
+            null,
+
+          provider:
+            "chatgpt-manual",
+
+          model:
+            null,
+
+          prompt_version:
+            "brand-brain-v1",
+
+          user_instruction:
+            MANUAL_AI_STATE.request,
+
+          input_snapshot: {
+            goal:
+              MANUAL_AI_STATE.goal ||
+              null,
+
+            content_type:
+              MANUAL_AI_STATE.type
+          },
+
+          generated_prompt:
+            MANUAL_AI_STATE.brief,
+
+          output_text:
+            result,
+
+          status:
+            "completed",
+
+          input_tokens:
+            null,
+
+          output_tokens:
+            null,
+
+          estimated_cost:
+            0
+        });
+
+
+    if (aiRunError) {
+      /*
+        The draft itself is already safely saved.
+        An AI-run history failure should not destroy
+        or duplicate that content.
+      */
+
+      console.warn(
+        "Draft saved, but AI run history could not be recorded:",
+        aiRunError
+      );
+    }
+
+
+    APP_DATA.content =
+      APP_DATA.content.filter(
+        item =>
+          item.id !==
+          data.id
+      );
+
+
     APP_DATA.content.unshift(
       normalizeContent(
         data
@@ -3732,18 +12428,18 @@ async function handleAiResultSubmit(
 
 
     safeDialogClose(
-      $("#aiResultDialog")
+      $("#manualAiDialog")
     );
 
 
-    resetAiWorkflow();
-
-
     renderDashboard();
+
     renderContentLibrary();
 
+    renderCalendar();
 
-    setView(
+
+    navigateToView(
       "studio"
     );
 
@@ -3753,10 +12449,12 @@ async function handleAiResultSubmit(
       "success"
     );
 
-  } catch (error) {
 
+    resetManualAiState();
+
+  } catch (error) {
     console.error(
-      "Unable to save draft:",
+      "Unable to save manual AI draft:",
       error
     );
 
@@ -3769,251 +12467,282 @@ async function handleAiResultSubmit(
     );
 
   } finally {
+    const currentButton =
+      $("#saveManualAiDraftButton");
 
-    if (saveButton) {
-      saveButton.disabled =
+
+    if (currentButton) {
+      currentButton.disabled =
         false;
 
-      saveButton.textContent =
-        "Save Draft";
+      currentButton.textContent =
+        "Save as Draft";
     }
-
   }
 }
 
 
 /* =========================================================
-   RESET AI WORKFLOW
+   RESET MANUAL AI STATE
    ========================================================= */
 
-function resetAiWorkflow() {
-  APP_STATE.currentAiBrief =
+function resetManualAiState() {
+  MANUAL_AI_STATE.brandId =
+    null;
+
+
+  MANUAL_AI_STATE.type =
+    null;
+
+
+  MANUAL_AI_STATE.request =
     "";
 
 
-  APP_STATE.currentAiRequest = {
-    brandId: null,
-    type: null,
-    goal: null,
-    prompt: null
-  };
+  MANUAL_AI_STATE.goal =
+    "";
 
 
-  const prompt =
-    $("#createPrompt");
+  MANUAL_AI_STATE.brief =
+    "";
 
 
-  const result =
-    $("#aiResultText");
+  const briefField =
+    $("#manualAiBrief");
 
 
-  const title =
-    $("#aiResultTitle");
+  const resultField =
+    $("#manualAiResult");
 
 
-  if (prompt) {
-    prompt.value =
+  if (briefField) {
+    briefField.value =
       "";
   }
 
 
-  if (result) {
-    result.value =
+  if (resultField) {
+    resultField.value =
       "";
   }
+}
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+function navigateToView(
+  viewName
+) {
+  const targetView =
+    VIEW_DEFINITIONS[
+      viewName
+    ]
+      ? viewName
+      : "dashboard";
 
 
-  if (title) {
-    title.value =
-      "";
+  APP_STATE.currentView =
+    targetView;
+
+
+  $$(
+    "[data-view-panel]"
+  ).forEach(
+    panel => {
+      panel.hidden =
+        panel.dataset
+          .viewPanel !==
+        targetView;
+    }
+  );
+
+
+  $$(
+    "[data-view]"
+  ).forEach(
+    button => {
+      const active =
+        button.dataset
+          .view ===
+        targetView;
+
+
+      button.classList.toggle(
+        "is-active",
+        active
+      );
+
+
+      if (active) {
+        button.setAttribute(
+          "aria-current",
+          "page"
+        );
+      } else {
+        button.removeAttribute(
+          "aria-current"
+        );
+      }
+    }
+  );
+
+
+  renderCurrentView();
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
+
+
+/* =========================================================
+   RENDER CURRENT VIEW
+   ========================================================= */
+
+function renderCurrentView() {
+  switch (
+    APP_STATE.currentView
+  ) {
+    case "dashboard":
+      renderDashboard();
+      break;
+
+
+    case "brands":
+      renderBrandGrid();
+      break;
+
+
+    case "campaigns":
+      renderCampaigns();
+      break;
+
+
+    case "studio":
+      renderContentLibrary();
+      break;
+
+
+    case "calendar":
+      renderCalendar();
+      break;
+
+
+    case "vault":
+      renderAssets();
+      break;
+
+
+    case "settings":
+      break;
+
+
+    default:
+      renderDashboard();
   }
 }
 
 
 /* =========================================================
-   BRAND BRAIN
+   RENDER EVERYTHING
    ========================================================= */
 
-function openBrandBrain(
-  brandId
-) {
-  const brand =
-    getBrandById(
-      brandId
-    );
+function renderApp() {
+  renderActiveBrand();
+
+  renderBrandPicker();
+
+  renderBrandGrid();
+
+  renderDashboard();
+
+  renderCampaigns();
+
+  renderContentLibrary();
+
+  renderCalendar();
+
+  renderAssets();
+
+  renderQuickCreateBrandOptions();
+
+  renderCurrentView();
+}
 
 
-  if (!brand) {
+/* =========================================================
+   BRAND SWITCHER
+   ========================================================= */
+
+function openBrandPicker() {
+  const dialog =
+    $("#brandPickerDialog");
+
+
+  if (!dialog) {
     return;
   }
 
 
-  setActiveBrand(
-    brand.id,
-    {
-      toast: false
-    }
-  );
+  renderBrandPicker();
 
 
-  showToast(
-    `${brand.shortName} Brand Brain is connected to Supabase. The editor UI is next.`,
-    "success"
+  safeDialogOpen(
+    dialog
   );
 }
 
 
 /* =========================================================
-   ADD BRAND
+   ADD BRAND PLACEHOLDER
    ========================================================= */
 
 function handleAddBrand() {
   showToast(
-    "The database is ready for new brands. The Add Brand editor is coming next.",
-    "success"
+    "Brand creation is next on the build list. Your three starter brands are already connected.",
+    "success",
+    4500
   );
 }
 
 
 /* =========================================================
-   ASSET PLACEHOLDER
-   ========================================================= */
-
-function handleAddAsset() {
-  showToast(
-    "The private Asset Vault is connected. Upload controls are coming next.",
-    "success"
-  );
-}
-
-
-/* =========================================================
-   SETTINGS
+   SETTINGS PLACEHOLDER
    ========================================================= */
 
 function handleSettingsSection(
   section
 ) {
-  if (
-    section ===
-    "ai"
-  ) {
-    const mode =
-      CONFIG.ai?.mode ||
-      "manual-chatgpt";
-
-
-    const label =
-      mode ===
-      "manual-chatgpt"
-        ? "ChatGPT — Manual"
-        : "OpenAI API — Automatic";
-
-
-    showToast(
-      `AI Mode: ${label}`,
-      "success"
-    );
-
-
-    return;
-  }
-
-
   const labels = {
+    ai:
+      "AI Settings",
+
     social:
-      "Social account connections",
+      "Social Accounts",
 
     publishing:
-      "Publishing settings",
+      "Publishing Settings",
 
     preferences:
-      "App preferences"
+      "App Preferences"
   };
 
 
   showToast(
     `${
       labels[section] ||
-      "This settings section"
-    } will be connected in the next phase.`,
-    "success"
+      "Settings"
+    } will be wired in the next phase.`,
+    "success",
+    4000
   );
 }
 
 
 /* =========================================================
-   TOASTS
-   ========================================================= */
-
-function showToast(
-  message,
-  type = "default",
-  duration = 3200
-) {
-  const region =
-    $("#toastRegion");
-
-
-  if (!region) {
-    return;
-  }
-
-
-  const toast =
-    document.createElement(
-      "div"
-    );
-
-
-  toast.className =
-    `toast ${
-      type === "success"
-        ? "is-success"
-        : type === "error"
-          ? "is-error"
-          : ""
-    }`;
-
-
-  toast.textContent =
-    message;
-
-
-  region.appendChild(
-    toast
-  );
-
-
-  window.setTimeout(
-    () => {
-
-      toast.style.opacity =
-        "0";
-
-
-      toast.style.transform =
-        "translateY(5px)";
-
-    },
-    Math.max(
-      500,
-      duration - 250
-    )
-  );
-
-
-  window.setTimeout(
-    () => {
-      toast.remove();
-    },
-    duration
-  );
-}
-
-
-/* =========================================================
-   DIALOG BACKDROP CLOSE
+   BACKDROP CLOSE
    ========================================================= */
 
 function enableBackdropClose(
@@ -4027,42 +12756,226 @@ function enableBackdropClose(
   dialog.addEventListener(
     "click",
     event => {
-
       if (
-        event.target ===
+        event.target !==
         dialog
       ) {
+        return;
+      }
+
+
+      const rect =
+        dialog.getBoundingClientRect();
+
+
+      const inside =
+        event.clientX >=
+          rect.left &&
+        event.clientX <=
+          rect.right &&
+        event.clientY >=
+          rect.top &&
+        event.clientY <=
+          rect.bottom;
+
+
+      if (!inside) {
         safeDialogClose(
           dialog
         );
       }
-
     }
   );
 }
 
 
 /* =========================================================
-   GLOBAL CLICK HANDLER
+   TOAST
    ========================================================= */
 
-function handleGlobalClick(
-  event
+let toastTimer =
+  null;
+
+
+function showToast(
+  message,
+  type = "success",
+  duration = 3200
 ) {
-  const viewButton =
-    event.target.closest(
-      "[data-view]"
-    );
+  const region =
+    $("#toastRegion");
 
 
-  if (viewButton) {
-    setView(
-      viewButton.dataset.view
+  if (!region) {
+    console.log(
+      message
     );
 
     return;
   }
 
+
+  window.clearTimeout(
+    toastTimer
+  );
+
+
+  region.textContent =
+    message;
+
+
+  region.classList.remove(
+    "is-success",
+    "is-error"
+  );
+
+
+  region.classList.add(
+    type === "error"
+      ? "is-error"
+      : "is-success"
+  );
+
+
+  region.hidden =
+    false;
+
+
+  toastTimer =
+    window.setTimeout(
+      () => {
+        region.hidden =
+          true;
+
+
+        region.classList.remove(
+          "is-success",
+          "is-error"
+        );
+      },
+      duration
+    );
+}
+
+
+/* =========================================================
+   BRAND BRAIN DELEGATED ACTIONS
+   ========================================================= */
+
+function handleBrandBrainDelegatedClick(
+  event
+) {
+  const closeButton =
+    event.target.closest(
+      "[data-close-brand-brain]"
+    );
+
+
+  if (closeButton) {
+    closeBrandBrain();
+
+    return;
+  }
+
+
+  /*
+    Source of Truth actions
+  */
+
+  const factTarget =
+    event.target.closest(
+      [
+        "[data-add-brand-fact]",
+        "[data-edit-brand-fact]",
+        "[data-archive-brand-fact]"
+      ].join(",")
+    );
+
+
+  if (factTarget) {
+    handleBrandFactsClick(
+      event
+    );
+
+    return;
+  }
+
+
+  /*
+    AI Guardrail actions
+  */
+
+  const ruleTarget =
+    event.target.closest(
+      [
+        "[data-add-brand-rule]",
+        "[data-edit-brand-rule]",
+        "[data-archive-brand-rule]"
+      ].join(",")
+    );
+
+
+  if (ruleTarget) {
+    handleBrandRulesClick(
+      event
+    );
+
+    return;
+  }
+
+
+  /*
+    Milestone actions
+  */
+
+  const milestoneTarget =
+    event.target.closest(
+      [
+        "[data-add-brand-milestone]",
+        "[data-edit-brand-milestone]",
+        "[data-complete-brand-milestone]",
+        "[data-create-from-milestone]"
+      ].join(",")
+    );
+
+
+  if (milestoneTarget) {
+    handleBrandMilestonesClick(
+      event
+    );
+  }
+}
+
+
+/* =========================================================
+   GLOBAL CLICK HANDLING
+   ========================================================= */
+
+function handleGlobalClick(
+  event
+) {
+  /*
+    Main navigation
+  */
+
+  const navButton =
+    event.target.closest(
+      "[data-view]"
+    );
+
+
+  if (navButton) {
+    navigateToView(
+      navButton.dataset.view
+    );
+
+    return;
+  }
+
+
+  /*
+    Quick Create buttons
+  */
 
   const createButton =
     event.target.closest(
@@ -4071,39 +12984,32 @@ function handleGlobalClick(
 
 
   if (createButton) {
-    openQuickCreate(
+    const type =
       createButton.dataset
-        .createType
-    );
-
-    return;
-  }
+        .createType;
 
 
-  const quickCreateButton =
-    event.target.closest(
-      "[data-open-quick-create]"
-    );
-
-
-  if (quickCreateButton) {
     openQuickCreate(
-      "social-post"
+      type
     );
 
     return;
   }
 
 
-  const selectBrandButton =
+  /*
+    Brand selection
+  */
+
+  const brandSelect =
     event.target.closest(
       "[data-select-brand]"
     );
 
 
-  if (selectBrandButton) {
+  if (brandSelect) {
     const brandId =
-      selectBrandButton.dataset
+      brandSelect.dataset
         .selectBrand;
 
 
@@ -4121,82 +13027,136 @@ function handleGlobalClick(
   }
 
 
-  const openBrandButton =
+  /*
+    Brand card "Work With Brand"
+  */
+
+  const workWithBrand =
     event.target.closest(
-      "[data-open-brand]"
+      "[data-work-with-brand]"
     );
 
 
-  if (openBrandButton) {
+  if (workWithBrand) {
+    const brandId =
+      workWithBrand.dataset
+        .workWithBrand;
+
+
+    setActiveBrand(
+      brandId
+    );
+
+
+    navigateToView(
+      "dashboard"
+    );
+
+
+    return;
+  }
+
+
+  /*
+    Open Brand Brain
+  */
+
+  const brandBrainButton =
+    event.target.closest(
+      "[data-brand-brain]"
+    );
+
+
+  if (brandBrainButton) {
     openBrandBrain(
-      openBrandButton.dataset
-        .openBrand
+      brandBrainButton.dataset
+        .brandBrain
     );
 
     return;
   }
 
 
-  const campaignFilterButton =
+  /*
+    Campaign filters
+  */
+
+  const campaignFilter =
     event.target.closest(
       "[data-campaign-filter]"
     );
 
 
-  if (campaignFilterButton) {
-    setView(
-      "campaigns"
-    );
-
-
+  if (campaignFilter) {
     setCampaignFilter(
-      campaignFilterButton.dataset
+      campaignFilter.dataset
         .campaignFilter
     );
-
 
     return;
   }
 
 
-  const contentFilterButton =
+  /*
+    Content filters
+  */
+
+  const contentFilter =
     event.target.closest(
       "[data-content-filter]"
     );
 
 
-  if (contentFilterButton) {
-    setView(
-      "studio"
-    );
-
-
+  if (contentFilter) {
     setContentFilter(
-      contentFilterButton.dataset
+      contentFilter.dataset
         .contentFilter
     );
-
 
     return;
   }
 
 
-  const assetFilterButton =
+  /*
+    Asset filters
+  */
+
+  const assetFilter =
     event.target.closest(
       "[data-asset-filter]"
     );
 
 
-  if (assetFilterButton) {
+  if (assetFilter) {
     setAssetFilter(
-      assetFilterButton.dataset
+      assetFilter.dataset
         .assetFilter
     );
-
 
     return;
   }
 
+
+  /*
+    Asset empty-state button
+  */
+
+  const addAsset =
+    event.target.closest(
+      "[data-add-asset]"
+    );
+
+
+  if (addAsset) {
+    handleAddAsset();
+
+    return;
+  }
+
+
+  /*
+    Settings cards
+  */
 
   const settingsButton =
     event.target.closest(
@@ -4209,12 +13169,31 @@ function handleGlobalClick(
       settingsButton.dataset
         .settingsSection
     );
+
+    return;
+  }
+
+
+  /*
+    Brand Brain actions
+  */
+
+  const brandBrainDialog =
+    event.target.closest(
+      "#brandBrainDialog"
+    );
+
+
+  if (brandBrainDialog) {
+    handleBrandBrainDelegatedClick(
+      event
+    );
   }
 }
 
 
 /* =========================================================
-   EVENT BINDINGS
+   BIND STATIC EVENTS
    ========================================================= */
 
 function bindEvents() {
@@ -4227,32 +13206,14 @@ function bindEvents() {
   $("#brandSwitcher")
     ?.addEventListener(
       "click",
-      () => {
-
-        renderBrandPicker();
-
-
-        safeDialogOpen(
-          $("#brandPickerDialog")
-        );
-
-      }
+      openBrandPicker
     );
 
 
   $("#mobileBrandSwitcher")
     ?.addEventListener(
       "click",
-      () => {
-
-        renderBrandPicker();
-
-
-        safeDialogOpen(
-          $("#brandPickerDialog")
-        );
-
-      }
+      openBrandPicker
     );
 
 
@@ -4270,16 +13231,7 @@ function bindEvents() {
   $("#brandPickerAddButton")
     ?.addEventListener(
       "click",
-      () => {
-
-        safeDialogClose(
-          $("#brandPickerDialog")
-        );
-
-
-        handleAddBrand();
-
-      }
+      handleAddBrand
     );
 
 
@@ -4290,17 +13242,32 @@ function bindEvents() {
     );
 
 
+  $("#uploadAssetButton")
+    ?.addEventListener(
+      "click",
+      handleAddAsset
+    );
+
+
   $("#closeQuickCreateButton")
     ?.addEventListener(
       "click",
-      closeQuickCreate
+      () => {
+        safeDialogClose(
+          $("#quickCreateDialog")
+        );
+      }
     );
 
 
   $("#cancelQuickCreateButton")
     ?.addEventListener(
       "click",
-      closeQuickCreate
+      () => {
+        safeDialogClose(
+          $("#quickCreateDialog")
+        );
+      }
     );
 
 
@@ -4308,13 +13275,6 @@ function bindEvents() {
     ?.addEventListener(
       "submit",
       handleQuickCreateSubmit
-    );
-
-
-  $("#uploadAssetButton")
-    ?.addEventListener(
-      "click",
-      handleAddAsset
     );
 
 
@@ -4326,178 +13286,244 @@ function bindEvents() {
   enableBackdropClose(
     $("#quickCreateDialog")
   );
-
-
-  document.addEventListener(
-    "keydown",
-    event => {
-
-      if (
-        event.key !==
-        "Escape"
-      ) {
-        return;
-      }
-
-
-      safeDialogClose(
-        $("#brandPickerDialog")
-      );
-
-
-      safeDialogClose(
-        $("#quickCreateDialog")
-      );
-
-
-      safeDialogClose(
-        $("#aiBriefDialog")
-      );
-
-
-      safeDialogClose(
-        $("#aiResultDialog")
-      );
-
-    }
-  );
 }
 
 
 /* =========================================================
-   INITIAL RENDER
+   AUTHENTICATED APP START
    ========================================================= */
 
-function renderApp() {
-  ensureValidActiveBrand();
-
-  renderGreeting();
-
-  renderActiveBrand();
-
-  renderBrandPicker();
-
-  renderBrandGrid();
-
-  renderQuickCreateBrandOptions();
-
-  renderDashboard();
-
-  renderCampaigns();
-
-  renderContentLibrary();
-
-  renderAssets();
-
-
-  const initialView =
-    VALID_VIEWS.has(
-      APP_STATE.activeView
-    )
-      ? APP_STATE.activeView
-      : "dashboard";
-
-
-  setView(
-    initialView,
-    {
-      scroll: false,
-      instant: true
-    }
-  );
-}
-
-
-/* =========================================================
-   AUTH SESSION
-   ========================================================= */
-
-async function getInitialSession() {
-  const {
-    data,
-    error
-  } =
-    await supabaseClient.auth
-      .getSession();
-
-
-  if (error) {
-    throw error;
+async function startAuthenticatedApp(
+  session
+) {
+  if (!session?.user) {
+    return;
   }
 
 
-  APP_STATE.session =
-    data.session ||
-    null;
-
-
   APP_STATE.user =
-    data.session?.user ||
-    null;
-
-
-  return APP_STATE.session;
-}
-
-
-/* =========================================================
-   BOOT
-   ========================================================= */
-
-async function init() {
-  bindEvents();
+    session.user;
 
 
   try {
-
-    createSupabaseClient();
-
-
-    const session =
-      await getInitialSession();
+    await loadAppData();
 
 
-    if (!session) {
-      renderGreeting();
+    const storedBrandId =
+      readStoredActiveBrandId();
 
-      showAuthDialog();
 
-      return;
+    const storedBrandExists =
+      APP_DATA.brands.some(
+        brand =>
+          brand.id ===
+          storedBrandId &&
+          brand.active !==
+            false
+      );
+
+
+    if (storedBrandExists) {
+      APP_STATE.activeBrandId =
+        storedBrandId;
+    } else {
+      APP_STATE.activeBrandId =
+        APP_DATA.brands.find(
+          brand =>
+            brand.active !==
+            false
+        )?.id ||
+        null;
     }
 
 
-    await loadAppData();
+    if (
+      APP_STATE.activeBrandId
+    ) {
+      writeStoredActiveBrandId(
+        APP_STATE.activeBrandId
+      );
+    }
 
 
     renderApp();
 
 
-    if (!APP_DATA.brands.length) {
-      showToast(
-        "Connected, but no brands were returned for this account.",
-        "error",
-        6000
-      );
-    }
+    navigateToView(
+      APP_STATE.currentView ||
+      "dashboard"
+    );
+
+
+    showToast(
+      "Marketing Studio ready.",
+      "success",
+      2200
+    );
 
   } catch (error) {
-
     console.error(
       "Marketing Studio startup failed:",
       error
     );
 
 
-    renderGreeting();
+    showToast(
+      error?.message ||
+      "Marketing Studio could not load.",
+      "error",
+      6000
+    );
+  }
+}
+
+
+/* =========================================================
+   AUTH INITIALIZATION
+   ========================================================= */
+
+async function initializeAuthentication() {
+  if (!supabaseClient) {
+    return;
+  }
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .auth
+      .getSession();
+
+
+  if (error) {
+    console.error(
+      "Unable to read Supabase session:",
+      error
+    );
+
+
+    showToast(
+      "Unable to check your login session.",
+      "error",
+      5000
+    );
+
+    return;
+  }
+
+
+  if (
+    data?.session
+  ) {
+    await startAuthenticatedApp(
+      data.session
+    );
+
+    return;
+  }
+
+
+  showAuthDialog();
+
+
+  supabaseClient.auth
+    .onAuthStateChange(
+      async (
+        event,
+        session
+      ) => {
+        if (
+          event ===
+            "SIGNED_IN" &&
+          session
+        ) {
+          safeDialogClose(
+            $("#authDialog")
+          );
+
+
+          await startAuthenticatedApp(
+            session
+          );
+        }
+
+
+        if (
+          event ===
+          "SIGNED_OUT"
+        ) {
+          APP_STATE.user =
+            null;
+
+
+          APP_STATE.activeBrandId =
+            null;
+
+
+          APP_DATA.brands =
+            [];
+
+
+          APP_DATA.campaigns =
+            [];
+
+
+          APP_DATA.content =
+            [];
+
+
+          APP_DATA.calendar =
+            [];
+
+
+          APP_DATA.assets =
+            [];
+
+
+          showAuthDialog();
+        }
+      }
+    );
+}
+
+
+/* =========================================================
+   INITIALIZE APPLICATION
+   ========================================================= */
+
+async function initializeApp() {
+  try {
+    supabaseClient =
+      createSupabaseClient();
+
+
+    if (!supabaseClient) {
+      throw new Error(
+        "Supabase is not configured. Check config.js."
+      );
+    }
+
+
+    bindEvents();
+
+
+    await initializeAuthentication();
+
+  } catch (error) {
+    console.error(
+      "Black Stag Marketing Studio failed to initialize:",
+      error
+    );
 
 
     showToast(
       error?.message ||
-      "Marketing Studio could not connect to Supabase.",
+      "The app could not initialize.",
       "error",
       7000
     );
-
   }
 }
 
@@ -4512,11 +13538,11 @@ if (
 ) {
   document.addEventListener(
     "DOMContentLoaded",
-    init,
+    initializeApp,
     {
       once: true
     }
   );
 } else {
-  init();
+  initializeApp();
 }
