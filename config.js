@@ -1,15 +1,23 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    config.js
-   v1
+   v2
 
    Browser-safe application configuration.
 
+   V1 AI MODE:
+   ChatGPT Manual
+
+   Marketing Studio builds a complete AI brief.
+   The user copies that brief into ChatGPT, then pastes
+   the finished result back into Marketing Studio.
+
    IMPORTANT:
    Never place OpenAI API keys, Supabase service-role keys,
-   social-media secrets, or other private credentials here.
+   social-media secrets, passwords, or other private
+   credentials in this file.
 
-   AI requests will eventually run through a secure
+   Future automatic AI requests will run through a secure
    server-side / Supabase Edge Function layer.
    ========================================================= */
 
@@ -27,7 +35,7 @@ window.BLACK_STAG_CONFIG = {
       "Black Stag Marketing Studio",
 
     version:
-      "0.1.0",
+      "0.2.0",
 
     environment:
       "development"
@@ -60,30 +68,58 @@ window.BLACK_STAG_CONFIG = {
   /* =======================================================
      AI
 
-     No API secret belongs here.
+     Current V1:
+     manual-chatgpt
 
-     Later, the app will call our secure AI endpoint.
+     Future:
+     openai-api
+
+     No private API key belongs here.
      ======================================================= */
 
   ai: {
-    enabled:
-      false,
+    mode:
+      "manual-chatgpt",
 
-    endpoint:
-      ""
+    providers: {
+
+      manualChatGPT: {
+        enabled:
+          true,
+
+        label:
+          "ChatGPT — Manual"
+      },
+
+      openAI: {
+        enabled:
+          false,
+
+        label:
+          "OpenAI API — Automatic",
+
+        endpoint:
+          ""
+      }
+
+    }
   },
 
 
   /* =======================================================
      PUBLISHING
 
-     Direct publishing is disabled until official
-     platform connections are configured.
+     Nothing publishes automatically in V1.
+
+     Content must move through the approval workflow.
      ======================================================= */
 
   publishing: {
     enabled:
-      false
+      false,
+
+    requireApproval:
+      true
   }
 
 };
