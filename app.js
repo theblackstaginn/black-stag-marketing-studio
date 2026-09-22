@@ -2065,30 +2065,14 @@ function renderBrandGrid() {
 
 
           return `
-    <article
-      class="content-panel"
-      data-open-content="${
-        escapeHtml(
-          item.id
-        )
-      }"
-      role="button"
-      tabindex="0"
-      aria-label="Open ${
-        escapeHtml(
-          item.title ||
-          "content"
-        )
-      }"
-      style="
-        margin-bottom:12px;
-        cursor:pointer;
-        transition:
-          transform .18s var(--ease),
-          border-color .18s var(--ease),
-          background .18s var(--ease);
-      "
-    >
+            <article
+              class="content-panel"
+              data-brand-card="${
+                escapeHtml(
+                  brand.id
+                )
+              }"
+            >
 
               <div
                 style="
