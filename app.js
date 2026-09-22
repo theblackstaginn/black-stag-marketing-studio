@@ -1496,16 +1496,26 @@ async function loadAppData() {
 
 
         supabaseClient
-          .from("assets")
-          .select("*")
-          .order(
-            "created_at",
-            {
-              ascending: false
-            }
-          )
+  .from("assets")
+  .select("*")
+  .order(
+    "created_at",
+    {
+      ascending: false
+    }
+  ),
 
-      ]);
+supabaseClient
+  .from("asset_folders")
+  .select("*")
+  .order(
+    "name",
+    {
+      ascending: true
+    }
+  )
+
+]);
 
 
     const results = [
