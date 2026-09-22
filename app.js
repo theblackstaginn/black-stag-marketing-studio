@@ -1423,10 +1423,8 @@ async function loadAppData() {
     return;
   }
 
-
   APP_STATE.loading =
     true;
-
 
   try {
     const [
@@ -1434,14 +1432,8 @@ async function loadAppData() {
       campaignsResult,
       contentResult,
       calendarResult,
-      assetsResult
-      const [
-  brandsResult,
-  campaignsResult,
-  contentResult,
-  calendarResult,
-  assetsResult,
-  assetFoldersResult
+      assetsResult,
+      assetFoldersResult
     ] =
       await Promise.all([
 
@@ -1461,7 +1453,6 @@ async function loadAppData() {
             }
           ),
 
-
         supabaseClient
           .from("campaigns")
           .select("*")
@@ -1471,7 +1462,6 @@ async function loadAppData() {
               ascending: false
             }
           ),
-
 
         supabaseClient
           .from("content_items")
@@ -1483,7 +1473,6 @@ async function loadAppData() {
             }
           ),
 
-
         supabaseClient
           .from("calendar_items")
           .select("*")
@@ -1494,29 +1483,27 @@ async function loadAppData() {
             }
           ),
 
+        supabaseClient
+          .from("assets")
+          .select("*")
+          .order(
+            "created_at",
+            {
+              ascending: false
+            }
+          ),
 
         supabaseClient
-  .from("assets")
-  .select("*")
-  .order(
-    "created_at",
-    {
-      ascending: false
-    }
-  ),
+          .from("asset_folders")
+          .select("*")
+          .order(
+            "name",
+            {
+              ascending: true
+            }
+          )
 
-supabaseClient
-  .from("asset_folders")
-  .select("*")
-  .order(
-    "name",
-    {
-      ascending: true
-    }
-  )
-
-]);
-
+      ]);
 
     const results = [
       [
@@ -1542,9 +1529,13 @@ supabaseClient
       [
         "assets",
         assetsResult
+      ],
+
+      [
+        "asset folders",
+        assetFoldersResult
       ]
     ];
-
 
     for (
       const [
@@ -1559,7 +1550,6 @@ supabaseClient
       }
     }
 
-
     APP_DATA.brands =
       (
         brandsResult.data ||
@@ -1567,7 +1557,6 @@ supabaseClient
       ).map(
         normalizeBrand
       );
-
 
     APP_DATA.campaigns =
       (
@@ -1577,7 +1566,6 @@ supabaseClient
         normalizeCampaign
       );
 
-
     APP_DATA.content =
       (
         contentResult.data ||
@@ -1585,7 +1573,6 @@ supabaseClient
       ).map(
         normalizeContent
       );
-
 
     APP_DATA.calendar =
       (
@@ -1595,31 +1582,33 @@ supabaseClient
         normalizeCalendarItem
       );
 
-
     APP_DATA.assets =
-  (
-    assetsResult.data ||
-    []
-  ).map(
-    normalizeAsset
-  );
+      (
+        assetsResult.data ||
+        []
+      ).map(
+        normalizeAsset
+      );
 
-await hydrateAssetSignedUrls(
-  APP_DATA.assets
-);
+    await hydrateAssetSignedUrls(
+      APP_DATA.assets
+    );
 
+    APP_DATA.assetFolders =
+      (
+        assetFoldersResult.data ||
+        []
+      ).map(
+        normalizeAssetFolder
+      );
 
-APP_DATA.assetFolders =
-  (
-    assetFoldersResult.data ||
-    []
-  ).map(
-    normalizeAssetFolder
-  );
+    ensureValidActiveBrand();
 
-
-ensureValidActiveBrand();
-
+  } finally {
+    APP_STATE.loading =
+      false;
+  }
+}
 
 /* =========================================================
    RELOAD ONE BRAND
