@@ -11567,29 +11567,6 @@ function getAssetDisplayUrl(asset) {
   );
 }
 
-  if (asset.externalUrl) {
-    return asset.externalUrl;
-  }
-
-  if (
-    !supabaseClient ||
-    !asset.storageBucket ||
-    !asset.storagePath
-  ) {
-    return "";
-  }
-
-  const {
-    data
-  } =
-    supabaseClient
-      .storage
-      .from(asset.storageBucket)
-      .getPublicUrl(asset.storagePath);
-
-  return data?.publicUrl || "";
-}
-
 function renderAssetCard(
   asset
 ) {
