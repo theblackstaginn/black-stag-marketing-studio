@@ -12289,20 +12289,28 @@ async function saveManualContentDraft({
       ),
 
     original_request:
-      request,
+      nullableText(
+        request
+      ),
 
-    ai_prompt:
-      brief,
-
-    ai_provider:
+    ai_mode:
       "manual-chatgpt",
 
-    ai_generated:
-      true
+    ai_brief:
+      nullableText(
+        brief
+      )
   };
 
 
+  console.log(
+    "Saving content draft:",
+    payload
+  );
+
+
   const {
+    data,
     error
   } =
     await supabaseClient
@@ -12311,12 +12319,32 @@ async function saveManualContentDraft({
       )
       .insert(
         payload
-      );
+      )
+      .select()
+      .single();
 
 
   if (error) {
+    console.error(
+      "Content draft insert failed:",
+      error
+    );
+
     throw error;
   }
+
+
+  if (!data?.id) {
+    throw new Error(
+      "The draft insert completed without returning a saved content item."
+    );
+  }
+
+
+  console.log(
+    "Content draft saved:",
+    data
+  );
 
 
   await logManualAiRun({
@@ -12329,6 +12357,9 @@ async function saveManualContentDraft({
         type
       )
   });
+
+
+  return data;
 }
 
 
