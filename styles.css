@@ -3076,7 +3076,9 @@ strong {
      * The mahogany asset is displayed directly.
      */
     background-image:
-      url("./assets/mahogany-web.webp");
+      /* DESKTOP MAIN WORKSPACE */
+background-image:
+  url("./bsms-assets/roman-plaster-web.webp");
 
     background-position:
       center top;
@@ -3270,7 +3272,9 @@ strong {
      * No filter.
      */
     background-image:
-      url("./assets/roman-plaster-web.webp");
+      /* MOBILE PAGE FOUNDATION */
+background-image:
+  url("./bsms-assets/roman-plaster-mobile.webp");
 
     background-position:
       center top;
@@ -3473,7 +3477,7 @@ strong {
      * No filter.
      */
     background-image:
-      url("./assets/roman-plaster-mobile.webp");
+      url("./bsms-assets/mahogany-mobile.webp");
 
     background-position:
       center top;
@@ -3515,7 +3519,7 @@ strong {
      * No darkening layer.
      */
     background-image:
-      url("./assets/mahogany-mobile.webp");
+      url("./bsms-assets/mahogany-mobile.webp");
 
     background-position:
       center center;
