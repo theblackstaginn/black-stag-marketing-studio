@@ -1,9 +1,11 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    styles.css
-   v2 — APPLICATION UI REFINEMENT
+   v3 — TEXTURED GLASS APPLICATION UI
 
-   Dark editorial application shell.
+   Mahogany navigation surfaces.
+   Charcoal Roman plaster workspace.
+   Transparent glass panels.
    Mobile-first.
    ========================================================= */
 
@@ -17,10 +19,10 @@
   --bg-soft: #0d100e;
   --bg-raised: #121613;
 
-  --panel: rgba(18, 22, 19, .94);
-  --panel-soft: rgba(22, 27, 23, .82);
-  --panel-hover: rgba(29, 35, 30, .96);
-  --panel-deep: rgba(8, 11, 9, .82);
+  --panel: rgba(15, 18, 16, .36);
+  --panel-soft: rgba(18, 22, 19, .28);
+  --panel-hover: rgba(24, 29, 25, .44);
+  --panel-deep: rgba(8, 11, 9, .46);
 
   --ink: #eee9df;
   --ink-soft: #cbc4b7;
@@ -39,15 +41,18 @@
   --danger: #a35f5f;
   --success: #78927a;
 
-  --line: rgba(218, 204, 181, .10);
-  --line-strong: rgba(218, 204, 181, .18);
-  --line-bronze: rgba(195, 154, 112, .24);
+  --line: rgba(218, 204, 181, .11);
+  --line-strong: rgba(218, 204, 181, .19);
+  --line-bronze: rgba(195, 154, 112, .25);
+
+  --glass-blur: 12px;
+  --glass-blur-strong: 18px;
 
   --shadow:
-    0 24px 70px rgba(0, 0, 0, .42);
+    0 24px 70px rgba(0, 0, 0, .32);
 
   --shadow-soft:
-    0 12px 32px rgba(0, 0, 0, .22);
+    0 12px 32px rgba(0, 0, 0, .17);
 
   --radius-xs: 8px;
   --radius-sm: 12px;
@@ -87,7 +92,6 @@ html {
 
 body {
   min-width: 320px;
-  min-height: 100vh;
   min-height: 100dvh;
 
   margin: 0;
@@ -96,23 +100,29 @@ body {
 
   color: var(--ink);
 
-  background:
-    radial-gradient(
-      circle at 50% -10%,
-      rgba(72, 95, 77, .13),
-      transparent 34rem
-    ),
-    radial-gradient(
-      circle at 100% 20%,
-      rgba(132, 91, 56, .05),
-      transparent 28rem
-    ),
-    linear-gradient(
-      180deg,
-      #0c0e0d 0%,
-      var(--bg) 45%,
-      #070808 100%
-    );
+  /*
+   * MOBILE WORKSPACE TEXTURE
+   *
+   * Intentionally no gradient, darkening layer,
+   * brightness filter, or pseudo-overlay.
+   */
+  background-image:
+    url("./bsms-assets/mobile-bg-charcoal.webp");
+
+  background-position:
+    center top;
+
+  background-size:
+    cover;
+
+  background-repeat:
+    no-repeat;
+
+  background-attachment:
+    fixed;
+
+  background-color:
+    var(--bg);
 
   font-family:
     Inter,
@@ -127,7 +137,9 @@ body {
   line-height: 1.5;
 
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+
+  text-rendering:
+    optimizeLegibility;
 }
 
 button,
@@ -139,7 +151,8 @@ select {
 
 button,
 select {
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color:
+    transparent;
 }
 
 button {
@@ -152,11 +165,13 @@ button:not(:disabled) {
 
 button:disabled {
   cursor: not-allowed;
+
   opacity: .52;
 }
 
 img {
   display: block;
+
   max-width: 100%;
 }
 
@@ -189,6 +204,7 @@ strong {
 
 * {
   scrollbar-width: thin;
+
   scrollbar-color:
     rgba(118, 133, 107, .42)
     rgba(255, 255, 255, .025);
@@ -211,14 +227,16 @@ strong {
   background:
     rgba(118, 133, 107, .38);
 
-  background-clip: padding-box;
+  background-clip:
+    padding-box;
 }
 
 *::-webkit-scrollbar-thumb:hover {
   background:
     rgba(167, 123, 82, .48);
 
-  background-clip: padding-box;
+  background-clip:
+    padding-box;
 }
 
 
@@ -227,7 +245,10 @@ strong {
    ========================================================= */
 
 :focus-visible {
-  outline: 2px solid var(--bronze-light);
+  outline:
+    2px solid
+    var(--bronze-light);
+
   outline-offset: 3px;
 }
 
@@ -246,15 +267,20 @@ strong {
 .app-shell {
   width: 100%;
 
-  min-height: 100vh;
   min-height: 100dvh;
 }
 
 .app-main {
   width: 100%;
 
-  min-height: 100vh;
   min-height: 100dvh;
+
+  /*
+   * Transparent on mobile so the charcoal
+   * plaster applied to body remains visible.
+   */
+  background:
+    transparent;
 }
 
 .content {
@@ -275,6 +301,42 @@ strong {
 
 
 /* =========================================================
+   SHARED GLASS SURFACE
+   ========================================================= */
+
+/*
+ * These are the application's principal panel/card
+ * surfaces. Their individual sections below can still
+ * control layout, sizing, and interaction without
+ * repeatedly redefining the same opaque backgrounds.
+ */
+
+.content-panel,
+.calendar-shell,
+.stat-card,
+.quick-create-card,
+.studio-tool-card,
+.settings-card,
+.brand-switcher {
+  border:
+    1px solid
+    rgba(218, 204, 181, .14);
+
+  background:
+    var(--panel);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur));
+
+  backdrop-filter:
+    blur(var(--glass-blur));
+
+  box-shadow:
+    var(--shadow-soft);
+}
+
+
+/* =========================================================
    STUDIO BRANDING
    ========================================================= */
 
@@ -287,22 +349,35 @@ strong {
   width: 48px;
   height: 48px;
 
-  border: 1px solid rgba(195, 154, 112, .30);
+  border:
+    1px solid
+    rgba(195, 154, 112, .30);
+
   border-radius: 14px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   background:
-    radial-gradient(
-      circle at 35% 25%,
-      rgba(195, 154, 112, .13),
-      transparent 55%
-    ),
-    rgba(7, 9, 8, .88);
+    rgba(7, 9, 8, .48);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur));
+
+  backdrop-filter:
+    blur(var(--glass-blur));
 
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, .018),
-    0 8px 24px rgba(0, 0, 0, .25);
+    inset
+    0
+    0
+    0
+    1px
+    rgba(255, 255, 255, .018),
+    0
+    8px
+    24px
+    rgba(0, 0, 0, .18);
 
   font-family:
     Georgia,
@@ -311,6 +386,7 @@ strong {
 
   font-size: .86rem;
   font-weight: 700;
+
   letter-spacing: .08em;
 }
 
@@ -334,7 +410,8 @@ strong {
 .topbar-kicker {
   display: block;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   font-size: .64rem;
   font-weight: 750;
@@ -342,7 +419,8 @@ strong {
   letter-spacing: .17em;
   line-height: 1.2;
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 }
 
 .studio-brand-name {
@@ -379,21 +457,29 @@ strong {
     );
 
   padding:
-    calc(12px + env(safe-area-inset-top))
+    calc(
+      12px
+      + env(safe-area-inset-top)
+    )
     18px
     12px;
 
-  border-bottom: 1px solid var(--line);
+  border-bottom:
+    1px solid
+    var(--line);
 
+  /*
+   * Glass instead of the old opaque
+   * topbar gradient.
+   */
   background:
-    linear-gradient(
-      180deg,
-      rgba(10, 12, 11, .98),
-      rgba(10, 12, 11, .93)
-    );
+    rgba(8, 10, 9, .38);
 
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 }
 
 .topbar-brand {
@@ -424,8 +510,11 @@ strong {
   font-size: .94rem;
   font-weight: 500;
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
 }
 
 .topbar-settings {
@@ -439,13 +528,23 @@ strong {
 
   padding: 0;
 
-  border: 1px solid var(--line);
+  border:
+    1px solid
+    var(--line);
+
   border-radius: 12px;
 
-  color: var(--ink-soft);
+  color:
+    var(--ink-soft);
 
   background:
-    rgba(255, 255, 255, .025);
+    rgba(10, 13, 11, .28);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur));
+
+  backdrop-filter:
+    blur(var(--glass-blur));
 
   transition:
     color .18s var(--ease),
@@ -455,13 +554,19 @@ strong {
 }
 
 .topbar-settings:active {
-  transform: scale(.96);
+  transform:
+    scale(.96);
 }
 
 
 /* =========================================================
    SIDEBAR
    ========================================================= */
+
+/*
+ * Desktop rules later in the file turn this on
+ * and apply sidebar-web.webp.
+ */
 
 .sidebar {
   display: none;
@@ -482,15 +587,21 @@ strong {
 }
 
 @keyframes view-enter {
+
   from {
     opacity: 0;
-    transform: translateY(4px);
+
+    transform:
+      translateY(4px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
   }
+
 }
 
 .view-header {
@@ -524,7 +635,8 @@ strong {
   font-weight: 400;
   line-height: 1.02;
 
-  letter-spacing: -.035em;
+  letter-spacing:
+    -.035em;
 }
 
 .view-intro {
@@ -532,7 +644,8 @@ strong {
 
   margin-bottom: 0;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .95rem;
   line-height: 1.65;
@@ -543,7 +656,8 @@ strong {
 
   margin-bottom: 7px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   font-size: .66rem;
   font-weight: 750;
@@ -551,7 +665,8 @@ strong {
   letter-spacing: .18em;
   line-height: 1.25;
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 }
 
 
@@ -562,8 +677,6 @@ strong {
 .mobile-brand-area {
   margin-bottom: 28px;
 }
-
-
 /* =========================================================
    BRAND SWITCHER
    ========================================================= */
@@ -578,31 +691,22 @@ strong {
 
   padding: 10px 12px;
 
-  border: 1px solid var(--line);
   border-radius: 15px;
 
   color: var(--ink);
 
   text-align: left;
 
-  background:
-    linear-gradient(
-      135deg,
-      rgba(41, 57, 47, .32),
-      rgba(16, 19, 17, .82)
-    );
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .025);
-
   transition:
     border-color .18s var(--ease),
     background .18s var(--ease),
-    transform .18s var(--ease);
+    transform .18s var(--ease),
+    box-shadow .18s var(--ease);
 }
 
 .brand-switcher:active {
-  transform: scale(.988);
+  transform:
+    scale(.988);
 }
 
 .brand-switcher-mark {
@@ -614,13 +718,23 @@ strong {
   width: 43px;
   height: 43px;
 
-  border: 1px solid rgba(195, 154, 112, .22);
+  border:
+    1px solid
+    rgba(195, 154, 112, .24);
+
   border-radius: 12px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   background:
-    rgba(6, 8, 7, .68);
+    rgba(6, 8, 7, .30);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   font-family:
     Georgia,
@@ -647,8 +761,11 @@ strong {
   font-size: .88rem;
   font-weight: 650;
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
 }
 
 .brand-switcher-copy small {
@@ -656,18 +773,23 @@ strong {
 
   overflow: hidden;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .7rem;
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
 }
 
 .brand-switcher-chevron {
   flex: 0 0 auto;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .9rem;
 }
@@ -736,29 +858,27 @@ strong {
 
   overflow: hidden;
 
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius:
+    var(--radius);
 
-  color: var(--ink);
+  color:
+    var(--ink);
 
   text-align: left;
-
-  background:
-    linear-gradient(
-      140deg,
-      rgba(25, 31, 27, .92),
-      rgba(13, 17, 14, .96)
-    );
-
-  box-shadow:
-    var(--shadow-soft);
 
   transition:
     transform .18s var(--ease),
     border-color .18s var(--ease),
-    background .18s var(--ease);
+    background .18s var(--ease),
+    box-shadow .18s var(--ease);
 }
 
+/*
+ * Very faint highlight only.
+ *
+ * This affects the card itself,
+ * not the workspace background image.
+ */
 .stat-card::after {
   position: absolute;
   top: -32px;
@@ -772,7 +892,7 @@ strong {
   background:
     radial-gradient(
       circle,
-      rgba(115, 137, 110, .09),
+      rgba(195, 154, 112, .055),
       transparent 68%
     );
 
@@ -782,14 +902,16 @@ strong {
 }
 
 .stat-card:active {
-  transform: scale(.985);
+  transform:
+    scale(.985);
 }
 
 .stat-number {
   position: relative;
   z-index: 1;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   font-family:
     Georgia,
@@ -806,7 +928,8 @@ strong {
 
   max-width: 170px;
 
-  color: var(--ink-soft);
+  color:
+    var(--ink-soft);
 
   font-size: .76rem;
   font-weight: 600;
@@ -823,8 +946,12 @@ strong {
 
 .quick-create-grid {
   display: grid;
+
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 12px;
 }
@@ -840,31 +967,24 @@ strong {
 
   padding: 18px;
 
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius:
+    var(--radius);
 
-  color: var(--ink);
+  color:
+    var(--ink);
 
   text-align: left;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(24, 30, 26, .9),
-      rgba(13, 17, 14, .96)
-    );
-
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, .018);
 
   transition:
     transform .18s var(--ease),
     border-color .18s var(--ease),
-    background .18s var(--ease);
+    background .18s var(--ease),
+    box-shadow .18s var(--ease);
 }
 
 .quick-create-card:active {
-  transform: scale(.98);
+  transform:
+    scale(.98);
 }
 
 .quick-create-icon {
@@ -874,13 +994,23 @@ strong {
   width: 38px;
   height: 38px;
 
-  border: 1px solid rgba(195, 154, 112, .18);
+  border:
+    1px solid
+    rgba(195, 154, 112, .20);
+
   border-radius: 11px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   background:
-    rgba(8, 10, 9, .58);
+    rgba(8, 10, 9, .28);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   font-family:
     Georgia,
@@ -907,7 +1037,8 @@ strong {
 }
 
 .quick-create-card small {
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .7rem;
   line-height: 1.45;
@@ -918,24 +1049,21 @@ strong {
    GENERIC PANELS
    ========================================================= */
 
+/*
+ * Background, border, blur and shadow are
+ * centralized in SHARED GLASS SURFACE.
+ *
+ * This section now controls only panel geometry.
+ */
+
 .content-panel,
 .calendar-shell {
   min-height: 0;
 
   padding: 22px;
 
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(19, 24, 20, .91),
-      rgba(11, 14, 12, .95)
-    );
-
-  box-shadow:
-    var(--shadow-soft);
+  border-radius:
+    var(--radius-lg);
 }
 
 
@@ -969,13 +1097,23 @@ strong {
 
   margin-bottom: 15px;
 
-  border: 1px solid var(--line);
+  border:
+    1px solid
+    var(--line);
+
   border-radius: 14px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   background:
-    rgba(255, 255, 255, .018);
+    rgba(8, 10, 9, .24);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   font-family:
     Georgia,
@@ -1000,14 +1138,16 @@ strong {
 
   margin-bottom: 18px;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .8rem;
   line-height: 1.6;
 }
 
 .full-width {
-  grid-column: 1 / -1;
+  grid-column:
+    1 / -1;
 }
 
 
@@ -1044,31 +1184,56 @@ strong {
 .primary-button {
   padding: 10px 17px;
 
-  border: 1px solid rgba(119, 149, 123, .30);
+  border:
+    1px solid
+    rgba(119, 149, 123, .30);
 
-  color: #f3efe7;
+  color:
+    #f3efe7;
 
   background:
     linear-gradient(
       135deg,
-      #365443,
-      #253b2e
+      rgba(54, 84, 67, .86),
+      rgba(37, 59, 46, .86)
     );
 
+  -webkit-backdrop-filter:
+    blur(10px);
+
+  backdrop-filter:
+    blur(10px);
+
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, .18),
-    inset 0 1px 0 rgba(255, 255, 255, .05);
+    0
+    8px
+    24px
+    rgba(0, 0, 0, .14),
+    inset
+    0
+    1px
+    0
+    rgba(255, 255, 255, .05);
 }
 
 .secondary-button {
   padding: 10px 16px;
 
-  border: 1px solid var(--line-strong);
+  border:
+    1px solid
+    var(--line-strong);
 
-  color: var(--ink-soft);
+  color:
+    var(--ink-soft);
 
   background:
-    rgba(255, 255, 255, .025);
+    rgba(10, 13, 11, .25);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+
+  backdrop-filter:
+    blur(10px);
 }
 
 .text-button {
@@ -1078,14 +1243,17 @@ strong {
 
   border: 0;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
-  background: transparent;
+  background:
+    transparent;
 }
 
 .primary-button:active,
 .secondary-button:active {
-  transform: scale(.975);
+  transform:
+    scale(.975);
 }
 
 .full-button {
@@ -1127,7 +1295,8 @@ strong {
 
   scrollbar-width: none;
 
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling:
+    touch;
 }
 
 .filter-tabs::-webkit-scrollbar {
@@ -1141,18 +1310,29 @@ strong {
 
   padding: 7px 13px;
 
-  border: 1px solid var(--line);
+  border:
+    1px solid
+    var(--line);
+
   border-radius: 999px;
 
-  color: var(--muted);
+  color:
+    var(--muted);
 
   background:
-    rgba(255, 255, 255, .018);
+    rgba(10, 13, 11, .20);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   font-size: .7rem;
   font-weight: 650;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
   transition:
     color .18s var(--ease),
@@ -1162,12 +1342,13 @@ strong {
 
 .filter-tab.is-active {
   border-color:
-    rgba(116, 143, 118, .35);
+    rgba(116, 143, 118, .38);
 
-  color: var(--ink);
+  color:
+    var(--ink);
 
   background:
-    rgba(49, 76, 59, .43);
+    rgba(49, 76, 59, .40);
 }
 
 
@@ -1177,8 +1358,12 @@ strong {
 
 .studio-tool-grid {
   display: grid;
+
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 12px;
 }
@@ -1194,28 +1379,24 @@ strong {
 
   padding: 18px;
 
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius:
+    var(--radius);
 
-  color: var(--ink);
+  color:
+    var(--ink);
 
   text-align: left;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(25, 31, 27, .9),
-      rgba(12, 16, 13, .96)
-    );
 
   transition:
     transform .18s var(--ease),
     border-color .18s var(--ease),
-    background .18s var(--ease);
+    background .18s var(--ease),
+    box-shadow .18s var(--ease);
 }
 
 .studio-tool-card:active {
-  transform: scale(.98);
+  transform:
+    scale(.98);
 }
 
 .studio-tool-card > span {
@@ -1227,13 +1408,23 @@ strong {
 
   margin-bottom: 6px;
 
-  border: 1px solid rgba(195, 154, 112, .17);
+  border:
+    1px solid
+    rgba(195, 154, 112, .19);
+
   border-radius: 11px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   background:
-    rgba(6, 8, 7, .48);
+    rgba(6, 8, 7, .25);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   font-family:
     Georgia,
@@ -1246,7 +1437,8 @@ strong {
 }
 
 .studio-tool-card small {
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .69rem;
   line-height: 1.45;
@@ -1259,13 +1451,15 @@ strong {
 
 .asset-grid {
   display: grid;
+
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    repeat(
+      2,
+      minmax(0, 1fr)
+    );
 
   gap: 12px;
 }
-
-
 /* =========================================================
    SETTINGS
    ========================================================= */
@@ -1287,27 +1481,24 @@ strong {
 
   padding: 18px;
 
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius:
+    var(--radius);
 
-  color: var(--ink);
+  color:
+    var(--ink);
 
   text-align: left;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(24, 30, 26, .9),
-      rgba(12, 16, 13, .95)
-    );
-
   transition:
     transform .18s var(--ease),
-    border-color .18s var(--ease);
+    border-color .18s var(--ease),
+    background .18s var(--ease),
+    box-shadow .18s var(--ease);
 }
 
 .settings-card:active {
-  transform: scale(.987);
+  transform:
+    scale(.987);
 }
 
 .settings-card > span {
@@ -1319,13 +1510,23 @@ strong {
   width: 42px;
   height: 42px;
 
-  border: 1px solid var(--line);
+  border:
+    1px solid
+    var(--line);
+
   border-radius: 12px;
 
-  color: var(--bronze-light);
+  color:
+    var(--bronze-light);
 
   background:
-    rgba(7, 9, 8, .48);
+    rgba(7, 9, 8, .26);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 }
 
 .settings-card > div {
@@ -1342,7 +1543,8 @@ strong {
 }
 
 .settings-card small {
-  color: var(--muted);
+  color:
+    var(--muted);
 
   font-size: .7rem;
   line-height: 1.45;
@@ -1362,8 +1564,12 @@ strong {
   left: 0;
 
   display: grid;
+
   grid-template-columns:
-    repeat(6, minmax(0, 1fr));
+    repeat(
+      6,
+      minmax(0, 1fr)
+    );
 
   min-height:
     calc(
@@ -1374,22 +1580,51 @@ strong {
   padding:
     8px
     5px
-    calc(7px + env(safe-area-inset-bottom));
-
-  border-top: 1px solid var(--line);
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(11, 13, 12, .95),
-      rgba(8, 10, 9, .99)
+    calc(
+      7px
+      + env(safe-area-inset-bottom)
     );
 
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  border-top:
+    1px solid
+    rgba(218, 204, 181, .18);
+
+  /*
+   * MOBILE MAHOGANY
+   *
+   * Raw image — no darkening overlay,
+   * gradient or brightness filter.
+   */
+  background-image:
+    url("./bsms-assets/bottom-nav-mobile.webp");
+
+  background-position:
+    center;
+
+  background-size:
+    cover;
+
+  background-repeat:
+    no-repeat;
+
+  background-color:
+    transparent;
+
+  /*
+   * We intentionally do NOT blur the
+   * wood itself. It remains crisp.
+   */
+  -webkit-backdrop-filter:
+    none;
+
+  backdrop-filter:
+    none;
 
   box-shadow:
-    0 -14px 36px rgba(0, 0, 0, .28);
+    0
+    -10px
+    30px
+    rgba(0, 0, 0, .22);
 }
 
 .bottom-nav-button {
@@ -1404,16 +1639,25 @@ strong {
 
   padding: 4px 2px;
 
-  border: 0;
+  border: 1px solid transparent;
   border-radius: 11px;
 
-  color: var(--faint);
+  color:
+    rgba(238, 233, 223, .68);
 
-  background: transparent;
+  background:
+    transparent;
+
+  text-shadow:
+    0
+    1px
+    3px
+    rgba(0, 0, 0, .55);
 
   transition:
     color .18s var(--ease),
     background .18s var(--ease),
+    border-color .18s var(--ease),
     transform .18s var(--ease);
 }
 
@@ -1435,19 +1679,33 @@ strong {
   font-size: .56rem;
   font-weight: 650;
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-overflow:
+    ellipsis;
+
+  white-space:
+    nowrap;
 }
 
 .bottom-nav-button.is-active {
-  color: var(--bronze-light);
+  border-color:
+    rgba(229, 205, 172, .14);
+
+  color:
+    #f0d3ae;
 
   background:
-    rgba(55, 76, 61, .22);
+    rgba(19, 11, 7, .20);
+
+  -webkit-backdrop-filter:
+    blur(7px);
+
+  backdrop-filter:
+    blur(7px);
 }
 
 .bottom-nav-button:active {
-  transform: scale(.94);
+  transform:
+    scale(.94);
 }
 
 
@@ -1466,12 +1724,6 @@ strong {
 
   max-height:
     min(
-      92vh,
-      900px
-    );
-
-  max-height:
-    min(
       92dvh,
       900px
     );
@@ -1481,28 +1733,47 @@ strong {
 
   overflow: hidden;
 
-  border: 1px solid var(--line-strong);
-  border-radius: var(--radius-lg);
+  border:
+    1px solid
+    var(--line-strong);
 
-  color: var(--ink);
+  border-radius:
+    var(--radius-lg);
 
+  color:
+    var(--ink);
+
+  /*
+   * Dialogs need slightly more opacity
+   * than ordinary cards because they can
+   * contain dense forms and long copy.
+   */
   background:
-    linear-gradient(
-      160deg,
-      #161a17,
-      #0c0f0d 68%
-    );
+    rgba(11, 14, 12, .70);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 
   box-shadow:
-    0 32px 100px rgba(0, 0, 0, .68);
+    0
+    32px
+    100px
+    rgba(0, 0, 0, .52);
 }
 
 .app-dialog::backdrop {
+  /*
+   * No backdrop-filter here.
+   *
+   * The workspace remains visible behind
+   * dialogs rather than becoming blurred
+   * or heavily darkened.
+   */
   background:
-    rgba(0, 0, 0, .76);
-
-  -webkit-backdrop-filter: blur(7px);
-  backdrop-filter: blur(7px);
+    rgba(0, 0, 0, .34);
 }
 
 .app-dialog[open] {
@@ -1513,6 +1784,7 @@ strong {
 }
 
 @keyframes dialog-enter {
+
   from {
     opacity: 0;
 
@@ -1528,6 +1800,7 @@ strong {
       translateY(0)
       scale(1);
   }
+
 }
 
 
@@ -1548,17 +1821,18 @@ strong {
 
   padding: 20px 22px;
 
-  border-bottom: 1px solid var(--line);
+  border-bottom:
+    1px solid
+    var(--line);
 
   background:
-    linear-gradient(
-      180deg,
-      rgba(18, 22, 19, .99),
-      rgba(15, 19, 16, .97)
-    );
+    rgba(13, 17, 14, .58);
 
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 }
 
 .dialog-header h2 {
@@ -1573,7 +1847,8 @@ strong {
   font-weight: 400;
   line-height: 1.15;
 
-  letter-spacing: -.02em;
+  letter-spacing:
+    -.02em;
 }
 
 .dialog-close {
@@ -1587,13 +1862,23 @@ strong {
 
   padding: 0;
 
-  border: 1px solid var(--line);
+  border:
+    1px solid
+    var(--line);
+
   border-radius: 11px;
 
-  color: var(--ink-soft);
+  color:
+    var(--ink-soft);
 
   background:
-    rgba(255, 255, 255, .025);
+    rgba(255, 255, 255, .035);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   font-size: 1.3rem;
   line-height: 1;
@@ -1606,8 +1891,10 @@ strong {
 }
 
 .dialog-close:active {
-  transform: scale(.95);
+  transform:
+    scale(.95);
 }
+
 
 /* =========================================================
    ASSET EDITOR DIALOG
@@ -1662,6 +1949,12 @@ strong {
 
   overflow-x: hidden;
   overflow-y: auto;
+
+  overscroll-behavior:
+    contain;
+
+  -webkit-overflow-scrolling:
+    touch;
 }
 
 #assetEditorDialog .asset-editor-preview {
@@ -1676,11 +1969,21 @@ strong {
 
   overflow: hidden;
 
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border:
+    1px solid
+    var(--line);
+
+  border-radius:
+    var(--radius);
 
   background:
-    rgba(255, 255, 255, .018);
+    rgba(8, 10, 9, .22);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+
+  backdrop-filter:
+    blur(10px);
 }
 
 #assetEditorDialog .asset-editor-preview img {
@@ -1690,13 +1993,15 @@ strong {
   height: auto;
   max-height: 320px;
 
-  object-fit: contain;
+  object-fit:
+    contain;
 
   border-radius: 10px;
 }
 
 #assetEditorDialog .asset-editor-actions {
   display: grid;
+
   grid-template-columns:
     auto
     1fr
@@ -1707,8 +2012,15 @@ strong {
   margin-top: 24px;
   padding-top: 18px;
 
-  border-top: 1px solid var(--line);
+  border-top:
+    1px solid
+    var(--line);
 }
+
+
+/* =========================================================
+   DANGER BUTTON
+   ========================================================= */
 
 .danger-button {
   display: inline-flex;
@@ -1719,13 +2031,23 @@ strong {
 
   padding: 10px 16px;
 
-  border: 1px solid rgba(163, 95, 95, .38);
+  border:
+    1px solid
+    rgba(163, 95, 95, .38);
+
   border-radius: 11px;
 
-  color: #e0adad;
+  color:
+    #e0adad;
 
   background:
     rgba(115, 48, 48, .16);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+
+  backdrop-filter:
+    blur(10px);
 
   font-size: .77rem;
   font-weight: 700;
@@ -1737,20 +2059,17 @@ strong {
 }
 
 .danger-button:active {
-  transform: scale(.975);
+  transform:
+    scale(.975);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .danger-button:hover {
-    border-color:
-      rgba(190, 100, 100, .55);
 
-    background:
-      rgba(130, 54, 54, .27);
-  }
-}
+/* =========================================================
+   ASSET EDITOR — MOBILE
+   ========================================================= */
 
 @media (max-width: 639px) {
+
   #assetEditorDialog {
     width:
       calc(100% - 12px);
@@ -1783,6 +2102,7 @@ strong {
   #deleteAssetEditorButton {
     order: 3;
   }
+
 }
 /* =========================================================
    BRAND BRAIN — WORKSPACE DIALOG
@@ -1793,12 +2113,6 @@ strong {
     min(
       calc(100% - 20px),
       1080px
-    );
-
-  height:
-    min(
-      92vh,
-      900px
     );
 
   height:
@@ -1815,12 +2129,13 @@ strong {
     rgba(195, 154, 112, .20);
 
   background:
-    linear-gradient(
-      150deg,
-      #151a16 0%,
-      #0d110e 56%,
-      #090c0a 100%
-    );
+    rgba(10, 13, 11, .68);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 }
 
 #brandBrainDialog > div {
@@ -1829,6 +2144,7 @@ strong {
 
   width: 100% !important;
   max-width: none !important;
+
   height: 100%;
   max-height: none !important;
 
@@ -1849,16 +2165,13 @@ strong {
     18px;
 
   background:
-    radial-gradient(
-      circle at 15% 0%,
-      rgba(82, 116, 93, .10),
-      transparent 22rem
-    ),
-    linear-gradient(
-      180deg,
-      rgba(18, 23, 19, .995),
-      rgba(13, 17, 14, .985)
-    );
+    rgba(12, 16, 13, .56);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 }
 
 #brandBrainDialog .dialog-header h2 {
@@ -1874,13 +2187,6 @@ strong {
 /* =========================================================
    BRAND BRAIN TABS
    ========================================================= */
-
-/*
-   Brand Brain tabs are generated dynamically by app.js.
-   These rules intentionally normalize any button treatment
-   inside the tab row so browser defaults cannot create the
-   pale rectangular blocks seen in v1.
-*/
 
 #brandBrainTabs,
 .brand-brain-tabs {
@@ -1899,14 +2205,23 @@ strong {
   overflow-x: auto;
   overflow-y: hidden;
 
-  border-bottom: 1px solid var(--line);
+  border-bottom:
+    1px solid
+    var(--line);
 
   background:
-    rgba(7, 10, 8, .76);
+    rgba(7, 10, 8, .30);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  backdrop-filter:
+    blur(12px);
 
   scrollbar-width: none;
 
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling:
+    touch;
 }
 
 #brandBrainTabs::-webkit-scrollbar,
@@ -1926,15 +2241,20 @@ strong {
   margin: 0;
   padding: 8px 13px;
 
-  border: 1px solid transparent !important;
+  border:
+    1px solid
+    transparent !important;
+
   border-radius: 10px;
 
-  color: var(--muted) !important;
+  color:
+    var(--muted) !important;
 
   background:
     transparent !important;
 
-  box-shadow: none !important;
+  box-shadow:
+    none !important;
 
   font-size: .7rem;
   font-weight: 700;
@@ -1957,16 +2277,19 @@ strong {
 [data-brand-brain-tab].is-active,
 [data-brand-brain-tab][aria-selected="true"] {
   border-color:
-    rgba(118, 143, 120, .25) !important;
+    rgba(118, 143, 120, .28) !important;
 
-  color: var(--ink) !important;
+  color:
+    var(--ink) !important;
 
   background:
-    linear-gradient(
-      135deg,
-      rgba(53, 82, 63, .52),
-      rgba(35, 52, 42, .32)
-    ) !important;
+    rgba(46, 72, 55, .38) !important;
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 }
 
 
@@ -1985,15 +2308,17 @@ strong {
     24px
     110px;
 
-  overflow-y: auto;
   overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior:
+    contain;
 
   background:
-    radial-gradient(
-      circle at 100% 0%,
-      rgba(167, 123, 82, .035),
-      transparent 25rem
-    );
+    transparent;
+
+  -webkit-overflow-scrolling:
+    touch;
 }
 
 #brandBrainContent > *,
@@ -2023,7 +2348,8 @@ strong {
 
   font-weight: 400;
 
-  letter-spacing: -.02em;
+  letter-spacing:
+    -.02em;
 }
 
 #brandBrainContent h3,
@@ -2038,7 +2364,8 @@ strong {
 
 #brandBrainContent p,
 .brand-brain-content p {
-  color: var(--muted);
+  color:
+    var(--muted);
 }
 
 
@@ -2064,10 +2391,17 @@ strong {
 .brand-brain-content select {
   min-width: 0;
 
-  color: var(--ink) !important;
+  color:
+    var(--ink) !important;
 
   background:
-    rgba(4, 7, 5, .62) !important;
+    rgba(5, 8, 6, .40) !important;
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 }
 
 #brandBrainContent textarea,
@@ -2097,23 +2431,29 @@ strong {
     24px
     20px;
 
-  border-top: 1px solid var(--line);
+  border-top:
+    1px solid
+    var(--line);
 
   background:
-    linear-gradient(
-      180deg,
-      rgba(13, 17, 14, .97),
-      rgba(9, 12, 10, 1)
-    );
+    rgba(9, 12, 10, .68);
 
   box-shadow:
-    0 -12px 28px rgba(0, 0, 0, .22);
+    0
+    -12px
+    28px
+    rgba(0, 0, 0, .18);
 
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
 
-  transform: translateY(82px);
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  transform:
+    translateY(82px);
 }
+
 
 /* =========================================================
    BRAND BRAIN RECORD CARDS
@@ -2121,17 +2461,23 @@ strong {
 
 #brandBrainContent article,
 .brand-brain-content article {
-  border-color: var(--line) !important;
+  border-color:
+    rgba(218, 204, 181, .13) !important;
 
   background:
-    linear-gradient(
-      145deg,
-      rgba(20, 25, 21, .88),
-      rgba(10, 14, 11, .92)
-    ) !important;
+    rgba(14, 18, 15, .32) !important;
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur));
+
+  backdrop-filter:
+    blur(var(--glass-blur));
 
   box-shadow:
-    0 8px 24px rgba(0, 0, 0, .12);
+    0
+    8px
+    24px
+    rgba(0, 0, 0, .10);
 }
 
 
@@ -2145,7 +2491,10 @@ strong {
 
   gap: 9px;
 
-  padding: 18px 18px 8px;
+  padding:
+    18px
+    18px
+    8px;
 }
 
 .brand-picker-dialog > .full-button {
@@ -2185,13 +2534,18 @@ strong {
 }
 
 #manualAiBrief {
-  color: #c9c5bb;
+  color:
+    #c9c5bb;
 
   background:
-    #080b09 !important;
+    rgba(5, 8, 6, .44) !important;
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 }
-
-
 /* =========================================================
    FORMS
    ========================================================= */
@@ -2229,15 +2583,24 @@ strong {
   width: 100%;
   max-width: 100%;
 
-  border: 1px solid var(--line-strong);
+  border:
+    1px solid
+    var(--line-strong);
+
   border-radius: 11px;
 
   color: var(--ink);
 
   background:
-    rgba(5, 7, 6, .58);
+    rgba(5, 8, 6, .38);
 
   outline: none;
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
 
   transition:
     border-color .18s var(--ease),
@@ -2249,7 +2612,9 @@ strong {
 .field select {
   min-height: 46px;
 
-  padding: 10px 13px;
+  padding:
+    10px
+    13px;
 }
 
 .field textarea {
@@ -2264,7 +2629,7 @@ strong {
 
 .field textarea::placeholder,
 .field input::placeholder {
-  color: #68665f;
+  color: #77736b;
 }
 
 .field input:focus,
@@ -2274,10 +2639,14 @@ strong {
     rgba(195, 154, 112, .48);
 
   background:
-    rgba(7, 9, 8, .78);
+    rgba(8, 11, 9, .48);
 
   box-shadow:
-    0 0 0 3px rgba(195, 154, 112, .06);
+    0
+    0
+    0
+    3px
+    rgba(195, 154, 112, .06);
 }
 
 .field select {
@@ -2300,7 +2669,8 @@ strong {
     calc(100% - 18px) 20px,
     calc(100% - 13px) 20px;
 
-  background-repeat: no-repeat;
+  background-repeat:
+    no-repeat;
 
   background-size:
     5px 5px,
@@ -2311,7 +2681,10 @@ strong {
 
 .form-actions {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+
+  grid-template-columns:
+    1fr
+    1fr;
 
   gap: 10px;
 
@@ -2328,12 +2701,14 @@ strong {
   z-index: 100;
 
   right: 14px;
+
   bottom:
     calc(
       var(--bottom-nav-height)
       + env(safe-area-inset-bottom)
       + 16px
     );
+
   left: 14px;
 
   display: flex;
@@ -2346,17 +2721,32 @@ strong {
 }
 
 .toast {
-  width: min(100%, 420px);
+  width:
+    min(
+      100%,
+      420px
+    );
 
-  padding: 12px 15px;
+  padding:
+    12px
+    15px;
 
-  border: 1px solid var(--line-strong);
+  border:
+    1px solid
+    var(--line-strong);
+
   border-radius: 12px;
 
   color: var(--ink-soft);
 
   background:
-    rgba(20, 24, 21, .98);
+    rgba(16, 21, 17, .68);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 
   box-shadow:
     var(--shadow);
@@ -2384,12 +2774,16 @@ strong {
 @keyframes toast-enter {
   from {
     opacity: 0;
-    transform: translateY(8px);
+
+    transform:
+      translateY(8px);
   }
 
   to {
     opacity: 1;
-    transform: translateY(0);
+
+    transform:
+      translateY(0);
   }
 }
 
@@ -2427,6 +2821,59 @@ strong {
    ========================================================= */
 
 @media (max-width: 639px) {
+
+  .app-dialog {
+    width:
+      calc(100% - 16px);
+
+    max-height:
+      calc(100dvh - 20px);
+
+    border-radius: 18px;
+  }
+
+
+  /* -------------------------------------------------------
+     ASSET EDITOR
+     ------------------------------------------------------- */
+
+  #assetEditorDialog {
+    width:
+      calc(100% - 12px);
+
+    height:
+      calc(100dvh - 16px);
+
+    max-height:
+      calc(100dvh - 16px);
+  }
+
+  #assetEditorDialog .asset-editor-body {
+    padding: 16px;
+  }
+
+  #assetEditorDialog .asset-editor-preview {
+    max-height: 280px;
+
+    padding: 12px;
+  }
+
+  #assetEditorDialog .asset-editor-preview img {
+    max-height: 250px;
+  }
+
+  #assetEditorDialog .asset-editor-actions {
+    grid-template-columns: 1fr;
+  }
+
+  #deleteAssetEditorButton {
+    order: 3;
+  }
+
+
+  /* -------------------------------------------------------
+     BRAND BRAIN
+     ------------------------------------------------------- */
 
   #brandBrainDialog {
     width:
@@ -2478,14 +2925,6 @@ strong {
       );
   }
 
-  .app-dialog {
-    width:
-      calc(100% - 16px);
-
-    max-height:
-      calc(100dvh - 20px);
-  }
-
 }
 
 
@@ -2522,7 +2961,10 @@ strong {
 
   .stat-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
   .stat-card {
@@ -2542,22 +2984,34 @@ strong {
   .quick-create-grid,
   .studio-tool-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
   .brand-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
   }
 
   .asset-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
   .settings-grid {
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
   }
 
   .create-form {
@@ -2565,8 +3019,6 @@ strong {
   }
 
 }
-
-
 /* =========================================================
    DESKTOP APPLICATION LAYOUT
    ========================================================= */
@@ -2579,15 +3031,22 @@ strong {
 
   .app-shell {
     display: grid;
+
     grid-template-columns:
       var(--sidebar-width)
       minmax(0, 1fr);
 
+    width: 100%;
     height: 100vh;
     height: 100dvh;
 
     overflow: hidden;
   }
+
+
+  /* =======================================================
+     DESKTOP SIDEBAR — MAHOGANY
+     ======================================================= */
 
   .sidebar {
     position: relative;
@@ -2604,24 +3063,35 @@ strong {
       16px
       18px;
 
+    overflow-x: hidden;
     overflow-y: auto;
 
-    border-right: 1px solid var(--line);
+    border-right:
+      1px solid
+      rgba(218, 204, 181, .16);
 
-    background:
-      radial-gradient(
-        circle at 50% 0%,
-        rgba(62, 83, 67, .11),
-        transparent 23rem
-      ),
-      linear-gradient(
-        180deg,
-        #0d100e,
-        #090b0a
-      );
+    /*
+     * IMPORTANT:
+     * No gradient or darkening layer here.
+     * The mahogany asset is displayed directly.
+     */
+    background-image:
+      url("./assets/mahogany-web.webp");
+
+    background-position:
+      center top;
+
+    background-repeat:
+      repeat-y;
+
+    background-size:
+      cover;
 
     box-shadow:
-      14px 0 40px rgba(0, 0, 0, .12);
+      14px
+      0
+      40px
+      rgba(0, 0, 0, .16);
   }
 
   .sidebar-brand {
@@ -2641,8 +3111,13 @@ strong {
       18px
       0;
 
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    border-top:
+      1px solid
+      rgba(238, 233, 223, .12);
+
+    border-bottom:
+      1px solid
+      rgba(238, 233, 223, .12);
   }
 
   .sidebar-label {
@@ -2653,7 +3128,8 @@ strong {
       8px
       9px;
 
-    color: var(--faint);
+    color:
+      rgba(238, 233, 223, .62);
 
     font-size: .61rem;
     font-weight: 750;
@@ -2677,23 +3153,33 @@ strong {
     align-items: center;
 
     width: 100%;
+    min-height: 46px;
 
     gap: 12px;
-
-    min-height: 46px;
 
     padding:
       10px
       12px;
 
-    border: 1px solid transparent;
+    border:
+      1px solid
+      transparent;
+
     border-radius: 12px;
 
-    color: var(--muted);
+    color:
+      rgba(238, 233, 223, .68);
 
     text-align: left;
 
-    background: transparent;
+    background:
+      rgba(8, 10, 9, .12);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
 
     font-size: .77rem;
     font-weight: 620;
@@ -2706,28 +3192,31 @@ strong {
   }
 
   .nav-button:hover {
-    color: var(--ink-soft);
+    color: var(--ink);
 
     background:
-      rgba(255, 255, 255, .025);
+      rgba(255, 255, 255, .07);
   }
 
   .nav-button.is-active {
     border-color:
-      rgba(105, 133, 108, .18);
+      rgba(238, 233, 223, .16);
 
-    color: var(--ink);
+    color: #fff;
 
     background:
-      linear-gradient(
-        90deg,
-        rgba(49, 75, 58, .38),
-        rgba(33, 44, 37, .18)
-      );
+      rgba(24, 37, 29, .42);
+
+    -webkit-backdrop-filter:
+      blur(10px);
+
+    backdrop-filter:
+      blur(10px);
   }
 
   .nav-button:active {
-    transform: scale(.985);
+    transform:
+      scale(.985);
   }
 
   .nav-icon {
@@ -2738,7 +3227,8 @@ strong {
 
     width: 24px;
 
-    color: var(--bronze-light);
+    color:
+      var(--bronze-light);
 
     font-family:
       Georgia,
@@ -2750,16 +3240,49 @@ strong {
 
   .sidebar-footer {
     margin-top: auto;
+
     padding-top: 20px;
 
-    border-top: 1px solid var(--line);
+    border-top:
+      1px solid
+      rgba(238, 233, 223, .12);
   }
 
+
+  /* =======================================================
+     DESKTOP MAIN WORKSPACE — ROMAN PLASTER
+     ======================================================= */
+
   .app-main {
+    position: relative;
+
+    width: 100%;
     height: 100vh;
     height: 100dvh;
 
+    overflow-x: hidden;
     overflow-y: auto;
+
+    /*
+     * Raw Roman plaster texture.
+     * No darkening gradient.
+     * No pseudo-element overlay.
+     * No filter.
+     */
+    background-image:
+      url("./assets/roman-plaster-web.webp");
+
+    background-position:
+      center top;
+
+    background-repeat:
+      repeat-y;
+
+    background-size:
+      cover;
+
+    background-attachment:
+      local;
   }
 
   .topbar {
@@ -2767,7 +3290,11 @@ strong {
   }
 
   .content {
-    max-width: var(--content-max);
+    position: relative;
+    z-index: 1;
+
+    max-width:
+      var(--content-max);
 
     padding:
       48px
@@ -2782,6 +3309,67 @@ strong {
   .bottom-nav {
     display: none;
   }
+
+
+  /* =======================================================
+     DESKTOP GLASS PANELS
+     ======================================================= */
+
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card {
+    border-color:
+      rgba(238, 233, 223, .13);
+
+    background:
+      rgba(12, 16, 13, .24);
+
+    -webkit-backdrop-filter:
+      blur(var(--glass-blur));
+
+    backdrop-filter:
+      blur(var(--glass-blur));
+
+    box-shadow:
+      0
+      12px
+      32px
+      rgba(0, 0, 0, .12);
+  }
+
+
+  /* =======================================================
+     DESKTOP BRAND SWITCHER GLASS
+     ======================================================= */
+
+  .brand-switcher {
+    border-color:
+      rgba(238, 233, 223, .14);
+
+    background:
+      rgba(8, 11, 9, .24);
+
+    -webkit-backdrop-filter:
+      blur(10px);
+
+    backdrop-filter:
+      blur(10px);
+
+    box-shadow:
+      inset
+      0
+      1px
+      0
+      rgba(255, 255, 255, .04);
+  }
+
+
+  /* =======================================================
+     DESKTOP TOAST POSITION
+     ======================================================= */
 
   .toast-region {
     right: 24px;
@@ -2815,27 +3403,372 @@ strong {
 
   .quick-create-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
   .studio-tool-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
   .brand-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
   .asset-grid {
     grid-template-columns:
-      repeat(4, minmax(0, 1fr));
+      repeat(
+        4,
+        minmax(0, 1fr)
+      );
+  }
+
+}
+/* =========================================================
+   MOBILE TEXTURE LAYOUT
+   Mahogany:
+   - Top application header
+   - Bottom navigation
+
+   Roman plaster:
+   - Main scrolling workspace
+   ========================================================= */
+
+@media (max-width: 959px) {
+
+  /* =======================================================
+     MOBILE PAGE FOUNDATION
+     ======================================================= */
+
+  html,
+  body {
+    background:
+      var(--bg);
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .app-shell {
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    /*
+     * Mobile Roman plaster is the page texture.
+     * No gradient.
+     * No overlay.
+     * No filter.
+     */
+    background-image:
+      url("./assets/roman-plaster-mobile.webp");
+
+    background-position:
+      center top;
+
+    background-repeat:
+      repeat-y;
+
+    background-size:
+      cover;
+  }
+
+  .app-main {
+    position: relative;
+
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    background: transparent;
+  }
+
+
+  /* =======================================================
+     MOBILE TOPBAR — MAHOGANY
+     ======================================================= */
+
+  .topbar {
+    position: sticky;
+    z-index: 50;
+    top: 0;
+
+    border-bottom:
+      1px solid
+      rgba(238, 233, 223, .16);
+
+    /*
+     * Direct mahogany texture.
+     * No darkening layer.
+     */
+    background-image:
+      url("./assets/mahogany-mobile.webp");
+
+    background-position:
+      center center;
+
+    background-repeat:
+      no-repeat;
+
+    background-size:
+      cover;
+
+    /*
+     * We do NOT blur the wood itself.
+     */
+    -webkit-backdrop-filter:
+      none;
+
+    backdrop-filter:
+      none;
+
+    box-shadow:
+      0
+      8px
+      26px
+      rgba(0, 0, 0, .13);
+  }
+
+
+  /* =======================================================
+     MOBILE TOPBAR CONTROLS
+     ======================================================= */
+
+  .topbar-settings {
+    border-color:
+      rgba(238, 233, 223, .18);
+
+    color:
+      var(--ink);
+
+    background:
+      rgba(8, 10, 9, .18);
+
+    -webkit-backdrop-filter:
+      blur(8px);
+
+    backdrop-filter:
+      blur(8px);
+  }
+
+  .studio-mark-small {
+    background:
+      rgba(7, 9, 8, .22);
+
+    -webkit-backdrop-filter:
+      blur(8px);
+
+    backdrop-filter:
+      blur(8px);
+  }
+
+
+  /* =======================================================
+     MOBILE CONTENT
+     ======================================================= */
+
+  .content {
+    position: relative;
+    z-index: 1;
+
+    background: transparent;
+  }
+
+
+  /* =======================================================
+     MOBILE GLASS PANELS
+     ======================================================= */
+
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card {
+    border-color:
+      rgba(238, 233, 223, .13);
+
+    background:
+      rgba(12, 16, 13, .22);
+
+    -webkit-backdrop-filter:
+      blur(var(--glass-blur));
+
+    backdrop-filter:
+      blur(var(--glass-blur));
+
+    box-shadow:
+      0
+      10px
+      28px
+      rgba(0, 0, 0, .10);
+  }
+
+
+  /* =======================================================
+     MOBILE BRAND SWITCHER
+     ======================================================= */
+
+  .brand-switcher {
+    border-color:
+      rgba(238, 233, 223, .14);
+
+    background:
+      rgba(9, 12, 10, .22);
+
+    -webkit-backdrop-filter:
+      blur(10px);
+
+    backdrop-filter:
+      blur(10px);
+
+    box-shadow:
+      inset
+      0
+      1px
+      0
+      rgba(255, 255, 255, .035);
+  }
+
+  .brand-switcher-mark {
+    background:
+      rgba(6, 8, 7, .22);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
+  }
+
+
+  /* =======================================================
+     MOBILE BOTTOM NAV — MAHOGANY
+     ======================================================= */
+
+  .bottom-nav {
+    position: fixed;
+    z-index: 60;
+
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    border-top:
+      1px solid
+      rgba(238, 233, 223, .16);
+
+    /*
+     * Same mahogany family as the header.
+     * No black gradient over it.
+     */
+    background-image:
+      url("./assets/mahogany-mobile.webp");
+
+    background-position:
+      center bottom;
+
+    background-repeat:
+      no-repeat;
+
+    background-size:
+      cover;
+
+    -webkit-backdrop-filter:
+      none;
+
+    backdrop-filter:
+      none;
+
+    box-shadow:
+      0
+      -10px
+      28px
+      rgba(0, 0, 0, .14);
+  }
+
+  .bottom-nav-button {
+    color:
+      rgba(238, 233, 223, .64);
+
+    background:
+      transparent;
+  }
+
+  .bottom-nav-button.is-active {
+    color:
+      #f0d2ad;
+
+    background:
+      rgba(8, 15, 10, .27);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
+  }
+
+
+  /* =======================================================
+     MOBILE FILTER TABS
+     ======================================================= */
+
+  .filter-tab {
+    border-color:
+      rgba(238, 233, 223, .13);
+
+    background:
+      rgba(10, 13, 11, .18);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
+  }
+
+  .filter-tab.is-active {
+    border-color:
+      rgba(195, 154, 112, .30);
+
+    background:
+      rgba(37, 58, 44, .34);
   }
 
 }
 
 
+/* =========================================================
+   VERY SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 370px) {
+
+  .topbar {
+    background-position:
+      center center;
+  }
+
+  .bottom-nav {
+    background-position:
+      center bottom;
+  }
+
+}
 /* =========================================================
    POINTER / HOVER DEVICES
    ========================================================= */
@@ -2844,29 +3777,28 @@ strong {
 
   .brand-switcher:hover {
     border-color:
-      rgba(195, 154, 112, .20);
+      rgba(195, 154, 112, .24);
 
     background:
-      linear-gradient(
-        135deg,
-        rgba(46, 65, 52, .42),
-        rgba(18, 21, 19, .88)
-      );
+      rgba(18, 26, 21, .30);
+
+    -webkit-backdrop-filter:
+      blur(12px);
+
+    backdrop-filter:
+      blur(12px);
   }
 
   .stat-card:hover,
   .quick-create-card:hover,
   .studio-tool-card:hover,
-  .settings-card:hover {
+  .settings-card:hover,
+  .content-panel:hover {
     border-color:
-      rgba(195, 154, 112, .18);
+      rgba(195, 154, 112, .20);
 
     background:
-      linear-gradient(
-        145deg,
-        rgba(30, 37, 32, .95),
-        rgba(15, 19, 16, .98)
-      );
+      rgba(20, 28, 23, .30);
 
     transform:
       translateY(-2px);
@@ -2881,8 +3813,15 @@ strong {
       );
 
     box-shadow:
-      0 10px 28px rgba(0, 0, 0, .22),
-      inset 0 1px 0 rgba(255, 255, 255, .06);
+      0
+      10px
+      28px
+      rgba(0, 0, 0, .20),
+      inset
+      0
+      1px
+      0
+      rgba(255, 255, 255, .06);
   }
 
   .secondary-button:hover {
@@ -2892,7 +3831,7 @@ strong {
     color: var(--ink);
 
     background:
-      rgba(255, 255, 255, .045);
+      rgba(255, 255, 255, .06);
   }
 
   .text-button:hover {
@@ -2904,10 +3843,13 @@ strong {
 
     border-color:
       var(--line-strong);
+
+    background:
+      rgba(255, 255, 255, .04);
   }
 
   .bottom-nav-button:hover {
-    color: var(--ink-soft);
+    color: var(--ink);
   }
 
   .dialog-close:hover {
@@ -2917,7 +3859,15 @@ strong {
     color: var(--ink);
 
     background:
-      rgba(255, 255, 255, .05);
+      rgba(255, 255, 255, .07);
+  }
+
+  .danger-button:hover {
+    border-color:
+      rgba(190, 100, 100, .55);
+
+    background:
+      rgba(130, 54, 54, .27);
   }
 
   #brandBrainTabs button:hover,
@@ -2926,33 +3876,21 @@ strong {
     border-color:
       var(--line) !important;
 
-    color: var(--ink-soft) !important;
+    color:
+      var(--ink-soft) !important;
 
     background:
-      rgba(255, 255, 255, .025) !important;
+      rgba(
+        255,
+        255,
+        255,
+        .04
+      ) !important;
   }
 
 }
 
 
-/* =========================================================
-   REDUCED MOTION
-   ========================================================= */
-
-@media (prefers-reduced-motion: reduce) {
-
-  *,
-  *::before,
-  *::after {
-    scroll-behavior: auto !important;
-
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-
-    transition-duration: .01ms !important;
-  }
-
-}
 /* =========================================================
    STUDIO PREFERENCES
    ========================================================= */
@@ -2960,11 +3898,23 @@ strong {
 .studio-reduce-motion *,
 .studio-reduce-motion *::before,
 .studio-reduce-motion *::after {
-  scroll-behavior: auto !important;
-  animation-duration: .01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: .01ms !important;
+  scroll-behavior:
+    auto !important;
+
+  animation-duration:
+    .01ms !important;
+
+  animation-iteration-count:
+    1 !important;
+
+  transition-duration:
+    .01ms !important;
 }
+
+
+/* =========================================================
+   COMPACT CARD MODE
+   ========================================================= */
 
 .studio-compact-cards .content-panel,
 .studio-compact-cards .stat-card,
@@ -2981,8 +3931,10 @@ strong {
 .studio-compact-cards .quick-create-grid {
   gap: 8px;
 }
+
+
 /* =========================================================
-   SETTINGS DIALOG — SCROLL FIX
+   SETTINGS DIALOG
    ========================================================= */
 
 #studioSettingsDialog {
@@ -2992,21 +3944,40 @@ strong {
       760px
     );
 
+  height:
+    min(
+      90dvh,
+      820px
+    );
+
   max-height:
-    calc(100dvh - 32px);
+    min(
+      90dvh,
+      820px
+    );
 
   padding: 0;
 
   overflow: hidden;
 
-  overscroll-behavior: contain;
+  overscroll-behavior:
+    contain;
+
+  background:
+    rgba(13, 17, 14, .72);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
 }
 
 
-/*
- * The settings dialog's inner wrapper becomes
- * the layout container.
- */
+/* =========================================================
+   SETTINGS DIALOG SHELL
+   ========================================================= */
+
 #studioSettingsDialog > div {
   display: flex;
   flex-direction: column;
@@ -3014,46 +3985,54 @@ strong {
   width: 100%;
   max-width: none;
 
-  max-height:
-    calc(100dvh - 32px);
+  height: 100%;
+
+  min-height: 0;
 
   overflow: hidden;
 }
 
 
-/*
- * Keep the title + X visible while the
- * settings themselves scroll.
- */
+/* =========================================================
+   SETTINGS DIALOG HEADER
+   ========================================================= */
+
 #studioSettingsDialog .dialog-header {
-  position: sticky;
+  position: relative;
   z-index: 10;
-  top: 0;
 
   flex: 0 0 auto;
 
   background:
-    linear-gradient(
-      180deg,
-      rgba(18, 22, 19, .995),
-      rgba(15, 19, 16, .985)
-    );
+    rgba(14, 19, 15, .68);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+
+  backdrop-filter:
+    blur(16px);
 }
 
 
-/*
- * Every settings form gets its own
- * vertical scrolling region.
- */
+/* =========================================================
+   SETTINGS SCROLL REGION
+   ========================================================= */
+
 #studioSettingsDialog .create-form {
   flex: 1 1 auto;
 
   min-height: 0;
 
+  padding:
+    22px
+    22px
+    0;
+
   overflow-x: hidden;
   overflow-y: auto;
 
-  overscroll-behavior: contain;
+  overscroll-behavior:
+    contain;
 
   scrollbar-width: thin;
 
@@ -3061,52 +4040,84 @@ strong {
     rgba(118, 133, 107, .62)
     rgba(255, 255, 255, .025);
 
-  -webkit-overflow-scrolling: touch;
+  -webkit-overflow-scrolling:
+    touch;
 }
 
-
-/*
- * Chrome / Edge / Safari scrollbar.
- */
-#studioSettingsDialog .create-form::-webkit-scrollbar {
+#studioSettingsDialog
+.create-form::-webkit-scrollbar {
   width: 9px;
 }
 
-#studioSettingsDialog .create-form::-webkit-scrollbar-track {
+#studioSettingsDialog
+.create-form::-webkit-scrollbar-track {
   background:
     rgba(255, 255, 255, .02);
 }
 
-#studioSettingsDialog .create-form::-webkit-scrollbar-thumb {
-  border: 2px solid transparent;
+#studioSettingsDialog
+.create-form::-webkit-scrollbar-thumb {
+  border:
+    2px solid
+    transparent;
+
   border-radius: 999px;
 
   background:
     rgba(118, 133, 107, .55);
 
-  background-clip: padding-box;
+  background-clip:
+    padding-box;
 }
 
-#studioSettingsDialog .create-form::-webkit-scrollbar-thumb:hover {
+#studioSettingsDialog
+.create-form::-webkit-scrollbar-thumb:hover {
   background:
     rgba(167, 123, 82, .65);
 
-  background-clip: padding-box;
+  background-clip:
+    padding-box;
 }
 
 
-/*
- * Keep Save / Cancel accessible at the
- * bottom while scrolling long settings.
- */
+/* =========================================================
+   SETTINGS FORM SECTIONS
+   ========================================================= */
+
+#studioSettingsDialog .field {
+  flex: 0 0 auto;
+}
+
+#studioSettingsDialog input,
+#studioSettingsDialog textarea,
+#studioSettingsDialog select {
+  background:
+    rgba(4, 8, 5, .34);
+
+  -webkit-backdrop-filter:
+    blur(7px);
+
+  backdrop-filter:
+    blur(7px);
+}
+
+
+/* =========================================================
+   SETTINGS ACTION BAR
+   ========================================================= */
+
 #studioSettingsDialog .form-actions {
   position: sticky;
   z-index: 8;
-  bottom: -20px;
 
-  margin-right: -22px;
-  margin-bottom: -20px;
-  margin-left: -22px;
+  bottom: 0;
+
+  flex: 0 0 auto;
+
+  margin:
+    20px
+    -22px
+    0;
 
   padding:
     14px
@@ -3114,17 +4125,17 @@ strong {
     20px;
 
   border-top:
-    1px solid var(--line);
+    1px solid
+    var(--line);
 
   background:
-    linear-gradient(
-      180deg,
-      rgba(13, 17, 14, .97),
-      rgba(9, 12, 10, 1)
-    );
+    rgba(11, 15, 12, .72);
 
   box-shadow:
-    0 -12px 28px rgba(0, 0, 0, .22);
+    0
+    -12px
+    28px
+    rgba(0, 0, 0, .14);
 
   -webkit-backdrop-filter:
     blur(16px);
@@ -3144,6 +4155,9 @@ strong {
     width:
       calc(100% - 12px);
 
+    height:
+      calc(100dvh - 12px);
+
     max-height:
       calc(100dvh - 12px);
 
@@ -3151,8 +4165,9 @@ strong {
   }
 
   #studioSettingsDialog > div {
-    max-height:
-      calc(100dvh - 12px);
+    height: 100%;
+
+    max-height: none;
   }
 
   #studioSettingsDialog .dialog-header {
@@ -3166,23 +4181,166 @@ strong {
     padding:
       18px
       16px
-      20px;
+      0;
   }
 
   #studioSettingsDialog .form-actions {
-    bottom: -20px;
-
-    margin-right: -16px;
-    margin-bottom: -20px;
-    margin-left: -16px;
+    margin:
+      20px
+      -16px
+      0;
 
     padding:
       12px
       16px
       calc(
-        14px +
-        env(safe-area-inset-bottom)
+        14px
+        + env(safe-area-inset-bottom)
       );
+  }
+
+}
+
+
+/* =========================================================
+   DIALOG GLASS CONSISTENCY
+   ========================================================= */
+
+.app-dialog {
+  background:
+    rgba(12, 16, 13, .76);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
+}
+
+.dialog-header {
+  background:
+    rgba(15, 20, 16, .68);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+
+  backdrop-filter:
+    blur(16px);
+}
+
+
+/* =========================================================
+   BRAND BRAIN GLASS OVERRIDES
+   ========================================================= */
+
+#brandBrainDialog {
+  background:
+    rgba(11, 15, 12, .74);
+}
+
+#brandBrainDialog .dialog-header {
+  background:
+    rgba(14, 19, 15, .68);
+}
+
+#brandBrainTabs,
+.brand-brain-tabs {
+  background:
+    rgba(7, 10, 8, .42);
+
+  -webkit-backdrop-filter:
+    blur(12px);
+
+  backdrop-filter:
+    blur(12px);
+}
+
+#brandBrainContent,
+.brand-brain-content {
+  background:
+    transparent;
+}
+
+#brandBrainContent article,
+.brand-brain-content article {
+  border-color:
+    var(--line) !important;
+
+  background:
+    rgba(
+      14,
+      19,
+      15,
+      .28
+    ) !important;
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur));
+
+  backdrop-filter:
+    blur(var(--glass-blur));
+
+  box-shadow:
+    0
+    8px
+    24px
+    rgba(0, 0, 0, .10);
+}
+
+#brandBrainDialog .form-actions {
+  background:
+    rgba(10, 14, 11, .72);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+
+  backdrop-filter:
+    blur(16px);
+}
+
+
+/* =========================================================
+   ASSET EDITOR GLASS
+   ========================================================= */
+
+#assetEditorDialog {
+  background:
+    rgba(11, 15, 12, .74);
+}
+
+#assetEditorDialog
+.asset-editor-preview {
+  background:
+    rgba(255, 255, 255, .025);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  backdrop-filter:
+    blur(8px);
+}
+
+
+/* =========================================================
+   NATIVE REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior:
+      auto !important;
+
+    animation-duration:
+      .01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    transition-duration:
+      .01ms !important;
   }
 
 }
