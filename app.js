@@ -13002,6 +13002,10 @@ async function deleteAssetEditor() {
    ASSET FOLDERS
    ========================================================= */
 
+/* =========================================================
+   ASSET FOLDERS
+   ========================================================= */
+
 function getAssetFoldersForActiveBrand() {
   const brand =
     getActiveBrand();
@@ -13020,25 +13024,54 @@ function getAssetFoldersForActiveBrand() {
     )
     .sort(
       (a, b) =>
-        String(a.name || "")
+        String(folderName(a))
           .localeCompare(
-            String(b.name || "")
+            String(folderName(b))
           )
     );
 }
 
 
+/* =========================================================
+   ASSET FOLDER NAME
+   ========================================================= */
+
+function folderName(folder) {
+  return (
+    folder?.name ||
+    "Untitled Folder"
+  );
+}
+
+
+/* =========================================================
+   ASSET COUNT FOR FOLDER
+   ========================================================= */
+
+function getAssetFolderAssetCount(
+  folderId
+) {
+  return APP_DATA.assets.filter(
+    asset =>
+      String(
+        asset.folderId || ""
+      ) ===
+      String(folderId)
+  ).length;
+}
+
+
+/* =========================================================
+   RENDER ASSET FOLDER CARD
+   ========================================================= */
+
 function renderAssetFolderCard(
   folder
 ) {
   const assetCount =
-    APP_DATA.assets.filter(
-      asset =>
-        String(
-          asset.folderId || ""
-        ) ===
-        String(folder.id)
-    ).length;
+    getAssetFolderAssetCount(
+      folder.id
+    );
 
   return `
     <article
@@ -13051,8 +13084,54 @@ function renderAssetFolderCard(
       style="
         min-width:0;
         cursor:pointer;
+        position:relative;
       "
     >
+
+      <button
+        type="button"
+        data-delete-asset-folder="${
+          escapeHtml(folder.id)
+        }"
+        aria-label="Delete ${
+          escapeHtml(
+            folderName(folder)
+          )
+        }"
+        title="Delete Folder"
+        style="
+          position:absolute;
+          top:12px;
+          right:12px;
+          z-index:5;
+
+          display:grid;
+          place-items:center;
+
+          width:34px;
+          height:34px;
+
+          padding:0;
+
+          border:
+            1px solid
+            rgba(163,95,95,.28);
+
+          border-radius:10px;
+
+          color:
+            var(--danger);
+
+          background:
+            rgba(8,10,9,.82);
+
+          font-size:1rem;
+          line-height:1;
+        "
+      >
+        ×
+      </button>
+
       <div
         style="
           min-height:145px;
@@ -13062,6 +13141,7 @@ function renderAssetFolderCard(
           gap:20px;
         "
       >
+
         <div
           aria-hidden="true"
           style="
@@ -13080,12 +13160,12 @@ function renderAssetFolderCard(
           <h3
             style="
               margin:6px 0 4px;
+              padding-right:36px;
             "
           >
             ${
               escapeHtml(
-                folder.name ||
-                "Untitled Folder"
+                folderName(folder)
               )
             }
           </h3>
@@ -13105,12 +13185,21 @@ function renderAssetFolderCard(
             }
           </p>
         </div>
+
       </div>
+
     </article>
   `;
 }
 
-function openAssetFolderById(folderId) {
+
+/* =========================================================
+   OPEN ASSET FOLDER
+   ========================================================= */
+
+function openAssetFolderById(
+  folderId
+) {
   const folder =
     APP_DATA.assetFolders.find(
       item =>
@@ -13132,6 +13221,208 @@ function openAssetFolderById(folderId) {
 
   renderApp();
 }
+
+
+/* =========================================================
+   DELETE ASSET FOLDER
+   ========================================================= */
+
+async function deleteAssetFolder(
+  folderId
+) {
+  const folder =
+    (
+      APP_DATA.assetFolders ||
+      []
+    ).find(
+      item =>
+        String(item.id) ===
+        String(folderId)
+    );
+
+  if (!folder) {
+    showToast(
+      "Asset folder could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const assetCount =
+    getAssetFolderAssetCount(
+      folder.id
+    );
+
+
+  /*
+   * Do not delete folders containing
+   * assets. This keeps deletion safe
+   * and prevents orphaned records.
+   */
+  if (assetCount > 0) {
+    showToast(
+      `${
+        folderName(folder)
+      } contains ${
+        assetCount
+      } ${
+        assetCount === 1
+          ? "asset"
+          : "assets"
+      }. Move or delete ${
+        assetCount === 1
+          ? "it"
+          : "them"
+      } first.`,
+      "error",
+      5500
+    );
+
+    return;
+  }
+
+
+  /*
+   * Also protect against deleting a
+   * parent folder containing folders.
+   * This matters if nested folders are
+   * enabled later.
+   */
+  const childFolders =
+    (
+      APP_DATA.assetFolders ||
+      []
+    ).filter(
+      item =>
+        String(
+          item.parentFolderId ||
+          ""
+        ) ===
+        String(folder.id)
+    );
+
+
+  if (childFolders.length) {
+    showToast(
+      `${
+        folderName(folder)
+      } contains ${
+        childFolders.length
+      } ${
+        childFolders.length === 1
+          ? "folder"
+          : "folders"
+      }. Delete or move ${
+        childFolders.length === 1
+          ? "it"
+          : "them"
+      } first.`,
+      "error",
+      5500
+    );
+
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      `Permanently delete "${folderName(
+        folder
+      )}"?\n\nThis cannot be undone.`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from(
+          "asset_folders"
+        )
+        .delete()
+        .eq(
+          "id",
+          folder.id
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    /*
+     * Remove the deleted folder from
+     * local application state.
+     */
+    APP_DATA.assetFolders =
+      (
+        APP_DATA.assetFolders ||
+        []
+      ).filter(
+        item =>
+          String(item.id) !==
+          String(folder.id)
+      );
+
+
+    /*
+     * If the user somehow deletes the
+     * folder currently being viewed,
+     * return to the parent/root.
+     */
+    if (
+      String(
+        APP_STATE.activeAssetFolderId ||
+        ""
+      ) ===
+      String(folder.id)
+    ) {
+      APP_STATE.activeAssetFolderId =
+        folder.parentFolderId ||
+        null;
+    }
+
+
+    renderApp();
+
+
+    showToast(
+      "Folder deleted.",
+      "success"
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Folder deletion failed:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Folder could not be deleted.",
+      "error",
+      5500
+    );
+  }
+}
+
+
+/* =========================================================
+   CREATE ASSET FOLDER DIALOG
+   ========================================================= */
 
 function openCreateAssetFolderDialog() {
   const brand =
@@ -13292,6 +13583,10 @@ function openCreateAssetFolderDialog() {
 }
 
 
+/* =========================================================
+   CREATE ASSET FOLDER
+   ========================================================= */
+
 async function handleCreateAssetFolder(
   event
 ) {
@@ -13372,7 +13667,7 @@ async function handleCreateAssetFolder(
 
   } catch (error) {
     console.error(
-          "Folder creation failed:",
+      "Folder creation failed:",
       error
     );
 
@@ -13392,7 +13687,6 @@ async function handleCreateAssetFolder(
     }
   }
 }
-
 /* =========================================================
    ASSET UPLOAD
    ========================================================= */
