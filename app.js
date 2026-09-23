@@ -17161,7 +17161,27 @@ function handleGlobalClick(
 
     return;
   }
+const deleteAssetFolderButton =
+  event.target.closest(
+    "[data-delete-asset-folder]"
+  );
 
+if (deleteAssetFolderButton) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const folderId =
+    deleteAssetFolderButton.dataset
+      .deleteAssetFolder;
+
+  if (folderId) {
+    deleteAssetFolder(
+      folderId
+    );
+  }
+
+  return;
+}
   const openAssetFolder =
     event.target.closest(
       "[data-open-asset-folder]"
