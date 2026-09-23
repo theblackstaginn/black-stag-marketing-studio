@@ -1198,7 +1198,7 @@ function normalizeContent(row) {
 
     type:
       DB_TYPE_TO_APP_TYPE[
-        row.content_type
+              row.content_type
       ] ||
       "social-post",
 
@@ -1318,6 +1318,8 @@ function normalizeCalendarItem(row) {
       row.updated_at
   };
 }
+
+
 function normalizeAssetFolder(row) {
   return {
     id:
@@ -1345,20 +1347,21 @@ function normalizeAssetFolder(row) {
   };
 }
 
+
 function normalizeAsset(row) {
   return {
     id:
       row.id,
 
     brandId:
-  row.brand_id,
+      row.brand_id,
 
-folderId:
-  row.folder_id ||
-  null,
+    folderId:
+      row.folder_id ||
+      null,
 
-name:
-  row.name,
+    name:
+      row.name,
 
     category:
       row.asset_type,
@@ -1617,6 +1620,7 @@ async function loadAppData() {
   }
 }
 
+
 /* =========================================================
    RELOAD ONE BRAND
    ========================================================= */
@@ -1821,6 +1825,8 @@ function setActiveBrand(
     );
   }
 }
+
+
 /* =========================================================
    ACTIVE BRAND UI
    ========================================================= */
@@ -2398,7 +2404,7 @@ function ensureBrandBrainDialog() {
           class="filter-button"
           type="button"
           data-brain-tab="facts"
-        >
+                  >
           Source of Truth
         </button>
 
@@ -2776,6 +2782,8 @@ function brandBrainGridOpen() {
     >
   `;
 }
+
+
 /* =========================================================
    BRAND IDENTITY EDITOR
    ========================================================= */
@@ -3568,6 +3576,8 @@ function closeBrandBrain() {
   APP_STATE.brandBrainTab =
     "identity";
 }
+
+
 /* =========================================================
    BRAND VOICE EDITOR
    ========================================================= */
@@ -3598,7 +3608,7 @@ function renderBrandVoiceEditor(
 
           <span>
             Voice Adjectives
-          </span>
+                      </span>
 
           <input
             id="brandVoiceAdjectives"
@@ -4230,6 +4240,8 @@ async function handleBrandVoiceSave(
     }
   }
 }
+
+
 /* =========================================================
    SOURCE OF TRUTH
    ========================================================= */
@@ -4598,7 +4610,7 @@ function renderBrandFactCard(
                   }
 
                   ${
-                    fact.last_verified_at
+                                      fact.last_verified_at
                       ? `
                         <div>
                           Verified:
@@ -5009,7 +5021,6 @@ function ensureBrandFactDialog() {
             />
 
             AI may modify this value
-
           </label>
 
 
@@ -5598,7 +5609,7 @@ async function archiveBrandFact(
           active:
             false
         })
-        .eq(
+                .eq(
           "id",
           fact.id
         );
@@ -5688,6 +5699,8 @@ function handleBrandFactsClick(
     );
   }
 }
+
+
 /* =========================================================
    AI GUARDRAILS
    ========================================================= */
@@ -6597,8 +6610,7 @@ async function handleBrandRuleSave(
     if (currentButton) {
       currentButton.disabled =
         false;
-
-      currentButton.textContent =
+              currentButton.textContent =
         "Save Guardrail";
     }
   }
@@ -6745,6 +6757,8 @@ function handleBrandRulesClick(
     );
   }
 }
+
+
 /* =========================================================
    BRAND MILESTONES
    ========================================================= */
@@ -7596,9 +7610,7 @@ function ensureBrandMilestoneDialog() {
             </span>
 
           </label>
-
-
-          <label
+                    <label
             style="
               display:flex;
               align-items:flex-start;
@@ -8294,6 +8306,8 @@ function handleBrandMilestonesClick(
     );
   }
 }
+
+
 /* =========================================================
    DASHBOARD
    ========================================================= */
@@ -8598,7 +8612,7 @@ function getContentTypeLabel(
   return (
     CREATE_TYPES[
       normalized
-    ]?.label ||
+          ]?.label ||
     titleCaseStatus(
       normalized
     )
@@ -8609,6 +8623,7 @@ function getContentTypeLabel(
 /* =========================================================
    CAMPAIGNS
    ========================================================= */
+
 function renderCampaigns() {
   const container =
     $("#campaignList");
@@ -9149,6 +9164,7 @@ function renderContentLibrary() {
       .join("");
 }
 
+
 /* =========================================================
    CONTENT EDITOR
    ========================================================= */
@@ -9445,6 +9461,7 @@ function ensureContentEditorDialog() {
   return dialog;
 }
 
+
 /* =========================================================
    CONTENT EDITOR SCHEDULE VISIBILITY
    ========================================================= */
@@ -9597,9 +9614,7 @@ async function saveContentEditor(
 
     $("#contentEditorTitle")
       ?.focus();
-
-
-    return;
+          return;
   }
 
 
@@ -9771,6 +9786,7 @@ async function saveContentEditor(
     }
   }
 }
+
 
 /* =========================================================
    CONTENT EDITOR
@@ -10483,6 +10499,8 @@ async function saveContentEditor(
     }
   }
 }
+
+
 /* =========================================================
    CONTENT CARD
    ========================================================= */
@@ -10598,7 +10616,7 @@ function renderContentCard(
           >
             ${
               escapeHtml(
-                item.title ||
+                              item.title ||
                 "Untitled Content"
               )
             }
@@ -10710,6 +10728,8 @@ function renderContentCard(
     </article>
   `;
 }
+
+
 /* =========================================================
    TEXT PREVIEW
    ========================================================= */
@@ -10745,8 +10765,7 @@ function truncateText(
   );
 }
 
-  
-  
+
 /* =========================================================
    CONTENT FILTERS
    ========================================================= */
@@ -10775,6 +10794,7 @@ function setContentFilter(
 /* =========================================================
    CALENDAR
    ========================================================= */
+
 function renderCalendar() {
   const container =
     $("#calendarShell");
@@ -10808,7 +10828,7 @@ function renderCalendar() {
   }
 
 
-    const calendarItems =
+  const calendarItems =
     APP_DATA.calendar
       .filter(
         item =>
@@ -11128,34 +11148,35 @@ function renderCalendarItem(
 
 
   const isScheduledContent =
-  item.itemType === "scheduled-content" &&
-  item.contentId;
+    item.itemType === "scheduled-content" &&
+    item.contentId;
 
-const calendarItemId =
-  isScheduledContent
-    ? item.contentId
-    : item.id;
+  const calendarItemId =
+    isScheduledContent
+      ? item.contentId
+      : item.id;
 
-const calendarAction =
-  isScheduledContent
-    ? "content"
-    : "calendar";
+  const calendarAction =
+    isScheduledContent
+      ? "content"
+      : "calendar";
 
-return `
-  <article
-    class="content-panel calendar-item-card"
-    data-calendar-action="${escapeHtml(calendarAction)}"
-    data-calendar-item-id="${escapeHtml(calendarItemId)}"
-    role="button"
-    tabindex="0"
-    aria-label="Open ${escapeHtml(
-      item.title || "calendar item"
-    )}"
-    style="
-      margin-bottom:10px;
-      cursor:pointer;
-    "
-  >
+
+  return `
+    <article
+      class="content-panel calendar-item-card"
+      data-calendar-action="${escapeHtml(calendarAction)}"
+      data-calendar-item-id="${escapeHtml(calendarItemId)}"
+      role="button"
+      tabindex="0"
+      aria-label="Open ${escapeHtml(
+        item.title || "calendar item"
+      )}"
+      style="
+        margin-bottom:10px;
+        cursor:pointer;
+      "
+    >
 
       <div
         style="
@@ -11329,16 +11350,20 @@ return `
 /* =========================================================
    ASSET VAULT
    ========================================================= */
+
 function renderAssets() {
   const container =
     $("#assetGrid");
+
 
   if (!container) {
     return;
   }
 
+
   const brand =
     getActiveBrand();
+
 
   if (!brand) {
     container.innerHTML = `
@@ -11358,6 +11383,7 @@ function renderAssets() {
     return;
   }
 
+
   const activeFilter =
     document.querySelector(
       "[data-asset-filter].is-active"
@@ -11366,9 +11392,11 @@ function renderAssets() {
       ?.assetFilter ||
     "all";
 
+
   const activeFolderId =
     APP_STATE.activeAssetFolderId ||
     null;
+
 
   /*
    * FOLDERS
@@ -11413,6 +11441,7 @@ function renderAssets() {
       )
       .slice();
 
+
   folders.sort(
     (a, b) =>
       String(
@@ -11423,6 +11452,7 @@ function renderAssets() {
         )
       )
   );
+
 
   /*
    * ASSETS
@@ -11454,6 +11484,7 @@ function renderAssets() {
             );
           }
 
+
           /*
            * Root view only shows assets
            * that are not inside a folder.
@@ -11462,6 +11493,7 @@ function renderAssets() {
         }
       )
       .slice();
+
 
   if (
     activeFilter !==
@@ -11477,6 +11509,7 @@ function renderAssets() {
       );
   }
 
+
   assets.sort(
     (a, b) =>
       new Date(
@@ -11490,6 +11523,7 @@ function renderAssets() {
         0
       )
   );
+
 
   /*
    * CURRENT FOLDER
@@ -11509,6 +11543,7 @@ function renderAssets() {
             )
         )
       : null;
+
 
   /*
    * TOOLBAR
@@ -11557,6 +11592,7 @@ function renderAssets() {
 
       </div>
 
+
       <div
         style="
           display:flex;
@@ -11586,6 +11622,7 @@ function renderAssets() {
     </div>
   `;
 
+
   /*
    * FOLDER CARDS
    */
@@ -11598,7 +11635,7 @@ function renderAssets() {
             data-open-asset-folder="${
               escapeHtml(
                 folder.id
-              )
+                              )
             }"
             role="button"
             tabindex="0"
@@ -11651,6 +11688,7 @@ function renderAssets() {
       )
       .join("");
 
+
   /*
    * ASSET CARDS
    */
@@ -11663,6 +11701,7 @@ function renderAssets() {
           )
       )
       .join("");
+
 
   /*
    * EMPTY FOLDER / EMPTY VAULT
@@ -11719,12 +11758,14 @@ function renderAssets() {
     return;
   }
 
+
   container.innerHTML = `
     ${toolbarHtml}
     ${foldersHtml}
     ${assetsHtml}
   `;
 }
+
 
 /* =========================================================
    ASSET FILTER MATCHING
@@ -11775,6 +11816,7 @@ function assetMatchesFilter(
 /* =========================================================
    ASSET CARD
    ========================================================= */
+
 async function hydrateAssetSignedUrls(
   assets
 ) {
@@ -11785,12 +11827,14 @@ async function hydrateAssetSignedUrls(
     return assets || [];
   }
 
+
   await Promise.all(
     assets.map(
       async asset => {
         if (!asset) {
           return;
         }
+
 
         /*
          * Assets that already have an
@@ -11804,6 +11848,7 @@ async function hydrateAssetSignedUrls(
           return;
         }
 
+
         if (
           !asset.storageBucket ||
           !asset.storagePath
@@ -11811,6 +11856,7 @@ async function hydrateAssetSignedUrls(
           asset.signedUrl = "";
           return;
         }
+
 
         try {
           const {
@@ -11827,12 +11873,15 @@ async function hydrateAssetSignedUrls(
                 60 * 60
               );
 
+
           if (error) {
             throw error;
           }
 
+
           asset.signedUrl =
             data?.signedUrl || "";
+
         } catch (error) {
           console.warn(
             "Could not create signed asset URL:",
@@ -11840,19 +11889,25 @@ async function hydrateAssetSignedUrls(
             error
           );
 
+
           asset.signedUrl = "";
         }
       }
     )
   );
 
+
   return assets;
 }
 
-function getAssetDisplayUrl(asset) {
+
+function getAssetDisplayUrl(
+  asset
+) {
   if (!asset) {
     return "";
   }
+
 
   return (
     asset.signedUrl ||
@@ -11861,11 +11916,14 @@ function getAssetDisplayUrl(asset) {
   );
 }
 
+
 function renderAssetCard(
   asset
 ) {
   const imageUrl =
-  getAssetDisplayUrl(asset);
+    getAssetDisplayUrl(
+      asset
+    );
 
 
   const isImage =
@@ -12116,27 +12174,34 @@ function setAssetFilter(
   renderAssets();
 }
 
+
 /* =========================================================
    ASSET EDITOR
    ========================================================= */
+
 function ensureAssetEditorDialog() {
   let dialog =
     $("#assetEditorDialog");
 
+
   if (dialog) {
     return dialog;
   }
+
 
   dialog =
     document.createElement(
       "dialog"
     );
 
+
   dialog.id =
     "assetEditorDialog";
 
+
   dialog.className =
     "app-dialog";
+
 
   dialog.innerHTML = `
     <div class="asset-editor-shell">
@@ -12363,6 +12428,7 @@ function ensureAssetEditorDialog() {
 
     </div>
   `;
+
 
   document.body.appendChild(
     dialog
@@ -12598,7 +12664,7 @@ async function saveAssetEditor(
 
   const altText =
     nullableText(
-      $("#assetEditorAltText")
+          $("#assetEditorAltText")
         ?.value
     );
 
@@ -13057,6 +13123,7 @@ function openAssetEditor(assetId) {
 
   safeDialogOpen(dialog);
 }
+
 async function saveAssetEditor(event) {
   event.preventDefault();
 
@@ -13361,6 +13428,7 @@ function openAssetFolderById(folderId) {
 
   renderApp();
 }
+
 function openCreateAssetFolderDialog() {
   const brand =
     getActiveBrand();
@@ -13500,11 +13568,13 @@ function openCreateAssetFolderDialog() {
       </form>
     </div>
   `;
+
   $("#assetFolderForm")
     ?.addEventListener(
       "submit",
       handleCreateAssetFolder
     );
+
   safeDialogOpen(
     dialog
   );
@@ -13598,7 +13668,7 @@ async function handleCreateAssetFolder(
 
   } catch (error) {
     console.error(
-      "Folder creation failed:",
+          "Folder creation failed:",
       error
     );
 
@@ -13618,6 +13688,7 @@ async function handleCreateAssetFolder(
     }
   }
 }
+
 /* =========================================================
    ASSET UPLOAD
    ========================================================= */
@@ -13959,7 +14030,6 @@ function openAssetUploadDialog() {
           </button>
 
         </div>
-
       </form>
 
     </div>
@@ -14340,17 +14410,17 @@ async function handleAssetUploadSubmit(
 
 
     const payload = {
-  brand_id:
-    brand.id,
+      brand_id:
+        brand.id,
 
-  folder_id:
-    APP_STATE.activeAssetFolderId ||
-    null,
+      folder_id:
+        APP_STATE.activeAssetFolderId ||
+        null,
 
-  name,
+      name,
 
-  asset_type:
-    category,
+      asset_type:
+        category,
 
       description,
 
@@ -14406,12 +14476,14 @@ async function handleAssetUploadSubmit(
 
 
     const normalized =
-  normalizeAsset(
-    data
-  );
-await hydrateAssetSignedUrls(
-  [normalized]
-);
+      normalizeAsset(
+        data
+      );
+
+    await hydrateAssetSignedUrls(
+      [normalized]
+    );
+
 
     APP_DATA.assets.unshift(
       normalized
@@ -14489,6 +14561,7 @@ await hydrateAssetSignedUrls(
 /* =========================================================
    QUICK CREATE BRAND OPTIONS
    ========================================================= */
+
 function renderQuickCreateBrandOptions() {
   const select =
     $("#createBrand");
@@ -14596,26 +14669,20 @@ function openQuickCreate(
 
   const promptField =
     $("#createPrompt");
-
-
-  if (typeField) {
+      if (typeField) {
     typeField.value =
       normalizedType;
   }
-
 
   if (title) {
     title.textContent =
       `Create ${definition.label}`;
   }
 
-
   renderQuickCreateBrandOptions();
-
 
   const activeBrand =
     getActiveBrand();
-
 
   if (
     activeBrand &&
@@ -14625,27 +14692,22 @@ function openQuickCreate(
       activeBrand.id;
   }
 
-
   if (promptField) {
     promptField.value =
       "";
   }
 
-
   const goalField =
     $("#createGoal");
-
 
   if (goalField) {
     goalField.selectedIndex =
       0;
   }
 
-
   safeDialogOpen(
     dialog
   );
-
 
   window.setTimeout(
     () => {
@@ -14686,7 +14748,6 @@ function getDatabaseContentType(
       "campaign"
   };
 
-
   return (
     map[appType] ||
     "other"
@@ -14703,29 +14764,24 @@ async function handleQuickCreateSubmit(
 ) {
   event.preventDefault();
 
-
   const type =
     $("#createContentType")
       ?.value ||
     "social-post";
 
-
   const brandId =
     $("#createBrand")
       ?.value;
-
 
   const request =
     $("#createPrompt")
       ?.value
       ?.trim();
 
-
   const goal =
     $("#createGoal")
       ?.value ||
     "";
-
 
   if (!brandId) {
     showToast(
@@ -14736,21 +14792,17 @@ async function handleQuickCreateSubmit(
     return;
   }
 
-
   if (!request) {
     showToast(
       "Tell Marketing Studio what you want to create.",
       "error"
     );
 
-
     $("#createPrompt")
       ?.focus();
 
-
     return;
   }
-
 
   const brand =
     APP_DATA.brands.find(
@@ -14758,7 +14810,6 @@ async function handleQuickCreateSubmit(
         item.id ===
         brandId
     );
-
 
   if (!brand) {
     showToast(
@@ -14769,13 +14820,6 @@ async function handleQuickCreateSubmit(
     return;
   }
 
-
-  /*
-    Make the selected Quick Create brand the current
-    working brand so the rest of the app remains in
-    the same context.
-  */
-
   setActiveBrand(
     brand.id,
     {
@@ -14783,7 +14827,6 @@ async function handleQuickCreateSubmit(
         false
     }
   );
-
 
   const brief =
     buildAiBrief({
@@ -14793,11 +14836,9 @@ async function handleQuickCreateSubmit(
       goal
     });
 
-
   safeDialogClose(
     $("#quickCreateDialog")
   );
-
 
   showManualAiDialog({
     brand,
@@ -14820,7 +14861,6 @@ function brandFactCanEnterAiBrief(
     return false;
   }
 
-
   if (
     fact.active ===
     false
@@ -14828,13 +14868,11 @@ function brandFactCanEnterAiBrief(
     return false;
   }
 
-
   if (
     fact.is_sensitive
   ) {
     return false;
   }
-
 
   if (
     fact.status ===
@@ -14842,17 +14880,6 @@ function brandFactCanEnterAiBrief(
   ) {
     return false;
   }
-
-
-  /*
-    Only information that has actually been verified
-    or explicitly approved by the owner enters the
-    factual section of an ordinary marketing prompt.
-
-    AI suggestions and facts awaiting confirmation
-    remain stored in Brand Brain but are not treated
-    as factual marketing claims.
-  */
 
   return (
     fact.status ===
@@ -14874,17 +14901,14 @@ function formatBrandFactForBrief(
     return "";
   }
 
-
   const label =
     fact.subject ||
     fact.fact_key ||
     fact.category ||
     "Brand fact";
 
-
   let value =
     fact.value_text;
-
 
   if (
     !value &&
@@ -14903,11 +14927,9 @@ function formatBrandFactForBrief(
     }
   }
 
-
   if (!value) {
     return "";
   }
-
 
   return (
     `- ${label}: ${value}`
@@ -14931,7 +14953,6 @@ function formatArrayForBrief(
     return "";
   }
 
-
   return values
     .filter(Boolean)
     .join(", ");
@@ -14947,11 +14968,9 @@ function buildBrandIdentityBrief(
 ) {
   const lines = [];
 
-
   lines.push(
     `Official name: ${brand.name}`
   );
-
 
   if (brand.shortName) {
     lines.push(
@@ -14959,13 +14978,11 @@ function buildBrandIdentityBrief(
     );
   }
 
-
   if (brand.website) {
     lines.push(
       `Website: ${brand.website}`
     );
   }
-
 
   if (brand.businessType) {
     lines.push(
@@ -14973,13 +14990,11 @@ function buildBrandIdentityBrief(
     );
   }
 
-
   if (brand.stage) {
     lines.push(
       `Business stage: ${brand.stageLabel || brand.stage}`
     );
   }
-
 
   if (brand.primaryGoal) {
     lines.push(
@@ -14987,13 +15002,11 @@ function buildBrandIdentityBrief(
     );
   }
 
-
   if (brand.campaignPhase) {
     lines.push(
       `Current campaign phase: ${brand.campaignPhase}`
     );
   }
-
 
   if (brand.tagline) {
     lines.push(
@@ -15001,13 +15014,11 @@ function buildBrandIdentityBrief(
     );
   }
 
-
   if (brand.shortDescription) {
     lines.push(
       `Short description: ${brand.shortDescription}`
     );
   }
-
 
   if (brand.longDescription) {
     lines.push(
@@ -15015,13 +15026,11 @@ function buildBrandIdentityBrief(
     );
   }
 
-
   if (brand.brandStory) {
     lines.push(
       `Brand story: ${brand.brandStory}`
     );
   }
-
 
   if (brand.mission) {
     lines.push(
@@ -15029,20 +15038,17 @@ function buildBrandIdentityBrief(
     );
   }
 
-
   if (brand.differentiator) {
     lines.push(
       `Differentiator: ${brand.differentiator}`
     );
   }
 
-
   if (brand.brandPromise) {
     lines.push(
       `Brand promise: ${brand.brandPromise}`
     );
   }
-
 
   if (brand.openingDate) {
     lines.push(
@@ -15051,7 +15057,6 @@ function buildBrandIdentityBrief(
         : `Unconfirmed possible opening date: ${brand.openingDate}`
     );
   }
-
 
   return lines.join(
     "\n"
@@ -15070,22 +15075,18 @@ function buildBrandVoiceBrief(
     brand.voice ||
     {};
 
-
   const lines = [];
-
 
   const adjectives =
     formatArrayForBrief(
       voice.adjectives
     );
 
-
   if (adjectives) {
     lines.push(
       `Voice adjectives: ${adjectives}`
     );
   }
-
 
   if (
     voice.emotionalAtmosphere
@@ -15095,13 +15096,11 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   if (voice.formality) {
     lines.push(
       `Formality: ${voice.formality}`
     );
   }
-
 
   if (voice.humorStyle) {
     lines.push(
@@ -15109,19 +15108,16 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   if (voice.mysteryLevel) {
     lines.push(
       `Mystery level: ${voice.mysteryLevel}`
     );
   }
 
-
   const preferredVocabulary =
     formatArrayForBrief(
       voice.preferredVocabulary
     );
-
 
   if (preferredVocabulary) {
     lines.push(
@@ -15129,12 +15125,10 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   const avoidVocabulary =
     formatArrayForBrief(
       voice.avoidVocabulary
     );
-
 
   if (avoidVocabulary) {
     lines.push(
@@ -15142,12 +15136,10 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   const preferredPhrases =
     formatArrayForBrief(
       voice.preferredPhrases
     );
-
 
   if (preferredPhrases) {
     lines.push(
@@ -15155,12 +15147,10 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   const avoidPhrases =
     formatArrayForBrief(
       voice.avoidPhrases
     );
-
 
   if (avoidPhrases) {
     lines.push(
@@ -15168,12 +15158,10 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   const cliches =
     formatArrayForBrief(
       voice.clichesToAvoid
     );
-
 
   if (cliches) {
     lines.push(
@@ -15181,20 +15169,17 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   if (voice.emojiPolicy) {
     lines.push(
       `Emoji policy: ${voice.emojiPolicy}`
     );
   }
 
-
   if (voice.profanityPolicy) {
     lines.push(
       `Profanity policy: ${voice.profanityPolicy}`
     );
   }
-
 
   if (
     voice.capitalizationStyle
@@ -15204,20 +15189,17 @@ function buildBrandVoiceBrief(
     );
   }
 
-
   if (voice.ctaStyle) {
     lines.push(
       `Call-to-action style: ${voice.ctaStyle}`
     );
   }
 
-
   if (voice.writingNotes) {
     lines.push(
       `Additional writing notes: ${voice.writingNotes}`
     );
   }
-
 
   if (
     Array.isArray(
@@ -15229,7 +15211,6 @@ function buildBrandVoiceBrief(
       "Approved examples of on-brand language:"
     );
 
-
     voice.approvedExamples
       .forEach(
         example => {
@@ -15239,7 +15220,6 @@ function buildBrandVoiceBrief(
         }
       );
   }
-
 
   return lines.join(
     "\n"
@@ -15264,13 +15244,11 @@ function buildBrandFactsBrief(
           )
       : [];
 
-
   if (!facts.length) {
     return (
       "- No verified or owner-approved Source of Truth facts are currently stored. Do not invent missing business facts."
     );
   }
-
 
   return facts
     .map(
@@ -15310,13 +15288,11 @@ function buildBrandRulesBrief(
           )
       : [];
 
-
   if (!rules.length) {
     return (
       "- Do not invent facts, prices, dates, offers, availability, policies, products, services, or business claims."
     );
   }
-
 
   return rules
     .map(
@@ -15346,7 +15322,6 @@ function buildBrandMilestonesBrief(
       ? brand.milestones
       : [];
 
-
   const useful =
     milestones
       .filter(
@@ -15366,14 +15341,12 @@ function buildBrandMilestonesBrief(
               0
             ).getTime();
 
-
           const bDate =
             new Date(
               b.completed_at ||
               b.milestone_date ||
               0
             ).getTime();
-
 
           return bDate - aDate;
         }
@@ -15383,13 +15356,11 @@ function buildBrandMilestonesBrief(
         12
       );
 
-
   if (!useful.length) {
     return (
       "- No completed or in-progress milestones are stored."
     );
   }
-
 
   return useful
     .map(
@@ -15397,7 +15368,6 @@ function buildBrandMilestonesBrief(
         const parts = [
           milestone.title
         ];
-
 
         if (
           milestone.status
@@ -15411,7 +15381,6 @@ function buildBrandMilestonesBrief(
           );
         }
 
-
         if (
           milestone.milestone_date
         ) {
@@ -15422,7 +15391,6 @@ function buildBrandMilestonesBrief(
           );
         }
 
-
         if (
           milestone.description
         ) {
@@ -15430,7 +15398,6 @@ function buildBrandMilestonesBrief(
             milestone.description
           );
         }
-
 
         return (
           `- ${parts.join(" — ")}`
@@ -15458,7 +15425,6 @@ function getAiContentInstructions(
         "Do not fabricate urgency or scarcity."
       ];
 
-
     case "story":
       return [
         "Create concise social Story copy.",
@@ -15467,7 +15433,6 @@ function getAiContentInstructions(
         "Include a final action or response prompt only when appropriate."
       ];
 
-
     case "reel":
       return [
         "Create a short-form video or Reel script.",
@@ -15475,7 +15440,6 @@ function getAiContentInstructions(
         "Separate spoken copy from visual or shot direction.",
         "Keep the concept practical to film."
       ];
-
 
     case "email":
       return [
@@ -15486,7 +15450,6 @@ function getAiContentInstructions(
         "Include a clear call to action when appropriate."
       ];
 
-
     case "website-copy":
       return [
         "Write polished website copy.",
@@ -15494,7 +15457,6 @@ function getAiContentInstructions(
         "Prioritize clarity before cleverness.",
         "Do not invent claims, credentials, pricing, policies, or availability."
       ];
-
 
     case "graphic":
       return [
@@ -15504,7 +15466,6 @@ function getAiContentInstructions(
         "Describe composition, mood, imagery, and typography without inventing business facts."
       ];
 
-
     case "campaign":
       return [
         "Build a practical marketing campaign concept.",
@@ -15512,7 +15473,6 @@ function getAiContentInstructions(
         "Use only confirmed business information.",
         "Do not invent promotions, discounts, launch dates, or availability."
       ];
-
 
     default:
       return [
@@ -15535,22 +15495,18 @@ function buildAiBrief({
   const definition =
     CREATE_TYPES[type];
 
-
   const contentLabel =
     definition?.label ||
     getContentTypeLabel(
       type
     );
 
-
   const contentInstructions =
     getAiContentInstructions(
       type
     );
 
-
   const sections = [];
-
 
   sections.push(
 `BLACK STAG MARKETING STUDIO
@@ -15569,7 +15525,6 @@ IMPORTANT:
 - Preserve the brand's established voice without exaggerating it.`
   );
 
-
   sections.push(
 `CONTENT REQUEST
 
@@ -15583,7 +15538,6 @@ Goal: ${
 Owner request:
 ${request}`
   );
-
 
   sections.push(
 `OUTPUT INSTRUCTIONS
@@ -15610,7 +15564,6 @@ Only use that section for:
 Do not pad the response with generic marketing advice.`
   );
 
-
   sections.push(
 `BRAND IDENTITY
 
@@ -15618,7 +15571,6 @@ ${buildBrandIdentityBrief(
   brand
 )}`
   );
-
 
   sections.push(
 `BRAND VOICE
@@ -15631,7 +15583,6 @@ ${
 }`
   );
 
-
   sections.push(
 `SOURCE OF TRUTH
 
@@ -15639,7 +15590,6 @@ ${buildBrandFactsBrief(
   brand
 )}`
   );
-
 
   sections.push(
 `AI GUARDRAILS
@@ -15649,7 +15599,6 @@ ${buildBrandRulesBrief(
 )}`
   );
 
-
   sections.push(
 `CURRENT BUSINESS PROGRESS
 
@@ -15657,7 +15606,6 @@ ${buildBrandMilestonesBrief(
   brand
 )}`
   );
-
 
   return sections
     .join(
@@ -15682,33 +15630,25 @@ const MANUAL_AI_STATE = {
 /* =========================================================
    MANUAL AI DIALOG
    ========================================================= */
-/* =========================================================
-   MANUAL AI DIALOG
-   ========================================================= */
 
 function ensureManualAiDialog() {
   let dialog =
     $("#manualAiDialog");
 
-
   if (dialog) {
     return dialog;
   }
-
 
   dialog =
     document.createElement(
       "dialog"
     );
 
-
   dialog.id =
     "manualAiDialog";
 
-
   dialog.className =
     "app-dialog create-dialog";
-
 
   dialog.innerHTML = `
     <div
@@ -15723,7 +15663,6 @@ function ensureManualAiDialog() {
       <div class="dialog-header">
 
         <div>
-
           <span class="eyebrow">
             AI Studio
           </span>
@@ -15731,9 +15670,7 @@ function ensureManualAiDialog() {
           <h2 id="manualAiDialogTitle">
             Create with ChatGPT
           </h2>
-
         </div>
-
 
         <button
           id="closeManualAiDialogButton"
@@ -15745,7 +15682,6 @@ function ensureManualAiDialog() {
         </button>
 
       </div>
-
 
       <div
         style="
@@ -15768,15 +15704,13 @@ function ensureManualAiDialog() {
           >
 
             <div>
-
               <span class="eyebrow">
                 Step One
               </span>
 
               <h3
                 style="
-                  margin:
-                    4px 0 0;
+                  margin:4px 0 0;
                   font-family:
                     Georgia,
                     'Times New Roman',
@@ -15787,9 +15721,7 @@ function ensureManualAiDialog() {
               >
                 Copy the AI brief
               </h3>
-
             </div>
-
 
             <button
               id="copyAiBriefButton"
@@ -15800,7 +15732,6 @@ function ensureManualAiDialog() {
             </button>
 
           </div>
-
 
           <textarea
             id="manualAiBrief"
@@ -15819,11 +15750,9 @@ function ensureManualAiDialog() {
             "
           ></textarea>
 
-
           <p
             style="
-              margin:
-                8px 0 0;
+              margin:8px 0 0;
               color:var(--muted);
               font-size:.72rem;
               line-height:1.55;
@@ -15837,7 +15766,6 @@ function ensureManualAiDialog() {
 
         </section>
 
-
         <section
           style="
             padding-top:18px;
@@ -15850,15 +15778,13 @@ function ensureManualAiDialog() {
               margin-bottom:10px;
             "
           >
-
             <span class="eyebrow">
               Step Two
             </span>
 
             <h3
               style="
-                margin:
-                  4px 0 0;
+                margin:4px 0 0;
                 font-family:
                   Georgia,
                   'Times New Roman',
@@ -15869,9 +15795,7 @@ function ensureManualAiDialog() {
             >
               Paste the finished result
             </h3>
-
           </div>
-
 
           <textarea
             id="manualAiResult"
@@ -15883,18 +15807,15 @@ function ensureManualAiDialog() {
 
         </section>
 
-
         <section
           style="
             padding-top:18px;
             border-top:1px solid var(--line);
           "
         >
-
           <span class="eyebrow">
             Draft Details
           </span>
-
 
           <div
             style="
@@ -15905,7 +15826,6 @@ function ensureManualAiDialog() {
             ${brandBrainGridOpen()}
 
               <label class="field">
-
                 <span>
                   Title
                 </span>
@@ -15915,12 +15835,9 @@ function ensureManualAiDialog() {
                   type="text"
                   placeholder="Give this draft a useful name"
                 />
-
               </label>
 
-
               <label class="field">
-
                 <span>
                   Platform
                 </span>
@@ -15930,15 +15847,12 @@ function ensureManualAiDialog() {
                   type="text"
                   placeholder="Instagram, Facebook, Website…"
                 />
-
               </label>
 
             </div>
-
           </div>
 
         </section>
-
 
         <div class="form-actions">
 
@@ -15961,15 +15875,12 @@ function ensureManualAiDialog() {
         </div>
 
       </div>
-
     </div>
   `;
-
 
   document.body.appendChild(
     dialog
   );
-
 
   $("#closeManualAiDialogButton")
     ?.addEventListener(
@@ -15981,7 +15892,6 @@ function ensureManualAiDialog() {
       }
     );
 
-
   $("#cancelManualAiButton")
     ?.addEventListener(
       "click",
@@ -15992,13 +15902,11 @@ function ensureManualAiDialog() {
       }
     );
 
-
   $("#copyAiBriefButton")
     ?.addEventListener(
       "click",
       copyManualAiBrief
     );
-
 
   $("#saveManualAiDraftButton")
     ?.addEventListener(
@@ -16006,11 +15914,9 @@ function ensureManualAiDialog() {
       saveManualAiDraft
     );
 
-
   enableBackdropClose(
     dialog
   );
-
 
   return dialog;
 }
@@ -16030,34 +15936,26 @@ function showManualAiDialog({
   const dialog =
     ensureManualAiDialog();
 
-
   MANUAL_AI_STATE.brandId =
     brand.id;
-
 
   MANUAL_AI_STATE.type =
     type;
 
-
   MANUAL_AI_STATE.request =
     request;
-
 
   MANUAL_AI_STATE.goal =
     goal;
 
-
   MANUAL_AI_STATE.brief =
     brief;
-
 
   const definition =
     CREATE_TYPES[type];
 
-
   const title =
     $("#manualAiDialogTitle");
-
 
   if (title) {
     title.textContent =
@@ -16067,30 +15965,24 @@ function showManualAiDialog({
       }`;
   }
 
-
   const briefField =
     $("#manualAiBrief");
-
 
   if (briefField) {
     briefField.value =
       brief;
   }
 
-
   const resultField =
     $("#manualAiResult");
-
 
   if (resultField) {
     resultField.value =
       "";
   }
 
-
   const draftTitle =
     $("#manualAiDraftTitle");
-
 
   if (draftTitle) {
     draftTitle.value =
@@ -16100,10 +15992,8 @@ function showManualAiDialog({
       );
   }
 
-
   const platform =
     $("#manualAiPlatform");
-
 
   if (platform) {
     platform.value =
@@ -16112,11 +16002,9 @@ function showManualAiDialog({
       );
   }
 
-
   safeDialogOpen(
     dialog
   );
-
 
   window.setTimeout(
     () => {
@@ -16139,11 +16027,9 @@ function buildDefaultDraftTitle(
   const definition =
     CREATE_TYPES[type];
 
-
   const label =
     definition?.label ||
     "Content";
-
 
   const cleanRequest =
     String(
@@ -16156,11 +16042,9 @@ function buildDefaultDraftTitle(
       )
       .trim();
 
-
   if (!cleanRequest) {
     return label;
   }
-
 
   return (
     `${label} — ${
@@ -16184,30 +16068,23 @@ function getDefaultPlatformForType(
     case "social-post":
       return "Social";
 
-
     case "story":
       return "Social Story";
-
 
     case "reel":
       return "Reel / Short Video";
 
-
     case "email":
       return "Email";
-
 
     case "website-copy":
       return "Website";
 
-
     case "graphic":
       return "Promotional Graphic";
 
-
     case "campaign":
       return "Multi-channel";
-
 
     default:
       return "";
@@ -16225,7 +16102,6 @@ async function copyManualAiBrief() {
       ?.value ||
     MANUAL_AI_STATE.brief;
 
-
   if (!brief) {
     showToast(
       "There is no AI brief to copy.",
@@ -16234,7 +16110,6 @@ async function copyManualAiBrief() {
 
     return;
   }
-
 
   try {
     if (
@@ -16249,17 +16124,13 @@ async function copyManualAiBrief() {
       const field =
         $("#manualAiBrief");
 
-
       field?.focus();
-
       field?.select();
-
 
       const copied =
         document.execCommand(
           "copy"
         );
-
 
       if (!copied) {
         throw new Error(
@@ -16267,7 +16138,6 @@ async function copyManualAiBrief() {
         );
       }
     }
-
 
     showToast(
       "AI brief copied. Paste it into ChatGPT.",
@@ -16279,7 +16149,6 @@ async function copyManualAiBrief() {
       "Unable to copy AI brief:",
       error
     );
-
 
     showToast(
       "Could not copy automatically. Select the brief and copy it manually.",
@@ -16298,40 +16167,32 @@ async function saveManualAiDraft() {
   const brandId =
     MANUAL_AI_STATE.brandId;
 
-
   const type =
     MANUAL_AI_STATE.type;
-
 
   const request =
     MANUAL_AI_STATE.request;
 
-
   const goal =
     MANUAL_AI_STATE.goal;
 
-
   const brief =
     MANUAL_AI_STATE.brief;
-
 
   const result =
     $("#manualAiResult")
       ?.value
       ?.trim();
 
-
   const title =
     $("#manualAiDraftTitle")
       ?.value
       ?.trim();
 
-
   const platform =
     $("#manualAiPlatform")
       ?.value
       ?.trim();
-
 
   if (!brandId) {
     showToast(
@@ -16342,25 +16203,20 @@ async function saveManualAiDraft() {
     return;
   }
 
-
   if (!result) {
     showToast(
       "Paste the finished ChatGPT result before saving.",
       "error"
     );
 
-
     $("#manualAiResult")
       ?.focus();
-
 
     return;
   }
 
-
   const button =
     $("#saveManualAiDraftButton");
-
 
   if (button) {
     button.disabled =
@@ -16369,7 +16225,6 @@ async function saveManualAiDraft() {
     button.textContent =
       "Saving…";
   }
-
 
   try {
     if (
@@ -16397,28 +16252,19 @@ async function saveManualAiDraft() {
       });
     }
 
-
     safeDialogClose(
       $("#manualAiDialog")
     );
 
-
     clearManualAiState();
-
 
     await refreshWorkingData();
 
-
     renderDashboard();
-
     renderCampaigns();
-
     renderContentLibrary();
-
     renderCalendar();
-
     renderAssets();
-
 
     showToast(
       "Draft saved.",
@@ -16431,7 +16277,6 @@ async function saveManualAiDraft() {
       error
     );
 
-
     showToast(
       error?.message ||
       "Unable to save the draft.",
@@ -16442,7 +16287,6 @@ async function saveManualAiDraft() {
   } finally {
     const currentButton =
       $("#saveManualAiDraftButton");
-
 
     if (currentButton) {
       currentButton.disabled =
@@ -16516,12 +16360,10 @@ async function saveManualContentDraft({
       )
   };
 
-
   console.log(
     "Saving content draft:",
     payload
   );
-
 
   const {
     data,
@@ -16537,7 +16379,6 @@ async function saveManualContentDraft({
       .select()
       .single();
 
-
   if (error) {
     console.error(
       "Content draft insert failed:",
@@ -16547,19 +16388,16 @@ async function saveManualContentDraft({
     throw error;
   }
 
-
   if (!data?.id) {
     throw new Error(
       "The draft insert completed without returning a saved content item."
     );
   }
 
-
   console.log(
     "Content draft saved:",
     data
   );
-
 
   await logManualAiRun({
     brandId,
@@ -16571,7 +16409,6 @@ async function saveManualContentDraft({
         type
       )
   });
-
 
   return data;
 }
@@ -16596,14 +16433,12 @@ async function saveManualCampaignDraft({
     ) ||
     "AI Campaign Draft";
 
-
   const channels =
     platform
       ? textToArray(
           platform
         )
       : [];
-
 
   const payload = {
     brand_id:
@@ -16630,7 +16465,6 @@ async function saveManualCampaignDraft({
       channels
   };
 
-
   const {
     error
   } =
@@ -16642,11 +16476,9 @@ async function saveManualCampaignDraft({
         payload
       );
 
-
   if (error) {
     throw error;
   }
-
 
   await logManualAiRun({
     brandId,
@@ -16704,7 +16536,6 @@ async function logManualAiRun({
             "completed"
         });
 
-
     if (error) {
       console.warn(
         "AI run log was not saved:",
@@ -16729,18 +16560,14 @@ function clearManualAiState() {
   MANUAL_AI_STATE.brandId =
     null;
 
-
   MANUAL_AI_STATE.type =
     null;
-
 
   MANUAL_AI_STATE.request =
     "";
 
-
   MANUAL_AI_STATE.goal =
     "";
-
 
   MANUAL_AI_STATE.brief =
     "";
@@ -16755,9 +16582,7 @@ async function refreshWorkingData() {
   const activeBrandId =
     APP_STATE.activeBrandId;
 
-
   await loadAppData();
-
 
   if (
     activeBrandId &&
@@ -16771,15 +16596,10 @@ async function refreshWorkingData() {
       activeBrandId;
   }
 
-
   renderActiveBrand();
-
   renderBrandPicker();
-
   renderBrandGrid();
-
   renderQuickCreateBrandOptions();
-
   syncQuickCreateBrand();
 }
 
@@ -16787,6 +16607,7 @@ async function refreshWorkingData() {
 /* =========================================================
    NAVIGATION
    ========================================================= */
+
 function navigateToView(
   viewName
 ) {
@@ -16797,7 +16618,6 @@ function navigateToView(
       ? viewName
       : "dashboard";
 
-
   APP_STATE.activeView =
     targetView;
 
@@ -16805,7 +16625,6 @@ function navigateToView(
     STORAGE_KEYS.lastView,
     targetView
   );
-
 
   $$(
     "[data-view-panel]"
@@ -16818,7 +16637,6 @@ function navigateToView(
     }
   );
 
-
   $$(
     "[data-view]"
   ).forEach(
@@ -16828,12 +16646,10 @@ function navigateToView(
           .view ===
         targetView;
 
-
       button.classList.toggle(
         "is-active",
         active
       );
-
 
       if (active) {
         button.setAttribute(
@@ -16848,9 +16664,7 @@ function navigateToView(
     }
   );
 
-
   renderCurrentView();
-
 
   window.scrollTo({
     top: 0,
@@ -16871,35 +16685,28 @@ function renderCurrentView() {
       renderDashboard();
       break;
 
-
     case "brands":
       renderBrandGrid();
       break;
-
 
     case "campaigns":
       renderCampaigns();
       break;
 
-
     case "studio":
       renderContentLibrary();
       break;
-
 
     case "calendar":
       renderCalendar();
       break;
 
-
     case "vault":
       renderAssets();
       break;
 
-
     case "settings":
       break;
-
 
     default:
       renderDashboard();
@@ -16913,23 +16720,14 @@ function renderCurrentView() {
 
 function renderApp() {
   renderActiveBrand();
-
   renderBrandPicker();
-
   renderBrandGrid();
-
   renderDashboard();
-
   renderCampaigns();
-
   renderContentLibrary();
-
   renderCalendar();
-
   renderAssets();
-
   renderQuickCreateBrandOptions();
-
   renderCurrentView();
 }
 
@@ -16942,14 +16740,11 @@ function openBrandPicker() {
   const dialog =
     $("#brandPickerDialog");
 
-
   if (!dialog) {
     return;
   }
 
-
   renderBrandPicker();
-
 
   safeDialogOpen(
     dialog
@@ -16991,7 +16786,6 @@ function handleSettingsSection(
       "App Preferences"
   };
 
-
   showToast(
     `${
       labels[section] ||
@@ -17014,7 +16808,6 @@ function enableBackdropClose(
     return;
   }
 
-
   dialog.addEventListener(
     "click",
     event => {
@@ -17025,10 +16818,8 @@ function enableBackdropClose(
         return;
       }
 
-
       const rect =
         dialog.getBoundingClientRect();
-
 
       const inside =
         event.clientX >=
@@ -17039,7 +16830,6 @@ function enableBackdropClose(
           rect.top &&
         event.clientY <=
           rect.bottom;
-
 
       if (!inside) {
         safeDialogClose(
@@ -17058,7 +16848,6 @@ function enableBackdropClose(
 let toastTimer =
   null;
 
-
 function showToast(
   message,
   type = "success",
@@ -17066,7 +16855,6 @@ function showToast(
 ) {
   const region =
     $("#toastRegion");
-
 
   if (!region) {
     console.log(
@@ -17076,21 +16864,17 @@ function showToast(
     return;
   }
 
-
   window.clearTimeout(
     toastTimer
   );
 
-
   region.textContent =
     message;
-
 
   region.classList.remove(
     "is-success",
     "is-error"
   );
-
 
   region.classList.add(
     type === "error"
@@ -17098,17 +16882,14 @@ function showToast(
       : "is-success"
   );
 
-
   region.hidden =
     false;
-
 
   toastTimer =
     window.setTimeout(
       () => {
         region.hidden =
           true;
-
 
         region.classList.remove(
           "is-success",
@@ -17132,17 +16913,10 @@ function handleBrandBrainDelegatedClick(
       "[data-close-brand-brain]"
     );
 
-
   if (closeButton) {
     closeBrandBrain();
-
     return;
   }
-
-
-  /*
-    Source of Truth actions
-  */
 
   const factTarget =
     event.target.closest(
@@ -17153,7 +16927,6 @@ function handleBrandBrainDelegatedClick(
       ].join(",")
     );
 
-
   if (factTarget) {
     handleBrandFactsClick(
       event
@@ -17161,11 +16934,6 @@ function handleBrandBrainDelegatedClick(
 
     return;
   }
-
-
-  /*
-    AI Guardrail actions
-  */
 
   const ruleTarget =
     event.target.closest(
@@ -17176,7 +16944,6 @@ function handleBrandBrainDelegatedClick(
       ].join(",")
     );
 
-
   if (ruleTarget) {
     handleBrandRulesClick(
       event
@@ -17184,11 +16951,6 @@ function handleBrandBrainDelegatedClick(
 
     return;
   }
-
-
-  /*
-    Milestone actions
-  */
 
   const milestoneTarget =
     event.target.closest(
@@ -17200,13 +16962,13 @@ function handleBrandBrainDelegatedClick(
       ].join(",")
     );
 
-
   if (milestoneTarget) {
     handleBrandMilestonesClick(
       event
     );
   }
 }
+
 
 /* =========================================================
    GLOBAL CLICK HANDLING
@@ -17215,15 +16977,10 @@ function handleBrandBrainDelegatedClick(
 function handleGlobalClick(
   event
 ) {
-  /*
-    Main navigation
-  */
-
   const navButton =
     event.target.closest(
       "[data-view]"
     );
-
 
   if (navButton) {
     navigateToView(
@@ -17233,22 +16990,15 @@ function handleGlobalClick(
     return;
   }
 
-
-  /*
-    Quick Create buttons
-  */
-
   const createButton =
     event.target.closest(
       "[data-create-type]"
     );
 
-
   if (createButton) {
     const type =
       createButton.dataset
         .createType;
-
 
     openQuickCreate(
       type
@@ -17257,76 +17007,52 @@ function handleGlobalClick(
     return;
   }
 
-
-  /*
-    Brand selection
-  */
-
   const brandSelect =
     event.target.closest(
       "[data-select-brand]"
     );
-
 
   if (brandSelect) {
     const brandId =
       brandSelect.dataset
         .selectBrand;
 
-
     setActiveBrand(
       brandId
     );
-
 
     safeDialogClose(
       $("#brandPickerDialog")
     );
 
-
     return;
   }
-
-
-  /*
-    Brand card "Work With Brand"
-  */
 
   const workWithBrand =
     event.target.closest(
       "[data-work-with-brand]"
     );
 
-
   if (workWithBrand) {
     const brandId =
       workWithBrand.dataset
         .workWithBrand;
 
-
     setActiveBrand(
       brandId
     );
-
 
     navigateToView(
       "dashboard"
     );
 
-
     return;
   }
-
-
-  /*
-    Open Brand Brain
-  */
 
   const brandBrainButton =
     event.target.closest(
       "[data-open-brand]"
     );
-
 
   if (brandBrainButton) {
     openBrandBrain(
@@ -17337,16 +17063,10 @@ function handleGlobalClick(
     return;
   }
 
-
-  /*
-    Campaign filters
-  */
-
   const campaignFilter =
     event.target.closest(
       "[data-campaign-filter]"
     );
-
 
   if (campaignFilter) {
     setCampaignFilter(
@@ -17357,15 +17077,10 @@ function handleGlobalClick(
     return;
   }
 
-   /*
-    Open Content Editor
-  */
-
   const contentCard =
     event.target.closest(
       "[data-open-content]"
     );
-
 
   if (contentCard) {
     openContentEditor(
@@ -17376,16 +17091,10 @@ function handleGlobalClick(
     return;
   }
 
-
-  /*
-    Open Calendar Card
-  */
-
   const calendarCard =
     event.target.closest(
       "[data-calendar-action]"
     );
-
 
   if (calendarCard) {
     const action =
@@ -17395,7 +17104,6 @@ function handleGlobalClick(
     const itemId =
       calendarCard.dataset
         .calendarItemId;
-
 
     if (
       action === "content" &&
@@ -17409,16 +17117,10 @@ function handleGlobalClick(
     }
   }
 
-
-  /*
-    Content filters
-  */
-
   const contentFilter =
     event.target.closest(
       "[data-content-filter]"
     );
-
 
   if (contentFilter) {
     setContentFilter(
@@ -17429,21 +17131,15 @@ function handleGlobalClick(
     return;
   }
 
-  /*
-    Open Asset
-  */
-
   const assetCard =
     event.target.closest(
       "[data-open-asset]"
     );
 
-
   if (assetCard) {
     const assetId =
       assetCard.dataset
         .openAsset;
-
 
     if (assetId) {
       openAssetEditor(
@@ -17451,19 +17147,13 @@ function handleGlobalClick(
       );
     }
 
-
     return;
   }
-
-  /*
-    Asset filters
-  */
 
   const assetFilter =
     event.target.closest(
       "[data-asset-filter]"
     );
-
 
   if (assetFilter) {
     setAssetFilter(
@@ -17474,95 +17164,87 @@ function handleGlobalClick(
     return;
   }
 
-
-  /*
-    Asset empty-state button
-  */
-const openAssetFolder =
-  event.target.closest(
-    "[data-open-asset-folder]"
-  );
-
-if (openAssetFolder) {
-  const folderId =
-    openAssetFolder.dataset
-      .openAssetFolder;
-
-  openAssetFolderById(
-    folderId
-  );
-
-  return;
-}
-const backAssetFolder =
-  event.target.closest(
-    "[data-asset-folder-back]"
-  );
-
-if (backAssetFolder) {
-  const currentFolder =
-    (
-      APP_DATA.assetFolders ||
-      []
-    ).find(
-      folder =>
-        String(folder.id) ===
-        String(
-          APP_STATE.activeAssetFolderId
-        )
+  const openAssetFolder =
+    event.target.closest(
+      "[data-open-asset-folder]"
     );
 
-  APP_STATE.activeAssetFolderId =
-    currentFolder?.parentFolderId ||
-    null;
+  if (openAssetFolder) {
+    const folderId =
+      openAssetFolder.dataset
+        .openAssetFolder;
 
-  renderApp();
+    openAssetFolderById(
+      folderId
+    );
 
-  return;
-}
-const closeAssetFolder =
-  event.target.closest(
-    "[data-close-asset-folder]"
-  );
+    return;
+  }
 
-if (closeAssetFolder) {
-  safeDialogClose(
-    $("#assetFolderDialog")
-  );
+  const backAssetFolder =
+    event.target.closest(
+      "[data-asset-folder-back]"
+    );
 
-  return;
-}
-const createAssetFolder =
-  event.target.closest(
-    "[data-create-asset-folder]"
-  );
+  if (backAssetFolder) {
+    const currentFolder =
+      (
+        APP_DATA.assetFolders ||
+        []
+      ).find(
+        folder =>
+          String(folder.id) ===
+          String(
+            APP_STATE.activeAssetFolderId
+          )
+      );
 
-if (createAssetFolder) {
-  openCreateAssetFolderDialog();
-  return;
-}
+    APP_STATE.activeAssetFolderId =
+      currentFolder?.parentFolderId ||
+      null;
+
+    renderApp();
+
+    return;
+  }
+
+  const closeAssetFolder =
+    event.target.closest(
+      "[data-close-asset-folder]"
+    );
+
+  if (closeAssetFolder) {
+    safeDialogClose(
+      $("#assetFolderDialog")
+    );
+
+    return;
+  }
+
+  const createAssetFolder =
+    event.target.closest(
+      "[data-create-asset-folder]"
+    );
+
+  if (createAssetFolder) {
+    openCreateAssetFolderDialog();
+    return;
+  }
+
   const addAsset =
     event.target.closest(
       "[data-add-asset]"
     );
 
-
   if (addAsset) {
     handleAddAsset();
-
     return;
   }
-
-
-  /*
-    Settings cards
-  */
 
   const settingsButton =
     event.target.closest(
       "[data-settings-section]"
     );
-
 
   if (settingsButton) {
     handleSettingsSection(
@@ -17573,16 +17255,10 @@ if (createAssetFolder) {
     return;
   }
 
-
-  /*
-    Brand Brain actions
-  */
-
   const brandBrainDialog =
     event.target.closest(
       "#brandBrainDialog"
     );
-
 
   if (brandBrainDialog) {
     handleBrandBrainDelegatedClick(
@@ -17602,7 +17278,6 @@ function bindEvents() {
     handleGlobalClick
   );
 
-
   document.addEventListener(
     "keydown",
     event => {
@@ -17613,12 +17288,10 @@ function bindEvents() {
         return;
       }
 
-
       const contentCard =
         event.target.closest(
           "[data-open-content]"
         );
-
 
       if (contentCard) {
         event.preventDefault();
@@ -17631,17 +17304,14 @@ function bindEvents() {
         return;
       }
 
-
       const calendarCard =
         event.target.closest(
           "[data-calendar-action]"
         );
 
-
       if (!calendarCard) {
         return;
       }
-
 
       const action =
         calendarCard.dataset
@@ -17650,7 +17320,6 @@ function bindEvents() {
       const itemId =
         calendarCard.dataset
           .calendarItemId;
-
 
       if (
         action === "content" &&
@@ -17671,13 +17340,11 @@ function bindEvents() {
       openBrandPicker
     );
 
-
   $("#mobileBrandSwitcher")
     ?.addEventListener(
       "click",
       openBrandPicker
     );
-
 
   $("#closeBrandPickerButton")
     ?.addEventListener(
@@ -17689,13 +17356,11 @@ function bindEvents() {
       }
     );
 
-
   $("#brandPickerAddButton")
     ?.addEventListener(
       "click",
       handleAddBrand
     );
-
 
   $("#addBrandButton")
     ?.addEventListener(
@@ -17703,13 +17368,11 @@ function bindEvents() {
       handleAddBrand
     );
 
-
   $("#uploadAssetButton")
     ?.addEventListener(
       "click",
       handleAddAsset
     );
-
 
   $("#closeQuickCreateButton")
     ?.addEventListener(
@@ -17721,7 +17384,6 @@ function bindEvents() {
       }
     );
 
-
   $("#cancelQuickCreateButton")
     ?.addEventListener(
       "click",
@@ -17732,18 +17394,15 @@ function bindEvents() {
       }
     );
 
-
   $("#quickCreateForm")
     ?.addEventListener(
       "submit",
       handleQuickCreateSubmit
     );
 
-
   enableBackdropClose(
     $("#brandPickerDialog")
   );
-
 
   enableBackdropClose(
     $("#quickCreateDialog")
@@ -17754,13 +17413,13 @@ function bindEvents() {
 /* =========================================================
    ACTIVE BRAND STORAGE
    ========================================================= */
+
 function readStoredActiveBrandId() {
   return readStorage(
     STORAGE_KEYS.activeBrand,
     null
   );
 }
-
 
 function writeStoredActiveBrandId(
   brandId
@@ -17773,6 +17432,7 @@ function writeStoredActiveBrandId(
   }
 }
 
+
 /* =========================================================
    AUTHENTICATED APP START
    ========================================================= */
@@ -17784,18 +17444,14 @@ async function startAuthenticatedApp(
     return;
   }
 
-
   APP_STATE.user =
     session.user;
-
 
   try {
     await loadAppData();
 
-
     const storedBrandId =
       readStoredActiveBrandId();
-
 
     const storedBrandExists =
       APP_DATA.brands.some(
@@ -17805,7 +17461,6 @@ async function startAuthenticatedApp(
           brand.active !==
             false
       );
-
 
     if (storedBrandExists) {
       APP_STATE.activeBrandId =
@@ -17820,7 +17475,6 @@ async function startAuthenticatedApp(
         null;
     }
 
-
     if (
       APP_STATE.activeBrandId
     ) {
@@ -17829,15 +17483,12 @@ async function startAuthenticatedApp(
       );
     }
 
-
     renderApp();
-
 
     navigateToView(
       APP_STATE.activeView ||
       "dashboard"
     );
-
 
     showToast(
       "Marketing Studio ready.",
@@ -17850,7 +17501,6 @@ async function startAuthenticatedApp(
       "Marketing Studio startup failed:",
       error
     );
-
 
     showToast(
       error?.message ||
@@ -17871,7 +17521,6 @@ async function initializeAuthentication() {
     return;
   }
 
-
   const {
     data,
     error
@@ -17880,13 +17529,11 @@ async function initializeAuthentication() {
       .auth
       .getSession();
 
-
   if (error) {
     console.error(
       "Unable to read Supabase session:",
       error
     );
-
 
     showToast(
       "Unable to check your login session.",
@@ -17896,7 +17543,6 @@ async function initializeAuthentication() {
 
     return;
   }
-
 
   if (
     data?.session
@@ -17908,9 +17554,7 @@ async function initializeAuthentication() {
     return;
   }
 
-
   showAuthDialog();
-
 
   supabaseClient.auth
     .onAuthStateChange(
@@ -17927,12 +17571,10 @@ async function initializeAuthentication() {
             $("#authDialog")
           );
 
-
           await startAuthenticatedApp(
             session
           );
         }
-
 
         if (
           event ===
@@ -17941,30 +17583,23 @@ async function initializeAuthentication() {
           APP_STATE.user =
             null;
 
-
           APP_STATE.activeBrandId =
             null;
-
 
           APP_DATA.brands =
             [];
 
-
           APP_DATA.campaigns =
             [];
-
 
           APP_DATA.content =
             [];
 
-
           APP_DATA.calendar =
             [];
 
-
           APP_DATA.assets =
             [];
-
 
           showAuthDialog();
         }
@@ -17982,16 +17617,13 @@ async function initializeApp() {
     supabaseClient =
       createSupabaseClient();
 
-
     if (!supabaseClient) {
       throw new Error(
         "Supabase is not configured. Check config.js."
       );
     }
 
-
     bindEvents();
-
 
     await initializeAuthentication();
 
@@ -18000,7 +17632,6 @@ async function initializeApp() {
       "Black Stag Marketing Studio failed to initialize:",
       error
     );
-
 
     showToast(
       error?.message ||
