@@ -12889,7 +12889,11 @@ function openCreateAssetFolderDialog() {
       </form>
     </div>
   `;
-
+  $("#assetFolderForm")
+    ?.addEventListener(
+      "submit",
+      handleCreateAssetFolder
+    );
   safeDialogOpen(
     dialog
   );
