@@ -2953,3 +2953,31 @@ strong {
   }
 
 }
+/* =========================================================
+   STUDIO PREFERENCES
+   ========================================================= */
+
+.studio-reduce-motion *,
+.studio-reduce-motion *::before,
+.studio-reduce-motion *::after {
+  scroll-behavior: auto !important;
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+}
+
+.studio-compact-cards .content-panel,
+.studio-compact-cards .stat-card,
+.studio-compact-cards .quick-create-card,
+.studio-compact-cards .studio-tool-card,
+.studio-compact-cards .settings-card {
+  padding: 14px;
+}
+
+.studio-compact-cards .brand-grid,
+.studio-compact-cards .asset-grid,
+.studio-compact-cards .settings-grid,
+.studio-compact-cards .studio-tool-grid,
+.studio-compact-cards .quick-create-grid {
+  gap: 8px;
+}
