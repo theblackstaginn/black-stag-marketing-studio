@@ -13729,13 +13729,17 @@ async function handleAssetUploadSubmit(
 
 
     const payload = {
-      brand_id:
-        brand.id,
+  brand_id:
+    brand.id,
 
-      name,
+  folder_id:
+    APP_STATE.activeAssetFolderId ||
+    null,
 
-      asset_type:
-  category,
+  name,
+
+  asset_type:
+    category,
 
       description,
 
@@ -16876,6 +16880,32 @@ if (openAssetFolder) {
   openAssetFolderById(
     folderId
   );
+
+  return;
+}
+const backAssetFolder =
+  event.target.closest(
+    "[data-asset-folder-back]"
+  );
+
+if (backAssetFolder) {
+  const currentFolder =
+    (
+      APP_DATA.assetFolders ||
+      []
+    ).find(
+      folder =>
+        String(folder.id) ===
+        String(
+          APP_STATE.activeAssetFolderId
+        )
+    );
+
+  APP_STATE.activeAssetFolderId =
+    currentFolder?.parentFolderId ||
+    null;
+
+  renderApp();
 
   return;
 }
