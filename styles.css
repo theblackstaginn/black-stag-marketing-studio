@@ -1609,7 +1609,181 @@ strong {
   transform: scale(.95);
 }
 
+/* =========================================================
+   ASSET EDITOR DIALOG
+   ========================================================= */
 
+#assetEditorDialog {
+  width:
+    min(
+      calc(100% - 24px),
+      720px
+    );
+
+  height:
+    min(
+      90dvh,
+      860px
+    );
+
+  max-height:
+    min(
+      90dvh,
+      860px
+    );
+
+  overflow: hidden;
+}
+
+#assetEditorDialog .asset-editor-shell {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  height: 100%;
+
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+#assetEditorDialog .dialog-header {
+  position: relative;
+
+  flex: 0 0 auto;
+}
+
+#assetEditorDialog .asset-editor-body {
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  padding: 22px;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+#assetEditorDialog .asset-editor-preview {
+  display: grid;
+  place-items: center;
+
+  width: 100%;
+  max-height: 360px;
+
+  margin-bottom: 22px;
+  padding: 18px;
+
+  overflow: hidden;
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+
+  background:
+    rgba(255, 255, 255, .018);
+}
+
+#assetEditorDialog .asset-editor-preview img {
+  width: auto;
+  max-width: 100%;
+
+  height: auto;
+  max-height: 320px;
+
+  object-fit: contain;
+
+  border-radius: 10px;
+}
+
+#assetEditorDialog .asset-editor-actions {
+  display: grid;
+  grid-template-columns:
+    auto
+    1fr
+    1fr;
+
+  gap: 10px;
+
+  margin-top: 24px;
+  padding-top: 18px;
+
+  border-top: 1px solid var(--line);
+}
+
+.danger-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 42px;
+
+  padding: 10px 16px;
+
+  border: 1px solid rgba(163, 95, 95, .38);
+  border-radius: 11px;
+
+  color: #e0adad;
+
+  background:
+    rgba(115, 48, 48, .16);
+
+  font-size: .77rem;
+  font-weight: 700;
+
+  transition:
+    transform .18s var(--ease),
+    background .18s var(--ease),
+    border-color .18s var(--ease);
+}
+
+.danger-button:active {
+  transform: scale(.975);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .danger-button:hover {
+    border-color:
+      rgba(190, 100, 100, .55);
+
+    background:
+      rgba(130, 54, 54, .27);
+  }
+}
+
+@media (max-width: 639px) {
+  #assetEditorDialog {
+    width:
+      calc(100% - 12px);
+
+    height:
+      calc(100dvh - 16px);
+
+    max-height:
+      calc(100dvh - 16px);
+  }
+
+  #assetEditorDialog .asset-editor-body {
+    padding: 16px;
+  }
+
+  #assetEditorDialog .asset-editor-preview {
+    max-height: 280px;
+
+    padding: 12px;
+  }
+
+  #assetEditorDialog .asset-editor-preview img {
+    max-height: 250px;
+  }
+
+  #assetEditorDialog .asset-editor-actions {
+    grid-template-columns: 1fr;
+  }
+
+  #deleteAssetEditorButton {
+    order: 3;
+  }
+}
 /* =========================================================
    BRAND BRAIN — WORKSPACE DIALOG
    ========================================================= */
