@@ -16764,35 +16764,1493 @@ function handleAddBrand() {
 
 
 /* =========================================================
-   SETTINGS PLACEHOLDER
+   SETTINGS
+   ========================================================= */
+
+const STUDIO_SETTINGS_KEY =
+  "black-stag-studio-settings-v1";
+
+
+const DEFAULT_STUDIO_SETTINGS = {
+  ai: {
+    creativity:
+      "balanced",
+
+    brandBrainRequired:
+      true,
+
+    preferVaultAssets:
+      true,
+
+    approvedAssetsOnly:
+      true,
+
+    generateAltText:
+      true,
+
+    generateCaptions:
+      true,
+
+    defaultImageFormat:
+      "square",
+
+    requireGeneratedApproval:
+      true
+  },
+
+  social: {
+    facebookEnabled:
+      false,
+
+    instagramEnabled:
+      false,
+
+    linkedinEnabled:
+      false,
+
+    pinterestEnabled:
+      false,
+
+    tiktokEnabled:
+      false
+  },
+
+  publishing: {
+    requireApproval:
+      true,
+
+    confirmBeforePublish:
+      true,
+
+    allowDirectPublish:
+      false,
+
+    defaultStatus:
+      "draft",
+
+    defaultSchedule:
+      "manual",
+
+    includeBrandName:
+      false
+  },
+
+  preferences: {
+    defaultView:
+      "dashboard",
+
+    confirmDeletes:
+      true,
+
+    showSuccessToasts:
+      true,
+
+    compactCards:
+      false,
+
+    reduceMotion:
+      false,
+
+    rememberLastBrand:
+      true
+  }
+};
+
+
+function cloneDefaultStudioSettings() {
+  return JSON.parse(
+    JSON.stringify(
+      DEFAULT_STUDIO_SETTINGS
+    )
+  );
+}
+
+
+function mergeStudioSettings(
+  saved = {}
+) {
+  const defaults =
+    cloneDefaultStudioSettings();
+
+  return {
+    ai: {
+      ...defaults.ai,
+      ...(saved.ai || {})
+    },
+
+    social: {
+      ...defaults.social,
+      ...(saved.social || {})
+    },
+
+    publishing: {
+      ...defaults.publishing,
+      ...(saved.publishing || {})
+    },
+
+    preferences: {
+      ...defaults.preferences,
+      ...(saved.preferences || {})
+    }
+  };
+}
+
+
+function loadStudioSettings() {
+  try {
+    const saved =
+      localStorage.getItem(
+        STUDIO_SETTINGS_KEY
+      );
+
+    if (!saved) {
+      return mergeStudioSettings();
+    }
+
+    return mergeStudioSettings(
+      JSON.parse(saved)
+    );
+
+  } catch (error) {
+    console.warn(
+      "Could not load studio settings:",
+      error
+    );
+
+    return mergeStudioSettings();
+  }
+}
+
+
+let STUDIO_SETTINGS =
+  loadStudioSettings();
+
+
+function saveStudioSettings() {
+  try {
+    localStorage.setItem(
+      STUDIO_SETTINGS_KEY,
+      JSON.stringify(
+        STUDIO_SETTINGS
+      )
+    );
+
+    applyStudioSettings();
+
+    return true;
+
+  } catch (error) {
+    console.error(
+      "Could not save studio settings:",
+      error
+    );
+
+    showToast(
+      "Settings could not be saved.",
+      "error"
+    );
+
+    return false;
+  }
+}
+
+
+/* =========================================================
+   SETTINGS — HELPERS
+   ========================================================= */
+
+function settingToggle({
+  id,
+  title,
+  description,
+  checked = false
+}) {
+  return `
+    <label
+      style="
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:18px;
+        padding:16px 0;
+        border-bottom:1px solid var(--line);
+        cursor:pointer;
+      "
+    >
+      <span
+        style="
+          display:flex;
+          flex-direction:column;
+          gap:4px;
+          min-width:0;
+        "
+      >
+        <strong
+          style="
+            font-size:.84rem;
+            font-weight:650;
+          "
+        >
+          ${escapeHtml(title)}
+        </strong>
+
+        <small
+          style="
+            color:var(--muted);
+            font-size:.7rem;
+            line-height:1.5;
+          "
+        >
+          ${escapeHtml(description)}
+        </small>
+      </span>
+
+      <input
+        id="${escapeHtml(id)}"
+        type="checkbox"
+        ${checked ? "checked" : ""}
+        style="
+          flex:0 0 auto;
+          width:20px;
+          height:20px;
+          margin-top:2px;
+          accent-color:var(--forest-bright);
+        "
+      />
+    </label>
+  `;
+}
+
+
+function settingsDialogShell({
+  eyebrow = "Configuration",
+  title,
+  description,
+  content
+}) {
+  return `
+    <div
+      style="
+        width:100%;
+        max-width:720px;
+        margin:0 auto;
+      "
+    >
+      <div class="dialog-header">
+
+        <div>
+          <span class="eyebrow">
+            ${escapeHtml(eyebrow)}
+          </span>
+
+          <h2>
+            ${escapeHtml(title)}
+          </h2>
+
+          ${
+            description
+              ? `
+                <p
+                  style="
+                    margin:7px 0 0;
+                    color:var(--muted);
+                    font-size:.76rem;
+                    line-height:1.55;
+                  "
+                >
+                  ${escapeHtml(description)}
+                </p>
+              `
+              : ""
+          }
+        </div>
+
+        <button
+          type="button"
+          class="dialog-close"
+          data-close-settings-dialog
+          aria-label="Close settings"
+        >
+          ×
+        </button>
+
+      </div>
+
+      ${content}
+    </div>
+  `;
+}
+
+
+function getSettingsDialog() {
+  let dialog =
+    $("#studioSettingsDialog");
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
+      );
+
+    dialog.id =
+      "studioSettingsDialog";
+
+    dialog.className =
+      "app-dialog create-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+
+    enableBackdropClose(
+      dialog
+    );
+  }
+
+  return dialog;
+}
+
+
+function bindSettingsDialogClose(
+  dialog
+) {
+  dialog
+    .querySelectorAll(
+      "[data-close-settings-dialog]"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            safeDialogClose(
+              dialog
+            );
+          }
+        );
+      }
+    );
+}
+
+
+/* =========================================================
+   SETTINGS — MAIN ROUTER
    ========================================================= */
 
 function handleSettingsSection(
   section
 ) {
-  const labels = {
-    ai:
-      "AI Settings",
+  switch (section) {
 
-    social:
-      "Social Accounts",
+    case "ai":
+      openAiSettings();
+      break;
 
-    publishing:
-      "Publishing Settings",
+    case "social":
+      openSocialSettings();
+      break;
 
-    preferences:
-      "App Preferences"
-  };
+    case "publishing":
+      openPublishingSettings();
+      break;
 
-  showToast(
-    `${
-      labels[section] ||
-      "Settings"
-    } will be wired in the next phase.`,
-    "success",
-    4000
+    case "preferences":
+      openPreferenceSettings();
+      break;
+
+    default:
+      showToast(
+        "That settings section could not be found.",
+        "error"
+      );
+  }
+}
+
+
+/* =========================================================
+   AI SETTINGS
+   ========================================================= */
+
+function openAiSettings() {
+  const dialog =
+    getSettingsDialog();
+
+  const settings =
+    STUDIO_SETTINGS.ai;
+
+  dialog.innerHTML =
+    settingsDialogShell({
+      title:
+        "AI Settings",
+
+      description:
+        "Control how the studio uses Brand Brain, approved assets, and generation defaults.",
+
+      content: `
+        <form
+          id="aiSettingsForm"
+          class="create-form"
+        >
+
+          <label class="field">
+            <span>
+              Creativity
+            </span>
+
+            <select
+              id="aiCreativity"
+            >
+              <option
+                value="precise"
+                ${
+                  settings.creativity ===
+                  "precise"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Precise
+              </option>
+
+              <option
+                value="balanced"
+                ${
+                  settings.creativity ===
+                  "balanced"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Balanced
+              </option>
+
+              <option
+                value="exploratory"
+                ${
+                  settings.creativity ===
+                  "exploratory"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Exploratory
+              </option>
+            </select>
+          </label>
+
+
+          <label class="field">
+            <span>
+              Default Image Format
+            </span>
+
+            <select
+              id="aiDefaultImageFormat"
+            >
+              <option
+                value="square"
+                ${
+                  settings.defaultImageFormat ===
+                  "square"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Square
+              </option>
+
+              <option
+                value="portrait"
+                ${
+                  settings.defaultImageFormat ===
+                  "portrait"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Portrait
+              </option>
+
+              <option
+                value="landscape"
+                ${
+                  settings.defaultImageFormat ===
+                  "landscape"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Landscape
+              </option>
+            </select>
+          </label>
+
+
+          <div>
+            ${settingToggle({
+              id:
+                "aiBrandBrainRequired",
+
+              title:
+                "Enforce Brand Brain",
+
+              description:
+                "Use the active brand's strategy, voice, audience, and identity when generating content.",
+
+              checked:
+                settings.brandBrainRequired
+            })}
+
+            ${settingToggle({
+              id:
+                "aiPreferVaultAssets",
+
+              title:
+                "Prefer Asset Vault",
+
+              description:
+                "Favor existing brand assets before requesting or generating new visuals.",
+
+              checked:
+                settings.preferVaultAssets
+            })}
+
+            ${settingToggle({
+              id:
+                "aiApprovedAssetsOnly",
+
+              title:
+                "AI-approved assets only",
+
+              description:
+                "Prevent AI workflows from using Vault assets that are not approved for AI.",
+
+              checked:
+                settings.approvedAssetsOnly
+            })}
+
+            ${settingToggle({
+              id:
+                "aiGenerateAltText",
+
+              title:
+                "Generate alt text",
+
+              description:
+                "Create accessibility descriptions for generated visual content.",
+
+              checked:
+                settings.generateAltText
+            })}
+
+            ${settingToggle({
+              id:
+                "aiGenerateCaptions",
+
+              title:
+                "Generate captions",
+
+              description:
+                "Prepare caption copy alongside generated marketing content.",
+
+              checked:
+                settings.generateCaptions
+            })}
+
+            ${settingToggle({
+              id:
+                "aiRequireGeneratedApproval",
+
+              title:
+                "Require generated-content approval",
+
+              description:
+                "Generated content must be reviewed before entering a publishing workflow.",
+
+              checked:
+                settings.requireGeneratedApproval
+            })}
+          </div>
+
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary-button"
+              data-close-settings-dialog
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              Save AI Settings
+            </button>
+
+          </div>
+
+        </form>
+      `
+    });
+
+  bindSettingsDialogClose(
+    dialog
+  );
+
+  $("#aiSettingsForm")
+    ?.addEventListener(
+      "submit",
+      saveAiSettings
+    );
+
+  safeDialogOpen(
+    dialog
   );
 }
+
+
+function saveAiSettings(
+  event
+) {
+  event.preventDefault();
+
+  STUDIO_SETTINGS.ai = {
+    creativity:
+      $("#aiCreativity")
+        ?.value ||
+      "balanced",
+
+    defaultImageFormat:
+      $("#aiDefaultImageFormat")
+        ?.value ||
+      "square",
+
+    brandBrainRequired:
+      Boolean(
+        $("#aiBrandBrainRequired")
+          ?.checked
+      ),
+
+    preferVaultAssets:
+      Boolean(
+        $("#aiPreferVaultAssets")
+          ?.checked
+      ),
+
+    approvedAssetsOnly:
+      Boolean(
+        $("#aiApprovedAssetsOnly")
+          ?.checked
+      ),
+
+    generateAltText:
+      Boolean(
+        $("#aiGenerateAltText")
+          ?.checked
+      ),
+
+    generateCaptions:
+      Boolean(
+        $("#aiGenerateCaptions")
+          ?.checked
+      ),
+
+    requireGeneratedApproval:
+      Boolean(
+        $("#aiRequireGeneratedApproval")
+          ?.checked
+      )
+  };
+
+  if (!saveStudioSettings()) {
+    return;
+  }
+
+  safeDialogClose(
+    $("#studioSettingsDialog")
+  );
+
+  showToast(
+    "AI settings saved.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   SOCIAL ACCOUNTS
+   ========================================================= */
+
+function openSocialSettings() {
+  const dialog =
+    getSettingsDialog();
+
+  const settings =
+    STUDIO_SETTINGS.social;
+
+  dialog.innerHTML =
+    settingsDialogShell({
+      title:
+        "Social Accounts",
+
+      description:
+        "Choose the publishing destinations the studio should prepare content for.",
+
+      content: `
+        <form
+          id="socialSettingsForm"
+          class="create-form"
+        >
+
+          <div>
+            ${settingToggle({
+              id:
+                "socialFacebook",
+
+              title:
+                "Facebook",
+
+              description:
+                "Enable Facebook as an available publishing destination.",
+
+              checked:
+                settings.facebookEnabled
+            })}
+
+            ${settingToggle({
+              id:
+                "socialInstagram",
+
+              title:
+                "Instagram",
+
+              description:
+                "Enable Instagram as an available publishing destination.",
+
+              checked:
+                settings.instagramEnabled
+            })}
+
+            ${settingToggle({
+              id:
+                "socialLinkedIn",
+
+              title:
+                "LinkedIn",
+
+              description:
+                "Enable LinkedIn as an available publishing destination.",
+
+              checked:
+                settings.linkedinEnabled
+            })}
+
+            ${settingToggle({
+              id:
+                "socialPinterest",
+
+              title:
+                "Pinterest",
+
+              description:
+                "Enable Pinterest as an available publishing destination.",
+
+              checked:
+                settings.pinterestEnabled
+            })}
+
+            ${settingToggle({
+              id:
+                "socialTikTok",
+
+              title:
+                "TikTok",
+
+              description:
+                "Enable TikTok as an available publishing destination.",
+
+              checked:
+                settings.tiktokEnabled
+            })}
+          </div>
+
+
+          <div
+            class="content-panel"
+            style="
+              padding:16px;
+            "
+          >
+            <span class="eyebrow">
+              Connections
+            </span>
+
+            <p
+              style="
+                margin:6px 0 0;
+                color:var(--muted);
+                font-size:.74rem;
+                line-height:1.55;
+              "
+            >
+              These switches define available
+              destinations. Account authorization
+              will be connected separately when
+              publishing APIs are wired.
+            </p>
+          </div>
+
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary-button"
+              data-close-settings-dialog
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              Save Accounts
+            </button>
+
+          </div>
+
+        </form>
+      `
+    });
+
+  bindSettingsDialogClose(
+    dialog
+  );
+
+  $("#socialSettingsForm")
+    ?.addEventListener(
+      "submit",
+      saveSocialSettings
+    );
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+function saveSocialSettings(
+  event
+) {
+  event.preventDefault();
+
+  STUDIO_SETTINGS.social = {
+    facebookEnabled:
+      Boolean(
+        $("#socialFacebook")
+          ?.checked
+      ),
+
+    instagramEnabled:
+      Boolean(
+        $("#socialInstagram")
+          ?.checked
+      ),
+
+    linkedinEnabled:
+      Boolean(
+        $("#socialLinkedIn")
+          ?.checked
+      ),
+
+    pinterestEnabled:
+      Boolean(
+        $("#socialPinterest")
+          ?.checked
+      ),
+
+    tiktokEnabled:
+      Boolean(
+        $("#socialTikTok")
+          ?.checked
+      )
+  };
+
+  if (!saveStudioSettings()) {
+    return;
+  }
+
+  safeDialogClose(
+    $("#studioSettingsDialog")
+  );
+
+  showToast(
+    "Social settings saved.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   PUBLISHING SETTINGS
+   ========================================================= */
+
+function openPublishingSettings() {
+  const dialog =
+    getSettingsDialog();
+
+  const settings =
+    STUDIO_SETTINGS.publishing;
+
+  dialog.innerHTML =
+    settingsDialogShell({
+      title:
+        "Publishing",
+
+      description:
+        "Set the guardrails for drafts, approvals, scheduling, and direct publishing.",
+
+      content: `
+        <form
+          id="publishingSettingsForm"
+          class="create-form"
+        >
+
+          <label class="field">
+            <span>
+              Default Content Status
+            </span>
+
+            <select
+              id="publishingDefaultStatus"
+            >
+              <option
+                value="draft"
+                ${
+                  settings.defaultStatus ===
+                  "draft"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Draft
+              </option>
+
+              <option
+                value="review"
+                ${
+                  settings.defaultStatus ===
+                  "review"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Ready for Review
+              </option>
+            </select>
+          </label>
+
+
+          <label class="field">
+            <span>
+              Default Scheduling
+            </span>
+
+            <select
+              id="publishingDefaultSchedule"
+            >
+              <option
+                value="manual"
+                ${
+                  settings.defaultSchedule ===
+                  "manual"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Manual
+              </option>
+
+              <option
+                value="next-slot"
+                ${
+                  settings.defaultSchedule ===
+                  "next-slot"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Next Available Slot
+              </option>
+            </select>
+          </label>
+
+
+          <div>
+            ${settingToggle({
+              id:
+                "publishingRequireApproval",
+
+              title:
+                "Require approval",
+
+              description:
+                "Content must be approved before it can be published.",
+
+              checked:
+                settings.requireApproval
+            })}
+
+            ${settingToggle({
+              id:
+                "publishingConfirmBeforePublish",
+
+              title:
+                "Confirm before publishing",
+
+              description:
+                "Show a final confirmation before content is sent live.",
+
+              checked:
+                settings.confirmBeforePublish
+            })}
+
+            ${settingToggle({
+              id:
+                "publishingAllowDirect",
+
+              title:
+                "Allow direct publishing",
+
+              description:
+                "Permit approved content to bypass scheduling and publish immediately.",
+
+              checked:
+                settings.allowDirectPublish
+            })}
+
+            ${settingToggle({
+              id:
+                "publishingIncludeBrandName",
+
+              title:
+                "Include brand name by default",
+
+              description:
+                "Prefer explicit brand identification in generated publishing copy.",
+
+              checked:
+                settings.includeBrandName
+            })}
+          </div>
+
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary-button"
+              data-close-settings-dialog
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              Save Publishing
+            </button>
+
+          </div>
+
+        </form>
+      `
+    });
+
+  bindSettingsDialogClose(
+    dialog
+  );
+
+  $("#publishingSettingsForm")
+    ?.addEventListener(
+      "submit",
+      savePublishingSettings
+    );
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+function savePublishingSettings(
+  event
+) {
+  event.preventDefault();
+
+  STUDIO_SETTINGS.publishing = {
+    defaultStatus:
+      $("#publishingDefaultStatus")
+        ?.value ||
+      "draft",
+
+    defaultSchedule:
+      $("#publishingDefaultSchedule")
+        ?.value ||
+      "manual",
+
+    requireApproval:
+      Boolean(
+        $("#publishingRequireApproval")
+          ?.checked
+      ),
+
+    confirmBeforePublish:
+      Boolean(
+        $("#publishingConfirmBeforePublish")
+          ?.checked
+      ),
+
+    allowDirectPublish:
+      Boolean(
+        $("#publishingAllowDirect")
+          ?.checked
+      ),
+
+    includeBrandName:
+      Boolean(
+        $("#publishingIncludeBrandName")
+          ?.checked
+      )
+  };
+
+  if (!saveStudioSettings()) {
+    return;
+  }
+
+  safeDialogClose(
+    $("#studioSettingsDialog")
+  );
+
+  showToast(
+    "Publishing settings saved.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   APP PREFERENCES
+   ========================================================= */
+
+function openPreferenceSettings() {
+  const dialog =
+    getSettingsDialog();
+
+  const settings =
+    STUDIO_SETTINGS.preferences;
+
+  dialog.innerHTML =
+    settingsDialogShell({
+      title:
+        "App Preferences",
+
+      description:
+        "Control everyday Studio behavior without changing individual brand data.",
+
+      content: `
+        <form
+          id="preferenceSettingsForm"
+          class="create-form"
+        >
+
+          <label class="field">
+            <span>
+              Default Landing View
+            </span>
+
+            <select
+              id="preferenceDefaultView"
+            >
+              <option
+                value="dashboard"
+                ${
+                  settings.defaultView ===
+                  "dashboard"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Home
+              </option>
+
+              <option
+                value="brands"
+                ${
+                  settings.defaultView ===
+                  "brands"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Brands
+              </option>
+
+              <option
+                value="studio"
+                ${
+                  settings.defaultView ===
+                  "studio"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Studio
+              </option>
+
+              <option
+                value="campaigns"
+                ${
+                  settings.defaultView ===
+                  "campaigns"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Campaigns
+              </option>
+
+              <option
+                value="calendar"
+                ${
+                  settings.defaultView ===
+                  "calendar"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Calendar
+              </option>
+
+              <option
+                value="assets"
+                ${
+                  settings.defaultView ===
+                  "assets"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Asset Vault
+              </option>
+            </select>
+          </label>
+
+
+          <div>
+            ${settingToggle({
+              id:
+                "preferenceConfirmDeletes",
+
+              title:
+                "Confirm destructive actions",
+
+              description:
+                "Ask for confirmation before deleting assets, folders, campaigns, or other records.",
+
+              checked:
+                settings.confirmDeletes
+            })}
+
+            ${settingToggle({
+              id:
+                "preferenceSuccessToasts",
+
+              title:
+                "Success notifications",
+
+              description:
+                "Show confirmation messages after successful actions.",
+
+              checked:
+                settings.showSuccessToasts
+            })}
+
+            ${settingToggle({
+              id:
+                "preferenceCompactCards",
+
+              title:
+                "Compact card layout",
+
+              description:
+                "Reduce spacing in grids to show more information at once.",
+
+              checked:
+                settings.compactCards
+            })}
+
+            ${settingToggle({
+              id:
+                "preferenceReduceMotion",
+
+              title:
+                "Reduce interface motion",
+
+              description:
+                "Minimize nonessential interface animation and transitions.",
+
+              checked:
+                settings.reduceMotion
+            })}
+
+            ${settingToggle({
+              id:
+                "preferenceRememberBrand",
+
+              title:
+                "Remember working brand",
+
+              description:
+                "Return to the most recently selected brand when reopening the Studio.",
+
+              checked:
+                settings.rememberLastBrand
+            })}
+          </div>
+
+
+          <div class="form-actions">
+
+            <button
+              type="button"
+              class="secondary-button"
+              data-close-settings-dialog
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+            >
+              Save Preferences
+            </button>
+
+          </div>
+
+        </form>
+      `
+    });
+
+  bindSettingsDialogClose(
+    dialog
+  );
+
+  $("#preferenceSettingsForm")
+    ?.addEventListener(
+      "submit",
+      savePreferenceSettings
+    );
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+function savePreferenceSettings(
+  event
+) {
+  event.preventDefault();
+
+  STUDIO_SETTINGS.preferences = {
+    defaultView:
+      $("#preferenceDefaultView")
+        ?.value ||
+      "dashboard",
+
+    confirmDeletes:
+      Boolean(
+        $("#preferenceConfirmDeletes")
+          ?.checked
+      ),
+
+    showSuccessToasts:
+      Boolean(
+        $("#preferenceSuccessToasts")
+          ?.checked
+      ),
+
+    compactCards:
+      Boolean(
+        $("#preferenceCompactCards")
+          ?.checked
+      ),
+
+    reduceMotion:
+      Boolean(
+        $("#preferenceReduceMotion")
+          ?.checked
+      ),
+
+    rememberLastBrand:
+      Boolean(
+        $("#preferenceRememberBrand")
+          ?.checked
+      )
+  };
+
+  if (!saveStudioSettings()) {
+    return;
+  }
+
+  safeDialogClose(
+    $("#studioSettingsDialog")
+  );
+
+  showToast(
+    "App preferences saved.",
+    "success"
+  );
+}
+
+
+/* =========================================================
+   APPLY APP PREFERENCES
+   ========================================================= */
+
+function applyStudioSettings() {
+  const preferences =
+    STUDIO_SETTINGS.preferences;
+
+  document.documentElement
+    .classList.toggle(
+      "studio-reduce-motion",
+      Boolean(
+        preferences.reduceMotion
+      )
+    );
+
+  document.documentElement
+    .classList.toggle(
+      "studio-compact-cards",
+      Boolean(
+        preferences.compactCards
+      )
+    );
+}
+
+
+/*
+ * Apply persisted preferences immediately.
+ */
+applyStudioSettings();
 
 
 /* =========================================================
