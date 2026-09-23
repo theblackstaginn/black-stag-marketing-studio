@@ -1,12 +1,24 @@
 /* =========================================================
    BLACK STAG MARKETING STUDIO
    styles.css
-   v3 — TEXTURED GLASS APPLICATION UI
+   v4 — TEXTURED GLASS APPLICATION UI
 
-   Mahogany navigation surfaces.
-   Charcoal Roman plaster workspace.
-   Transparent glass panels.
-   Mobile-first.
+   ASSET MAP
+   ---------------------------------------------------------
+   Desktop sidebar:
+   ./bsms-assets/sidebar-web.webp
+
+   Desktop workspace:
+   ./bsms-assets/web-bg-charcoal.webp
+
+   Mobile workspace:
+   ./bsms-assets/mobile-bg-charcoal.webp
+
+   Mobile bottom navigation:
+   ./bsms-assets/bottom-nav-mobile.webp
+
+   IMPORTANT:
+   Mobile topbar uses NO wood / mahogany image.
    ========================================================= */
 
 
@@ -100,28 +112,7 @@ body {
 
   color: var(--ink);
 
-  /*
-   * MOBILE WORKSPACE TEXTURE
-   *
-   * Intentionally no gradient, darkening layer,
-   * brightness filter, or pseudo-overlay.
-   */
-  background-image:
-    url("./bsms-assets/mobile-bg-charcoal.webp");
-
-  background-position:
-    center top;
-
-  background-size:
-    cover;
-
-  background-repeat:
-    no-repeat;
-
-  background-attachment:
-    fixed;
-
-  background-color:
+  background:
     var(--bg);
 
   font-family:
@@ -275,10 +266,6 @@ strong {
 
   min-height: 100dvh;
 
-  /*
-   * Transparent on mobile so the charcoal
-   * plaster applied to body remains visible.
-   */
   background:
     transparent;
 }
@@ -303,13 +290,6 @@ strong {
 /* =========================================================
    SHARED GLASS SURFACE
    ========================================================= */
-
-/*
- * These are the application's principal panel/card
- * surfaces. Their individual sections below can still
- * control layout, sizing, and interaction without
- * repeatedly redefining the same opaque backgrounds.
- */
 
 .content-panel,
 .calendar-shell,
@@ -439,6 +419,7 @@ strong {
 
 /* =========================================================
    MOBILE TOPBAR
+   NO MAHOGANY / NO WOOD TEXTURE
    ========================================================= */
 
 .topbar {
@@ -466,20 +447,22 @@ strong {
 
   border-bottom:
     1px solid
-    var(--line);
+    rgba(218, 204, 181, .13);
 
-  /*
-   * Glass instead of the old opaque
-   * topbar gradient.
-   */
   background:
-    rgba(8, 10, 9, .38);
+    rgba(8, 10, 9, .46);
 
   -webkit-backdrop-filter:
     blur(var(--glass-blur-strong));
 
   backdrop-filter:
     blur(var(--glass-blur-strong));
+
+  box-shadow:
+    0
+    8px
+    26px
+    rgba(0, 0, 0, .12);
 }
 
 .topbar-brand {
@@ -562,11 +545,6 @@ strong {
 /* =========================================================
    SIDEBAR
    ========================================================= */
-
-/*
- * Desktop rules later in the file turn this on
- * and apply sidebar-web.webp.
- */
 
 .sidebar {
   display: none;
@@ -677,6 +655,8 @@ strong {
 .mobile-brand-area {
   margin-bottom: 28px;
 }
+
+
 /* =========================================================
    BRAND SWITCHER
    ========================================================= */
@@ -873,12 +853,6 @@ strong {
     box-shadow .18s var(--ease);
 }
 
-/*
- * Very faint highlight only.
- *
- * This affects the card itself,
- * not the workspace background image.
- */
 .stat-card::after {
   position: absolute;
   top: -32px;
@@ -1048,13 +1022,6 @@ strong {
 /* =========================================================
    GENERIC PANELS
    ========================================================= */
-
-/*
- * Background, border, blur and shadow are
- * centralized in SHARED GLASS SURFACE.
- *
- * This section now controls only panel geometry.
- */
 
 .content-panel,
 .calendar-shell {
@@ -1460,6 +1427,8 @@ strong {
 
   gap: 12px;
 }
+
+
 /* =========================================================
    SETTINGS
    ========================================================= */
@@ -1553,6 +1522,7 @@ strong {
 
 /* =========================================================
    MOBILE BOTTOM NAVIGATION
+   WOOD TEXTURE LIVES HERE ON MOBILE
    ========================================================= */
 
 .bottom-nav {
@@ -1589,12 +1559,6 @@ strong {
     1px solid
     rgba(218, 204, 181, .18);
 
-  /*
-   * MOBILE MAHOGANY
-   *
-   * Raw image — no darkening overlay,
-   * gradient or brightness filter.
-   */
   background-image:
     url("./bsms-assets/bottom-nav-mobile.webp");
 
@@ -1608,12 +1572,8 @@ strong {
     no-repeat;
 
   background-color:
-    transparent;
+    #160d09;
 
-  /*
-   * We intentionally do NOT blur the
-   * wood itself. It remains crisp.
-   */
   -webkit-backdrop-filter:
     none;
 
@@ -1743,13 +1703,8 @@ strong {
   color:
     var(--ink);
 
-  /*
-   * Dialogs need slightly more opacity
-   * than ordinary cards because they can
-   * contain dense forms and long copy.
-   */
   background:
-    rgba(11, 14, 12, .70);
+    rgba(12, 16, 13, .76);
 
   -webkit-backdrop-filter:
     blur(var(--glass-blur-strong));
@@ -1765,13 +1720,6 @@ strong {
 }
 
 .app-dialog::backdrop {
-  /*
-   * No backdrop-filter here.
-   *
-   * The workspace remains visible behind
-   * dialogs rather than becoming blurred
-   * or heavily darkened.
-   */
   background:
     rgba(0, 0, 0, .34);
 }
@@ -1826,13 +1774,13 @@ strong {
     var(--line);
 
   background:
-    rgba(13, 17, 14, .58);
+    rgba(15, 20, 16, .68);
 
   -webkit-backdrop-filter:
-    blur(var(--glass-blur-strong));
+    blur(16px);
 
   backdrop-filter:
-    blur(var(--glass-blur-strong));
+    blur(16px);
 }
 
 .dialog-header h2 {
@@ -1920,6 +1868,9 @@ strong {
     );
 
   overflow: hidden;
+
+  background:
+    rgba(11, 15, 12, .74);
 }
 
 #assetEditorDialog .asset-editor-shell {
@@ -1977,13 +1928,13 @@ strong {
     var(--radius);
 
   background:
-    rgba(8, 10, 9, .22);
+    rgba(255, 255, 255, .025);
 
   -webkit-backdrop-filter:
-    blur(10px);
+    blur(8px);
 
   backdrop-filter:
-    blur(10px);
+    blur(8px);
 }
 
 #assetEditorDialog .asset-editor-preview img {
@@ -2065,47 +2016,7 @@ strong {
 
 
 /* =========================================================
-   ASSET EDITOR — MOBILE
-   ========================================================= */
-
-@media (max-width: 639px) {
-
-  #assetEditorDialog {
-    width:
-      calc(100% - 12px);
-
-    height:
-      calc(100dvh - 16px);
-
-    max-height:
-      calc(100dvh - 16px);
-  }
-
-  #assetEditorDialog .asset-editor-body {
-    padding: 16px;
-  }
-
-  #assetEditorDialog .asset-editor-preview {
-    max-height: 280px;
-
-    padding: 12px;
-  }
-
-  #assetEditorDialog .asset-editor-preview img {
-    max-height: 250px;
-  }
-
-  #assetEditorDialog .asset-editor-actions {
-    grid-template-columns: 1fr;
-  }
-
-  #deleteAssetEditorButton {
-    order: 3;
-  }
-
-}
-/* =========================================================
-   BRAND BRAIN — WORKSPACE DIALOG
+   BRAND BRAIN
    ========================================================= */
 
 #brandBrainDialog {
@@ -2129,7 +2040,7 @@ strong {
     rgba(195, 154, 112, .20);
 
   background:
-    rgba(10, 13, 11, .68);
+    rgba(11, 15, 12, .74);
 
   -webkit-backdrop-filter:
     blur(var(--glass-blur-strong));
@@ -2151,11 +2062,6 @@ strong {
   overflow: hidden !important;
 }
 
-
-/* =========================================================
-   BRAND BRAIN HEADER
-   ========================================================= */
-
 #brandBrainDialog .dialog-header {
   flex: 0 0 auto;
 
@@ -2165,7 +2071,7 @@ strong {
     18px;
 
   background:
-    rgba(12, 16, 13, .56);
+    rgba(14, 19, 15, .68);
 
   -webkit-backdrop-filter:
     blur(var(--glass-blur-strong));
@@ -2210,7 +2116,7 @@ strong {
     var(--line);
 
   background:
-    rgba(7, 10, 8, .30);
+    rgba(7, 10, 8, .42);
 
   -webkit-backdrop-filter:
     blur(12px);
@@ -2368,11 +2274,6 @@ strong {
     var(--muted);
 }
 
-
-/* =========================================================
-   BRAND BRAIN GENERATED FORMS
-   ========================================================= */
-
 #brandBrainContent form,
 .brand-brain-content form {
   width: 100%;
@@ -2409,11 +2310,6 @@ strong {
   min-height: 125px;
 }
 
-
-/* =========================================================
-   BRAND BRAIN ACTION BAR
-   ========================================================= */
-
 #brandBrainDialog .form-actions {
   position: sticky;
   z-index: 15;
@@ -2436,7 +2332,7 @@ strong {
     var(--line);
 
   background:
-    rgba(9, 12, 10, .68);
+    rgba(10, 14, 11, .72);
 
   box-shadow:
     0
@@ -2445,27 +2341,22 @@ strong {
     rgba(0, 0, 0, .18);
 
   -webkit-backdrop-filter:
-    blur(var(--glass-blur-strong));
+    blur(16px);
 
   backdrop-filter:
-    blur(var(--glass-blur-strong));
+    blur(16px);
 
   transform:
     translateY(82px);
 }
 
-
-/* =========================================================
-   BRAND BRAIN RECORD CARDS
-   ========================================================= */
-
 #brandBrainContent article,
 .brand-brain-content article {
   border-color:
-    rgba(218, 204, 181, .13) !important;
+    var(--line) !important;
 
   background:
-    rgba(14, 18, 15, .32) !important;
+    rgba(14, 19, 15, .28) !important;
 
   -webkit-backdrop-filter:
     blur(var(--glass-blur));
@@ -2482,7 +2373,7 @@ strong {
 
 
 /* =========================================================
-   BRAND PICKER DIALOG
+   BRAND PICKER
    ========================================================= */
 
 .brand-picker-list {
@@ -2509,7 +2400,7 @@ strong {
 
 
 /* =========================================================
-   QUICK CREATE / MANUAL AI DIALOGS
+   QUICK CREATE / MANUAL AI
    ========================================================= */
 
 .create-dialog {
@@ -2546,6 +2437,8 @@ strong {
   backdrop-filter:
     blur(8px);
 }
+
+
 /* =========================================================
    FORMS
    ========================================================= */
@@ -2772,6 +2665,7 @@ strong {
 }
 
 @keyframes toast-enter {
+
   from {
     opacity: 0;
 
@@ -2785,11 +2679,199 @@ strong {
     transform:
       translateY(0);
   }
+
 }
 
 
 /* =========================================================
-   SMALL PHONE ADJUSTMENTS
+   SETTINGS DIALOG
+   ========================================================= */
+
+#studioSettingsDialog {
+  width:
+    min(
+      calc(100% - 20px),
+      760px
+    );
+
+  height:
+    min(
+      90dvh,
+      820px
+    );
+
+  max-height:
+    min(
+      90dvh,
+      820px
+    );
+
+  padding: 0;
+
+  overflow: hidden;
+
+  overscroll-behavior:
+    contain;
+
+  background:
+    rgba(13, 17, 14, .72);
+
+  -webkit-backdrop-filter:
+    blur(var(--glass-blur-strong));
+
+  backdrop-filter:
+    blur(var(--glass-blur-strong));
+}
+
+#studioSettingsDialog > div {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-width: none;
+
+  height: 100%;
+
+  min-height: 0;
+
+  overflow: hidden;
+}
+
+#studioSettingsDialog .dialog-header {
+  position: relative;
+  z-index: 10;
+
+  flex: 0 0 auto;
+
+  background:
+    rgba(14, 19, 15, .68);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+
+  backdrop-filter:
+    blur(16px);
+}
+
+#studioSettingsDialog .create-form {
+  flex: 1 1 auto;
+
+  min-height: 0;
+
+  padding:
+    22px
+    22px
+    0;
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  overscroll-behavior:
+    contain;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    rgba(118, 133, 107, .62)
+    rgba(255, 255, 255, .025);
+
+  -webkit-overflow-scrolling:
+    touch;
+}
+
+#studioSettingsDialog
+.create-form::-webkit-scrollbar {
+  width: 9px;
+}
+
+#studioSettingsDialog
+.create-form::-webkit-scrollbar-track {
+  background:
+    rgba(255, 255, 255, .02);
+}
+
+#studioSettingsDialog
+.create-form::-webkit-scrollbar-thumb {
+  border:
+    2px solid
+    transparent;
+
+  border-radius: 999px;
+
+  background:
+    rgba(118, 133, 107, .55);
+
+  background-clip:
+    padding-box;
+}
+
+#studioSettingsDialog
+.create-form::-webkit-scrollbar-thumb:hover {
+  background:
+    rgba(167, 123, 82, .65);
+
+  background-clip:
+    padding-box;
+}
+
+#studioSettingsDialog .field {
+  flex: 0 0 auto;
+}
+
+#studioSettingsDialog input,
+#studioSettingsDialog textarea,
+#studioSettingsDialog select {
+  background:
+    rgba(4, 8, 5, .34);
+
+  -webkit-backdrop-filter:
+    blur(7px);
+
+  backdrop-filter:
+    blur(7px);
+}
+
+#studioSettingsDialog .form-actions {
+  position: sticky;
+  z-index: 8;
+
+  bottom: 0;
+
+  flex: 0 0 auto;
+
+  margin:
+    20px
+    -22px
+    0;
+
+  padding:
+    14px
+    22px
+    20px;
+
+  border-top:
+    1px solid
+    var(--line);
+
+  background:
+    rgba(11, 15, 12, .72);
+
+  box-shadow:
+    0
+    -12px
+    28px
+    rgba(0, 0, 0, .14);
+
+  -webkit-backdrop-filter:
+    blur(16px);
+
+  backdrop-filter:
+    blur(16px);
+}
+
+
+/* =========================================================
+   SMALL PHONE
    ========================================================= */
 
 @media (max-width: 370px) {
@@ -2832,11 +2914,6 @@ strong {
     border-radius: 18px;
   }
 
-
-  /* -------------------------------------------------------
-     ASSET EDITOR
-     ------------------------------------------------------- */
-
   #assetEditorDialog {
     width:
       calc(100% - 12px);
@@ -2869,11 +2946,6 @@ strong {
   #deleteAssetEditorButton {
     order: 3;
   }
-
-
-  /* -------------------------------------------------------
-     BRAND BRAIN
-     ------------------------------------------------------- */
 
   #brandBrainDialog {
     width:
@@ -2915,6 +2987,54 @@ strong {
       22px
       -16px
       -104px;
+
+    padding:
+      12px
+      16px
+      calc(
+        14px
+        + env(safe-area-inset-bottom)
+      );
+  }
+
+  #studioSettingsDialog {
+    width:
+      calc(100% - 12px);
+
+    height:
+      calc(100dvh - 12px);
+
+    max-height:
+      calc(100dvh - 12px);
+
+    border-radius: 18px;
+  }
+
+  #studioSettingsDialog > div {
+    height: 100%;
+
+    max-height: none;
+  }
+
+  #studioSettingsDialog .dialog-header {
+    padding:
+      17px
+      16px
+      14px;
+  }
+
+  #studioSettingsDialog .create-form {
+    padding:
+      18px
+      16px
+      0;
+  }
+
+  #studioSettingsDialog .form-actions {
+    margin:
+      20px
+      -16px
+      0;
 
     padding:
       12px
@@ -3019,6 +3139,303 @@ strong {
   }
 
 }
+
+
+/* =========================================================
+   MOBILE / TABLET TEXTURE LAYOUT
+   ========================================================= */
+
+@media (max-width: 959px) {
+
+  html,
+  body {
+    background:
+      var(--bg);
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE WORKSPACE TEXTURE
+     ------------------------------------------------------- */
+
+  .app-shell {
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    background-image:
+      url("./bsms-assets/mobile-bg-charcoal.webp");
+
+    background-position:
+      center top;
+
+    background-repeat:
+      repeat-y;
+
+    background-size:
+      cover;
+
+    background-color:
+      var(--bg);
+  }
+
+  .app-main {
+    position: relative;
+
+    width: 100%;
+
+    min-height: 100vh;
+    min-height: 100dvh;
+
+    background:
+      transparent;
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE TOPBAR
+     GLASS ONLY — NO MAHOGANY
+     ------------------------------------------------------- */
+
+  .topbar {
+    position: sticky;
+    z-index: 50;
+    top: 0;
+
+    border-bottom:
+      1px solid
+      rgba(238, 233, 223, .14);
+
+    background:
+      rgba(8, 10, 9, .46);
+
+    background-image:
+      none;
+
+    -webkit-backdrop-filter:
+      blur(var(--glass-blur-strong));
+
+    backdrop-filter:
+      blur(var(--glass-blur-strong));
+
+    box-shadow:
+      0
+      8px
+      26px
+      rgba(0, 0, 0, .13);
+  }
+
+  .topbar-settings {
+    border-color:
+      rgba(238, 233, 223, .18);
+
+    color:
+      var(--ink);
+
+    background:
+      rgba(8, 10, 9, .24);
+
+    -webkit-backdrop-filter:
+      blur(8px);
+
+    backdrop-filter:
+      blur(8px);
+  }
+
+  .studio-mark-small {
+    background:
+      rgba(7, 9, 8, .30);
+
+    -webkit-backdrop-filter:
+      blur(8px);
+
+    backdrop-filter:
+      blur(8px);
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE CONTENT
+     ------------------------------------------------------- */
+
+  .content {
+    position: relative;
+    z-index: 1;
+
+    background:
+      transparent;
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE GLASS PANELS
+     ------------------------------------------------------- */
+
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card {
+    border-color:
+      rgba(238, 233, 223, .13);
+
+    background:
+      rgba(12, 16, 13, .22);
+
+    -webkit-backdrop-filter:
+      blur(var(--glass-blur));
+
+    backdrop-filter:
+      blur(var(--glass-blur));
+
+    box-shadow:
+      0
+      10px
+      28px
+      rgba(0, 0, 0, .10);
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE BRAND SWITCHER
+     ------------------------------------------------------- */
+
+  .brand-switcher {
+    border-color:
+      rgba(238, 233, 223, .14);
+
+    background:
+      rgba(9, 12, 10, .22);
+
+    -webkit-backdrop-filter:
+      blur(10px);
+
+    backdrop-filter:
+      blur(10px);
+
+    box-shadow:
+      inset
+      0
+      1px
+      0
+      rgba(255, 255, 255, .035);
+  }
+
+  .brand-switcher-mark {
+    background:
+      rgba(6, 8, 7, .22);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE BOTTOM NAV
+     MAHOGANY / WOOD ONLY HERE
+     ------------------------------------------------------- */
+
+  .bottom-nav {
+    position: fixed;
+    z-index: 60;
+
+    right: 0;
+    bottom: 0;
+    left: 0;
+
+    border-top:
+      1px solid
+      rgba(238, 233, 223, .16);
+
+    background-image:
+      url("./bsms-assets/bottom-nav-mobile.webp");
+
+    background-position:
+      center center;
+
+    background-repeat:
+      no-repeat;
+
+    background-size:
+      cover;
+
+    background-color:
+      #160d09;
+
+    -webkit-backdrop-filter:
+      none;
+
+    backdrop-filter:
+      none;
+
+    box-shadow:
+      0
+      -10px
+      28px
+      rgba(0, 0, 0, .14);
+  }
+
+  .bottom-nav-button {
+    color:
+      rgba(238, 233, 223, .64);
+
+    background:
+      transparent;
+  }
+
+  .bottom-nav-button.is-active {
+    color:
+      #f0d2ad;
+
+    background:
+      rgba(8, 15, 10, .27);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
+  }
+
+
+  /* -------------------------------------------------------
+     MOBILE FILTER TABS
+     ------------------------------------------------------- */
+
+  .filter-tab {
+    border-color:
+      rgba(238, 233, 223, .13);
+
+    background:
+      rgba(10, 13, 11, .18);
+
+    -webkit-backdrop-filter:
+      blur(7px);
+
+    backdrop-filter:
+      blur(7px);
+  }
+
+  .filter-tab.is-active {
+    border-color:
+      rgba(195, 154, 112, .30);
+
+    background:
+      rgba(37, 58, 44, .34);
+  }
+
+}
+
+
 /* =========================================================
    DESKTOP APPLICATION LAYOUT
    ========================================================= */
@@ -3044,9 +3461,9 @@ strong {
   }
 
 
-  /* =======================================================
-     DESKTOP SIDEBAR — MAHOGANY
-     ======================================================= */
+  /* -------------------------------------------------------
+     DESKTOP SIDEBAR
+     ------------------------------------------------------- */
 
   .sidebar {
     position: relative;
@@ -3070,15 +3487,8 @@ strong {
       1px solid
       rgba(218, 204, 181, .16);
 
-    /*
-     * IMPORTANT:
-     * No gradient or darkening layer here.
-     * The mahogany asset is displayed directly.
-     */
     background-image:
-      /* DESKTOP MAIN WORKSPACE */
-background-image:
-  url("./bsms-assets/roman-plaster-web.webp");
+      url("./bsms-assets/sidebar-web.webp");
 
     background-position:
       center top;
@@ -3088,6 +3498,9 @@ background-image:
 
     background-size:
       cover;
+
+    background-color:
+      #160d09;
 
     box-shadow:
       14px
@@ -3251,9 +3664,9 @@ background-image:
   }
 
 
-  /* =======================================================
-     DESKTOP MAIN WORKSPACE — ROMAN PLASTER
-     ======================================================= */
+  /* -------------------------------------------------------
+     DESKTOP MAIN WORKSPACE
+     ------------------------------------------------------- */
 
   .app-main {
     position: relative;
@@ -3265,16 +3678,8 @@ background-image:
     overflow-x: hidden;
     overflow-y: auto;
 
-    /*
-     * Raw Roman plaster texture.
-     * No darkening gradient.
-     * No pseudo-element overlay.
-     * No filter.
-     */
     background-image:
-      /* MOBILE PAGE FOUNDATION */
-background-image:
-  url("./bsms-assets/roman-plaster-mobile.webp");
+      url("./bsms-assets/web-bg-charcoal.webp");
 
     background-position:
       center top;
@@ -3287,6 +3692,9 @@ background-image:
 
     background-attachment:
       local;
+
+    background-color:
+      var(--bg);
   }
 
   .topbar {
@@ -3315,9 +3723,9 @@ background-image:
   }
 
 
-  /* =======================================================
+  /* -------------------------------------------------------
      DESKTOP GLASS PANELS
-     ======================================================= */
+     ------------------------------------------------------- */
 
   .content-panel,
   .calendar-shell,
@@ -3344,11 +3752,6 @@ background-image:
       rgba(0, 0, 0, .12);
   }
 
-
-  /* =======================================================
-     DESKTOP BRAND SWITCHER GLASS
-     ======================================================= */
-
   .brand-switcher {
     border-color:
       rgba(238, 233, 223, .14);
@@ -3369,11 +3772,6 @@ background-image:
       0
       rgba(255, 255, 255, .04);
   }
-
-
-  /* =======================================================
-     DESKTOP TOAST POSITION
-     ======================================================= */
 
   .toast-region {
     right: 24px;
@@ -3438,341 +3836,8 @@ background-image:
   }
 
 }
-/* =========================================================
-   MOBILE TEXTURE LAYOUT
-   Mahogany:
-   - Top application header
-   - Bottom navigation
 
-   Roman plaster:
-   - Main scrolling workspace
-   ========================================================= */
 
-@media (max-width: 959px) {
-
-  /* =======================================================
-     MOBILE PAGE FOUNDATION
-     ======================================================= */
-
-  html,
-  body {
-    background:
-      var(--bg);
-  }
-
-  body {
-    overflow-x: hidden;
-  }
-
-  .app-shell {
-    width: 100%;
-
-    min-height: 100vh;
-    min-height: 100dvh;
-
-    /*
-     * Mobile Roman plaster is the page texture.
-     * No gradient.
-     * No overlay.
-     * No filter.
-     */
-    background-image:
-      url("./bsms-assets/mahogany-mobile.webp");
-
-    background-position:
-      center top;
-
-    background-repeat:
-      repeat-y;
-
-    background-size:
-      cover;
-  }
-
-  .app-main {
-    position: relative;
-
-    width: 100%;
-
-    min-height: 100vh;
-    min-height: 100dvh;
-
-    background: transparent;
-  }
-
-
-  /* =======================================================
-     MOBILE TOPBAR — MAHOGANY
-     ======================================================= */
-
-  .topbar {
-    position: sticky;
-    z-index: 50;
-    top: 0;
-
-    border-bottom:
-      1px solid
-      rgba(238, 233, 223, .16);
-
-    /*
-     * Direct mahogany texture.
-     * No darkening layer.
-     */
-    background-image:
-      url("./bsms-assets/mahogany-mobile.webp");
-
-    background-position:
-      center center;
-
-    background-repeat:
-      no-repeat;
-
-    background-size:
-      cover;
-
-    /*
-     * We do NOT blur the wood itself.
-     */
-    -webkit-backdrop-filter:
-      none;
-
-    backdrop-filter:
-      none;
-
-    box-shadow:
-      0
-      8px
-      26px
-      rgba(0, 0, 0, .13);
-  }
-
-
-  /* =======================================================
-     MOBILE TOPBAR CONTROLS
-     ======================================================= */
-
-  .topbar-settings {
-    border-color:
-      rgba(238, 233, 223, .18);
-
-    color:
-      var(--ink);
-
-    background:
-      rgba(8, 10, 9, .18);
-
-    -webkit-backdrop-filter:
-      blur(8px);
-
-    backdrop-filter:
-      blur(8px);
-  }
-
-  .studio-mark-small {
-    background:
-      rgba(7, 9, 8, .22);
-
-    -webkit-backdrop-filter:
-      blur(8px);
-
-    backdrop-filter:
-      blur(8px);
-  }
-
-
-  /* =======================================================
-     MOBILE CONTENT
-     ======================================================= */
-
-  .content {
-    position: relative;
-    z-index: 1;
-
-    background: transparent;
-  }
-
-
-  /* =======================================================
-     MOBILE GLASS PANELS
-     ======================================================= */
-
-  .content-panel,
-  .calendar-shell,
-  .stat-card,
-  .quick-create-card,
-  .studio-tool-card,
-  .settings-card {
-    border-color:
-      rgba(238, 233, 223, .13);
-
-    background:
-      rgba(12, 16, 13, .22);
-
-    -webkit-backdrop-filter:
-      blur(var(--glass-blur));
-
-    backdrop-filter:
-      blur(var(--glass-blur));
-
-    box-shadow:
-      0
-      10px
-      28px
-      rgba(0, 0, 0, .10);
-  }
-
-
-  /* =======================================================
-     MOBILE BRAND SWITCHER
-     ======================================================= */
-
-  .brand-switcher {
-    border-color:
-      rgba(238, 233, 223, .14);
-
-    background:
-      rgba(9, 12, 10, .22);
-
-    -webkit-backdrop-filter:
-      blur(10px);
-
-    backdrop-filter:
-      blur(10px);
-
-    box-shadow:
-      inset
-      0
-      1px
-      0
-      rgba(255, 255, 255, .035);
-  }
-
-  .brand-switcher-mark {
-    background:
-      rgba(6, 8, 7, .22);
-
-    -webkit-backdrop-filter:
-      blur(7px);
-
-    backdrop-filter:
-      blur(7px);
-  }
-
-
-  /* =======================================================
-     MOBILE BOTTOM NAV — MAHOGANY
-     ======================================================= */
-
-  .bottom-nav {
-    position: fixed;
-    z-index: 60;
-
-    right: 0;
-    bottom: 0;
-    left: 0;
-
-    border-top:
-      1px solid
-      rgba(238, 233, 223, .16);
-
-    /*
-     * Same mahogany family as the header.
-     * No black gradient over it.
-     */
-    background-image:
-      url("./assets/mahogany-mobile.webp");
-
-    background-position:
-      center bottom;
-
-    background-repeat:
-      no-repeat;
-
-    background-size:
-      cover;
-
-    -webkit-backdrop-filter:
-      none;
-
-    backdrop-filter:
-      none;
-
-    box-shadow:
-      0
-      -10px
-      28px
-      rgba(0, 0, 0, .14);
-  }
-
-  .bottom-nav-button {
-    color:
-      rgba(238, 233, 223, .64);
-
-    background:
-      transparent;
-  }
-
-  .bottom-nav-button.is-active {
-    color:
-      #f0d2ad;
-
-    background:
-      rgba(8, 15, 10, .27);
-
-    -webkit-backdrop-filter:
-      blur(7px);
-
-    backdrop-filter:
-      blur(7px);
-  }
-
-
-  /* =======================================================
-     MOBILE FILTER TABS
-     ======================================================= */
-
-  .filter-tab {
-    border-color:
-      rgba(238, 233, 223, .13);
-
-    background:
-      rgba(10, 13, 11, .18);
-
-    -webkit-backdrop-filter:
-      blur(7px);
-
-    backdrop-filter:
-      blur(7px);
-  }
-
-  .filter-tab.is-active {
-    border-color:
-      rgba(195, 154, 112, .30);
-
-    background:
-      rgba(37, 58, 44, .34);
-  }
-
-}
-
-
-/* =========================================================
-   VERY SMALL MOBILE
-   ========================================================= */
-
-@media (max-width: 370px) {
-
-  .topbar {
-    background-position:
-      center center;
-  }
-
-  .bottom-nav {
-    background-position:
-      center bottom;
-  }
-
-}
 /* =========================================================
    POINTER / HOVER DEVICES
    ========================================================= */
@@ -3934,394 +3999,6 @@ background-image:
 .studio-compact-cards .studio-tool-grid,
 .studio-compact-cards .quick-create-grid {
   gap: 8px;
-}
-
-
-/* =========================================================
-   SETTINGS DIALOG
-   ========================================================= */
-
-#studioSettingsDialog {
-  width:
-    min(
-      calc(100% - 20px),
-      760px
-    );
-
-  height:
-    min(
-      90dvh,
-      820px
-    );
-
-  max-height:
-    min(
-      90dvh,
-      820px
-    );
-
-  padding: 0;
-
-  overflow: hidden;
-
-  overscroll-behavior:
-    contain;
-
-  background:
-    rgba(13, 17, 14, .72);
-
-  -webkit-backdrop-filter:
-    blur(var(--glass-blur-strong));
-
-  backdrop-filter:
-    blur(var(--glass-blur-strong));
-}
-
-
-/* =========================================================
-   SETTINGS DIALOG SHELL
-   ========================================================= */
-
-#studioSettingsDialog > div {
-  display: flex;
-  flex-direction: column;
-
-  width: 100%;
-  max-width: none;
-
-  height: 100%;
-
-  min-height: 0;
-
-  overflow: hidden;
-}
-
-
-/* =========================================================
-   SETTINGS DIALOG HEADER
-   ========================================================= */
-
-#studioSettingsDialog .dialog-header {
-  position: relative;
-  z-index: 10;
-
-  flex: 0 0 auto;
-
-  background:
-    rgba(14, 19, 15, .68);
-
-  -webkit-backdrop-filter:
-    blur(16px);
-
-  backdrop-filter:
-    blur(16px);
-}
-
-
-/* =========================================================
-   SETTINGS SCROLL REGION
-   ========================================================= */
-
-#studioSettingsDialog .create-form {
-  flex: 1 1 auto;
-
-  min-height: 0;
-
-  padding:
-    22px
-    22px
-    0;
-
-  overflow-x: hidden;
-  overflow-y: auto;
-
-  overscroll-behavior:
-    contain;
-
-  scrollbar-width: thin;
-
-  scrollbar-color:
-    rgba(118, 133, 107, .62)
-    rgba(255, 255, 255, .025);
-
-  -webkit-overflow-scrolling:
-    touch;
-}
-
-#studioSettingsDialog
-.create-form::-webkit-scrollbar {
-  width: 9px;
-}
-
-#studioSettingsDialog
-.create-form::-webkit-scrollbar-track {
-  background:
-    rgba(255, 255, 255, .02);
-}
-
-#studioSettingsDialog
-.create-form::-webkit-scrollbar-thumb {
-  border:
-    2px solid
-    transparent;
-
-  border-radius: 999px;
-
-  background:
-    rgba(118, 133, 107, .55);
-
-  background-clip:
-    padding-box;
-}
-
-#studioSettingsDialog
-.create-form::-webkit-scrollbar-thumb:hover {
-  background:
-    rgba(167, 123, 82, .65);
-
-  background-clip:
-    padding-box;
-}
-
-
-/* =========================================================
-   SETTINGS FORM SECTIONS
-   ========================================================= */
-
-#studioSettingsDialog .field {
-  flex: 0 0 auto;
-}
-
-#studioSettingsDialog input,
-#studioSettingsDialog textarea,
-#studioSettingsDialog select {
-  background:
-    rgba(4, 8, 5, .34);
-
-  -webkit-backdrop-filter:
-    blur(7px);
-
-  backdrop-filter:
-    blur(7px);
-}
-
-
-/* =========================================================
-   SETTINGS ACTION BAR
-   ========================================================= */
-
-#studioSettingsDialog .form-actions {
-  position: sticky;
-  z-index: 8;
-
-  bottom: 0;
-
-  flex: 0 0 auto;
-
-  margin:
-    20px
-    -22px
-    0;
-
-  padding:
-    14px
-    22px
-    20px;
-
-  border-top:
-    1px solid
-    var(--line);
-
-  background:
-    rgba(11, 15, 12, .72);
-
-  box-shadow:
-    0
-    -12px
-    28px
-    rgba(0, 0, 0, .14);
-
-  -webkit-backdrop-filter:
-    blur(16px);
-
-  backdrop-filter:
-    blur(16px);
-}
-
-
-/* =========================================================
-   SETTINGS DIALOG — MOBILE
-   ========================================================= */
-
-@media (max-width: 639px) {
-
-  #studioSettingsDialog {
-    width:
-      calc(100% - 12px);
-
-    height:
-      calc(100dvh - 12px);
-
-    max-height:
-      calc(100dvh - 12px);
-
-    border-radius: 18px;
-  }
-
-  #studioSettingsDialog > div {
-    height: 100%;
-
-    max-height: none;
-  }
-
-  #studioSettingsDialog .dialog-header {
-    padding:
-      17px
-      16px
-      14px;
-  }
-
-  #studioSettingsDialog .create-form {
-    padding:
-      18px
-      16px
-      0;
-  }
-
-  #studioSettingsDialog .form-actions {
-    margin:
-      20px
-      -16px
-      0;
-
-    padding:
-      12px
-      16px
-      calc(
-        14px
-        + env(safe-area-inset-bottom)
-      );
-  }
-
-}
-
-
-/* =========================================================
-   DIALOG GLASS CONSISTENCY
-   ========================================================= */
-
-.app-dialog {
-  background:
-    rgba(12, 16, 13, .76);
-
-  -webkit-backdrop-filter:
-    blur(var(--glass-blur-strong));
-
-  backdrop-filter:
-    blur(var(--glass-blur-strong));
-}
-
-.dialog-header {
-  background:
-    rgba(15, 20, 16, .68);
-
-  -webkit-backdrop-filter:
-    blur(16px);
-
-  backdrop-filter:
-    blur(16px);
-}
-
-
-/* =========================================================
-   BRAND BRAIN GLASS OVERRIDES
-   ========================================================= */
-
-#brandBrainDialog {
-  background:
-    rgba(11, 15, 12, .74);
-}
-
-#brandBrainDialog .dialog-header {
-  background:
-    rgba(14, 19, 15, .68);
-}
-
-#brandBrainTabs,
-.brand-brain-tabs {
-  background:
-    rgba(7, 10, 8, .42);
-
-  -webkit-backdrop-filter:
-    blur(12px);
-
-  backdrop-filter:
-    blur(12px);
-}
-
-#brandBrainContent,
-.brand-brain-content {
-  background:
-    transparent;
-}
-
-#brandBrainContent article,
-.brand-brain-content article {
-  border-color:
-    var(--line) !important;
-
-  background:
-    rgba(
-      14,
-      19,
-      15,
-      .28
-    ) !important;
-
-  -webkit-backdrop-filter:
-    blur(var(--glass-blur));
-
-  backdrop-filter:
-    blur(var(--glass-blur));
-
-  box-shadow:
-    0
-    8px
-    24px
-    rgba(0, 0, 0, .10);
-}
-
-#brandBrainDialog .form-actions {
-  background:
-    rgba(10, 14, 11, .72);
-
-  -webkit-backdrop-filter:
-    blur(16px);
-
-  backdrop-filter:
-    blur(16px);
-}
-
-
-/* =========================================================
-   ASSET EDITOR GLASS
-   ========================================================= */
-
-#assetEditorDialog {
-  background:
-    rgba(11, 15, 12, .74);
-}
-
-#assetEditorDialog
-.asset-editor-preview {
-  background:
-    rgba(255, 255, 255, .025);
-
-  -webkit-backdrop-filter:
-    blur(8px);
-
-  backdrop-filter:
-    blur(8px);
 }
 
 
