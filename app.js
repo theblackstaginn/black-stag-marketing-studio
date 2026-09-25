@@ -2666,7 +2666,7 @@ async function importApprovedBrandBrain(brandId) {
       selectedName +
       "\" Brand Brain into \"" +
       brand.name +
-      "\"?\n\nThis adds missing approved facts, guardrails, milestones, and voice guidance. Existing records are preserved, and existing identity fields are only filled when blank."
+      "\"?\n\nThis adds missing approved facts, audience intelligence, decision rules, guardrails, milestones, and voice guidance. Existing records are preserved, and existing identity fields are only filled when blank."
     );
 
   if (!confirmed) {
@@ -2830,6 +2830,122 @@ async function importApprovedBrandBrain(brandId) {
       }
     }
 
+    const sharedDecisionRules = [
+      ["approval",1,"Decision rule: use confirmed known facts as written; do not embellish them into stronger claims."],
+      ["approval",2,"Decision rule: when something is planned, proposed, developmental, or coming soon, preserve that status explicitly in marketing copy."],
+      ["approval",3,"Decision rule: when a needed fact is unknown, do not fill the blank with an assumption; flag it for owner confirmation."],
+      ["approval",4,"Decision rule: if information may have changed since it was recorded, treat it as needing confirmation before publishing."],
+      ["approval",6,"Decision rule: a marketing idea, brainstorm, concept, or suggestion is not a business fact unless the owner approves it as one."]
+    ];
+
+    const expandedFactsByBrain = {
+      "stag-and-stone": [
+        ["architecture","parent_brand","Brand hierarchy","Stag & Stone is the parent brand. The Coffee & Bakehouse is the physical cafe; Lynn's Custom Bakes is the custom-bake offering; Coffee Cart is mobile coffee/nonalcoholic service; Mobile Tavern is the service-only event bar offering."],
+        ["content","content_pillars","Content pillars","Food & drink; morning ritual; Appalachian atmosphere; people and process; community; events; bakehouse; behind-the-scenes business building; opening journey."],
+        ["audience","morning_commuters","Audience: morning commuters","People who need a convenient, quality morning coffee or breakfast stop. Emphasize speed, ritual, reliability, portability, and clear ordering information."],
+        ["audience","local_regulars","Audience: local regulars","Nearby customers who can make Stag & Stone part of their routine. Emphasize familiarity, quality, community, rotating offerings, and reasons to return."],
+        ["audience","families","Audience: families","Local families looking for approachable breakfast, lunch, pastries, and a welcoming stop. Keep practical information clear and avoid making the atmosphere feel exclusive."],
+        ["audience","visitors","Audience: visitors and weekend travelers","Visitors exploring Clarkesville and North Georgia who value memorable local food, coffee, atmosphere, and a strong sense of place."],
+        ["audience","coffee_people","Audience: coffee-focused customers","Customers who care about coffee quality and preparation. Use specific confirmed drink information rather than generic premium-coffee claims."],
+        ["audience","event_clients","Audience: event clients","Hosts and organizers considering Coffee Cart or Mobile Tavern service. Emphasize service scope, atmosphere, logistics, and clear boundaries around alcohol."],
+        ["audience","community_nights","Audience: community-night guests","People drawn by Magic: The Gathering, D&D, book club, and other community programming. Planned programming must not be presented as scheduled until dates are confirmed."]
+      ],
+      "lace-and-leather-arcane": [
+        ["products","product_structure","Product structure","A downloadable digital texture product, a texture collection, a custom fantasy-map commission, and a portfolio/showcase piece are distinct content and sales categories."],
+        ["content","aesthetic_vocabulary","Aesthetic vocabulary","Useful vocabulary includes parchment, vellum, weathering, ink, leather, age, patina, cartography, relic, archive, manuscript, tactile, and weathered."],
+        ["content","fantasy_intensity","Fantasy intensity rule","Atmospheric fantasy language can be strongest in brand storytelling and showcase copy, moderate in product descriptions, and minimal in checkout, download, licensing, delivery, and instruction copy where clarity comes first."],
+        ["commissions","capacity_logic","Commission capacity logic","Three custom map slots per month is maximum capacity, not a statement that three slots are currently available."],
+        ["products","specification_rule","Product specification rule","Aesthetic descriptions must remain separate from factual specifications such as file type, dimensions, resolution, license, included files, delivery method, and turnaround time."]
+      ],
+      "black-stag-web-design": [
+        ["audience","local_service_businesses","Audience: local service businesses","Owner-operated local businesses that need customers to quickly understand what they do, where they work, and how to contact or hire them."],
+        ["audience","restaurants_cafes","Audience: restaurants and cafes","Food and beverage businesses that need strong mobile presentation, menus, hours, location information, and obvious customer actions."],
+        ["audience","farms_breeders","Audience: farms and breeders","Small agricultural and breeder businesses that need trustworthy presentation, clear inquiry paths, ownership of their site, and easy-to-understand information."],
+        ["audience","independent_retail","Audience: independent retailers","Local retailers that need a focused web presence without unnecessary enterprise complexity."],
+        ["audience","website_frustrated","Audience: businesses frustrated with their current website","Owners dealing with outdated design, poor mobile usability, unclear ownership, difficult editing relationships, or excessive platform complexity."],
+        ["messaging","sales_philosophy","Sales philosophy","A website is a business asset, not a hostage situation. The client should own the domain and files. Use the simplest technology that solves the problem, make mobile experience a priority, make the next customer action obvious, and do not sell complexity merely because it is possible."],
+        ["sales","tier_one_fit","Tier One qualification","Tier One is suited to a focused one-page presence when the business can communicate its essential offer, trust information, and primary customer action on one page."],
+        ["sales","tier_two_fit","Tier Two qualification","Tier Two is suited to businesses that genuinely need separate information architecture across as many as five pages. Do not expand scope automatically."],
+        ["portfolio","cavalier_work","Cavalier Country Farm portfolio knowledge","Cavalier Country Farm is a completed custom website project and may be discussed as a portfolio example. Do not invent traffic, lead, ranking, or conversion results."],
+        ["portfolio","stag_stone_work","Stag & Stone portfolio knowledge","Stag & Stone Coffee and Bakehouse is a custom website project demonstrating a richer multi-page hospitality brand, menu, bakehouse, and mobile-service presentation. Do not invent performance results."]
+      ]
+    };
+
+    const expandedRuleRows =
+      [
+        ...sharedDecisionRules,
+        ...(
+          importKey === "stag-and-stone"
+            ? [
+                ["content",70,"Keep Stag & Stone, Coffee & Bakehouse, Lynn's Custom Bakes, Coffee Cart, and Mobile Tavern distinct when describing offers; do not merge their scopes."],
+                ["content",71,"Use the established content pillars as planning lanes, not as claims that every pillar must appear in every piece of content."],
+                ["approval",72,"Claims about current availability, dates, prices, ingredients, sourcing, events, and opening status require confirmed Source of Truth support."]
+              ]
+            : importKey === "lace-and-leather-arcane"
+              ? [
+                  ["content",70,"Keep downloadable products, collections, custom commissions, and portfolio/showcase work distinct."],
+                  ["content",71,"Use atmospheric fantasy language without sacrificing clarity about what the customer receives."],
+                  ["content",72,"Checkout, delivery, download, licensing, and instruction copy should prioritize plain clarity over fantasy-roleplay language."],
+                  ["factual",73,"Three monthly commission slots describes maximum capacity only; never translate it into current availability without confirmation."]
+                ]
+              : [
+                  ["sales",70,"Recommend Tier One or Tier Two based on the actual project scope; do not force a prospect into a package that does not fit."],
+                  ["sales",71,"When a request exceeds an established package, identify it as additional or custom scope instead of silently promising it."],
+                  ["sales",72,"Lead with business usefulness, ownership, mobile usability, and clear customer actions rather than technical complexity."],
+                  ["portfolio",73,"Use portfolio projects to describe demonstrated types of work, but never manufacture client outcomes or performance statistics."]
+                ]
+        )
+      ];
+
+    const expandedFactRows =
+      (
+        expandedFactsByBrain[
+          importKey
+        ] ||
+        []
+      )
+        .filter(
+          row =>
+            !existingFactKeys.has(
+              "approved_import." +
+              importKey +
+              ".expanded." +
+              row[1]
+            )
+        )
+        .map(
+          row => ({
+            brand_id: brand.id,
+            category: row[0],
+            fact_key:
+              "approved_import." +
+              importKey +
+              ".expanded." +
+              row[1],
+            subject: row[2],
+            value_text: row[3],
+            status: "owner_approved",
+            source_type: "owner",
+            source_note: "Imported from the owner-approved expanded Brand Brain plan.",
+            ai_can_modify: false,
+            is_sensitive: false,
+            active: true
+          })
+        );
+
+    if (expandedFactRows.length) {
+      const { error } =
+        await supabaseClient
+          .from("brand_facts")
+          .insert(
+            expandedFactRows
+          );
+
+      if (error) {
+        throw error;
+      }
+    }
+
     const existingRules =
       new Set(
         (brand.rules || [])
@@ -2848,7 +2964,10 @@ async function importApprovedBrandBrain(brandId) {
       );
 
     const ruleRows =
-      (config.rules || [])
+      [
+        ...(config.rules || []),
+        ...expandedRuleRows
+      ]
         .filter(
           row =>
             !existingRules.has(
