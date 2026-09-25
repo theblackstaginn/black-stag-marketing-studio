@@ -11,7 +11,8 @@
     "@modelcontextprotocol/sdk": "^1.18.1",
     "@supabase/supabase-js": "^2.57.4",
     "express": "^5.1.0",
-    "zod": "^3.25.76"
+    "zod": "^3.25.76",
+    "dotenv": "^17.2.2"
   },
   "engines": {
     "node": ">=20"
