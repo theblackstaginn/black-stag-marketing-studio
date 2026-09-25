@@ -13636,11 +13636,15 @@ async function handleCreateAssetFolder(
           "asset_folders"
         )
         .insert({
-          brand_id:
-            brand.id,
+  brand_id:
+    brand.id,
 
-          name
-        })
+  parent_folder_id:
+    APP_STATE.activeAssetFolderId ||
+    null,
+
+  name
+})
         .select("*")
         .single();
 
