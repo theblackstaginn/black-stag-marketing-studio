@@ -2268,6 +2268,692 @@ function renderBrandGrid() {
 }
 
 
+
+/* =========================================================
+   TEMPORARY APPROVED BRAND BRAIN IMPORTER
+   ========================================================= */
+
+const APPROVED_BRAND_BRAIN_IMPORTS = {
+  "stag-and-stone": {
+    names: ["Stag & Stone Coffee and Bakehouse","Stag & Stone"],
+    identity: {
+      domain: "stagandstonecoffee.com",
+      business_type: "Coffee shop and bakehouse with mobile event services",
+      business_stage: "pre_opening",
+      stage_label: "Pre-Opening",
+      tagline: "Crafted for the morning ritual.",
+      short_description: "A takeaway-first Appalachian coffee and bakehouse in Clarkesville, Georgia, with elevated coffee, breakfast, lunch, breads, pastries, and mobile event services.",
+      primary_marketing_goal: "Build awareness for the Clarkesville opening, establish the Stag & Stone brand, and grow cafe, bakehouse, and event-service demand."
+    },
+    voice: {
+      adjectives: ["warm","grounded","atmospheric","handcrafted","Appalachian","welcoming","subtly mysterious"],
+      emotional_atmosphere: "Warm Appalachian hospitality with an old-world, handcrafted, earthy atmosphere and understated folklore.",
+      formality: "Conversational, polished, and grounded.",
+      humor_style: "Occasional dry wit; never forced.",
+      mystery_level: "Subtle and atmospheric, never cryptic or Halloween-like.",
+      preferred_vocabulary: ["morning","ritual","stone","wood","hearth","mountain","forest","smoke","crafted","bakehouse"],
+      avoid_vocabulary: ["spooky","haunted","witchy","hillbilly","corporate"],
+      preferred_phrases: ["Crafted for the morning ritual."],
+      avoid_phrases: ["best coffee ever","guaranteed","farm-to-table"],
+      cliches_to_avoid: ["Southern charm","spooky season","something for everyone"],
+      emoji_policy: "Rare; use only when a specific social post benefits from one.",
+      profanity_policy: "Avoid in normal public-facing brand copy.",
+      capitalization_style: "Natural title and sentence case.",
+      cta_style: "Warm, direct invitation.",
+      writing_notes: "Use sensory Appalachian imagery without caricature. Food copy should remain clear and appetizing. Folklore and ritual may add atmosphere, but should never overwhelm practical information or become Halloween-themed.",
+      approved_examples: ["Crafted for the morning ritual."]
+    },
+    facts: [
+      ["identity","location","Location","Clarkesville, Georgia"],
+      ["identity","business_status","Business status","Pre-opening / development"],
+      ["identity","business_model","Business model","Takeaway-first Appalachian coffee shop and bakehouse with some dine-in seating and mobile event services."],
+      ["hours","planned_hours","Planned cafe hours","Tuesday through Sunday, 7:00 AM-3:00 PM; closed Monday. These hours are planned until opening."],
+      ["menu","coffee_program","Coffee program","Coffee, espresso, hot and cold coffee, hot teas, house drinks, and botanical/apothecary-inspired refreshments."],
+      ["menu","food_program","Food program","Breakfast, lunch, fresh breads and pastries, daily biscuits, rotating cakes and pastries, sides, and add-ons."],
+      ["menu","menu_architecture","Menu architecture","Breakfast & Bakehouse; Lunch; House Drinks & Apothecary; Sides & Add-Ons."],
+      ["bakehouse","custom_bakes","Custom bakes","Lynn's Custom Bakes provides custom cakes and pastries as a distinct offering from everyday pastry-case availability."],
+      ["drink","the_tall_man","The Tall Man","Signature drink under development: an iced latte with espresso, dark maple, vanilla, and an extremely subtle smoked sea salt note."],
+      ["services","coffee_cart","Coffee Cart","Stag & Stone Coffee Cart can serve markets, festivals, and private events with coffee and nonalcoholic beverage service."],
+      ["services","mobile_tavern","Mobile Tavern","Mobile Tavern is a service-only event offering. The client purchases and transports all alcohol."],
+      ["services","mobile_tavern_scope","Mobile Tavern service scope","Stag & Stone may provide the cart, service, bartending-related setup, barware, mixers, garnishes, and atmosphere as applicable, but does not purchase or transport the client's alcohol."],
+      ["community","magic_night","Magic: The Gathering night","Planned weekly community programming; not scheduled until a date is confirmed."],
+      ["community","dnd_night","Dungeons & Dragons night","Planned community programming; not scheduled until a date is confirmed."],
+      ["community","book_club","Monthly book club","Planned monthly book club hosted by Jess; not scheduled until a date is confirmed."],
+      ["brand","aesthetic","Brand aesthetic","Appalachian, old-world, handcrafted, earthy, warm, atmospheric, and subtly folkloric; not Halloween-themed."]
+    ],
+    rules: [
+      ["factual",10,"Never claim Stag & Stone is open until its business status is explicitly changed."],
+      ["factual",11,"Never invent an opening date."],
+      ["factual",12,"Never convert planned hours into confirmed operating hours."],
+      ["pricing",20,"Never invent menu prices, specials, or availability."],
+      ["factual",21,"Never invent ingredients or dietary/allergen claims."],
+      ["factual",22,"Never call an ingredient or product house-made unless that claim is confirmed."],
+      ["factual",23,"Never invent sourcing claims such as local, organic, fair-trade, or farm-to-table."],
+      ["factual",24,"Never invent awards, reviews, or customer testimonials."],
+      ["promotion",30,"Never advertise planned community events as scheduled until dates are confirmed."],
+      ["factual",31,"Never invent event dates."],
+      ["factual",40,"Never imply Stag & Stone purchases, transports, sells, or furnishes alcohol through Mobile Tavern."],
+      ["factual",41,"When relevant, state clearly that Mobile Tavern clients purchase and transport their own alcohol."],
+      ["factual",42,"Do not make legal or alcohol-compliance guarantees."],
+      ["factual",50,"Keep Lynn's custom-order work distinct from everyday pastry-case availability."],
+      ["factual",51,"Treat The Tall Man as a drink under development until its final menu status is confirmed."],
+      ["voice",60,"Do not caricature Appalachian culture or use fake Southern/Appalachian dialect."],
+      ["voice",61,"Do not turn the brand into Halloween or overuse occult and witch terminology."],
+      ["factual",62,"Do not fabricate folklore and present it as authentic Appalachian history."],
+      ["approval",5,"Prefer confirmed Source of Truth facts over assumptions. If a needed fact is missing, do not invent it."]
+    ],
+    milestones: [
+      ["Stag & Stone concept established","completed","Core cafe and bakehouse concept established."],
+      ["Brand identity established","completed","Stag & Stone brand identity and direction established."],
+      ["Domain established","completed","stagandstonecoffee.com established."],
+      ["Website developed","completed","Stag & Stone website developed."],
+      ["Menu architecture developed","completed","Primary menu sections and presentation structure established."],
+      ["Bakehouse concept established","completed","Bakehouse and custom-bake direction established."],
+      ["Lynn's Custom Bakes integrated","completed","Custom cakes and pastries incorporated into the Stag & Stone concept."],
+      ["Coffee Cart developed","completed","Mobile Coffee Cart service developed."],
+      ["Mobile Tavern concept established","completed","Service-only Mobile Tavern offering established."],
+      ["Signature drink development begun","in_progress","The Tall Man signature drink is in development."],
+      ["Community programming concept established","completed","Magic, D&D, and monthly book-club concepts established."],
+      ["Clarkesville cafe development underway","in_progress","Physical cafe planning and development are underway."],
+      ["Opening","planned","Future opening milestone; no opening date is confirmed."]
+    ]
+  },
+
+  "lace-and-leather-arcane": {
+    names: ["Lace & Leather Arcane","Lace and Leather Arcane"],
+    identity: {
+      business_type: "Digital fantasy artwork, textures, and custom fantasy maps",
+      short_description: "Dark, tactile, handcrafted digital textures and custom fantasy maps with an intentional arcane aesthetic.",
+      primary_marketing_goal: "Showcase digital texture products and custom fantasy-map commissions while preserving a distinctive handcrafted arcane identity."
+    },
+    voice: {
+      adjectives: ["dark","elegant","arcane","artistic","textural","mysterious","handcrafted"],
+      emotional_atmosphere: "Dark, tactile, elegant, and arcane with believable physical character.",
+      formality: "Artful but clear.",
+      humor_style: "Minimal; atmosphere comes first.",
+      mystery_level: "High enough to feel arcane, never so high that product information becomes unclear.",
+      preferred_vocabulary: ["arcane","texture","crafted","aged","map","parchment","tactile","weathered"],
+      avoid_vocabulary: ["spooky","Halloween","generic goth"],
+      preferred_phrases: ["No stock-photo noise, no fake grunge."],
+      avoid_phrases: ["spooky season","goth aesthetic"],
+      cliches_to_avoid: ["dark and mysterious","perfect for every adventurer"],
+      emoji_policy: "Rare.",
+      profanity_policy: "Avoid in standard product copy.",
+      capitalization_style: "Natural title and sentence case.",
+      cta_style: "Clear invitation with an artistic edge.",
+      writing_notes: "Fantasy language may add atmosphere, but product descriptions must clearly explain what the customer receives. Emphasize intentional texture and believable physical character rather than generic digital effects.",
+      approved_examples: ["No stock-photo noise, no fake grunge."]
+    },
+    facts: [
+      ["identity","core_offerings","Core offerings","Digital textures and custom fantasy maps."],
+      ["pricing","texture_pack_price","Texture-pack price","Established texture-pack price: $5."],
+      ["commissions","map_commissions","Custom map commissions","Custom fantasy-map commissions are offered."],
+      ["commissions","monthly_capacity","Monthly commission capacity","Maximum established capacity is three custom commission slots per month."],
+      ["products","offering_distinction","Offering distinction","Digital products and custom commissions are distinct offerings."],
+      ["brand","creative_principle","Creative principle","No stock-photo noise, no fake grunge."],
+      ["brand","aesthetic","Brand aesthetic","Dark, tactile, handcrafted, arcane, aged, atmospheric, and intentional rather than generic Halloween or goth styling."]
+    ],
+    rules: [
+      ["factual",10,"Never invent products or product specifications."],
+      ["factual",11,"Never invent commission availability."],
+      ["factual",12,"Never advertise more than three custom commission slots per month without explicit approval."],
+      ["factual",20,"Never invent previous clients, testimonials, or commission examples."],
+      ["factual",21,"Never invent licensing terms, commercial-use rights, turnaround times, file formats, or resolutions."],
+      ["factual",22,"Never describe work as hand-painted or hand-drawn unless that process is confirmed."],
+      ["visual",30,"Do not introduce generic stock-photo noise or fake-grunge styling as part of the brand aesthetic."],
+      ["voice",31,"Do not reduce the brand aesthetic to generic goth."],
+      ["voice",32,"Do not turn Lace & Leather Arcane into Halloween merchandise."],
+      ["content",40,"Product descriptions must distinguish atmospheric language from factual product specifications."],
+      ["approval",5,"If product availability or specifications are not confirmed, do not invent them."]
+    ],
+    milestones: [
+      ["Lace & Leather Arcane established","completed","Brand established."],
+      ["Arcane visual identity established","completed","Dark, tactile, handcrafted visual direction established."],
+      ["Digital texture offering established","completed","Digital texture products established."],
+      ["$5 texture-pack pricing established","completed","Texture-pack price established at $5."],
+      ["Custom fantasy-map commissions established","completed","Custom fantasy-map commission offering established."],
+      ["Three-slot monthly commission model established","completed","Maximum monthly custom commission capacity established at three slots."]
+    ]
+  },
+
+  "black-stag-web-design": {
+    names: ["Black Stag Web Design"],
+    identity: {
+      domain: "blackstagweb.com",
+      business_type: "Independent small-business web design and development",
+      short_description: "North Georgia web design for small businesses: custom-coded, mobile-first websites built around practical customer actions and client ownership.",
+      primary_marketing_goal: "Win North Georgia small-business web projects by emphasizing practical custom development, mobile usability, transparent pricing, and client ownership."
+    },
+    voice: {
+      adjectives: ["straightforward","independent","approachable","competent","practical","craftsman-like"],
+      emotional_atmosphere: "Confident, practical, independent, and approachable.",
+      formality: "Plain English and professional without corporate stiffness.",
+      humor_style: "Mild irreverence is fine when appropriate.",
+      mystery_level: "None; clarity wins.",
+      preferred_vocabulary: ["own","custom-coded","mobile-first","practical","fast","clear","small business"],
+      avoid_vocabulary: ["disruptive","synergy","revolutionary","tech-bro"],
+      preferred_phrases: ["You own the site."],
+      avoid_phrases: ["guaranteed rankings","guaranteed leads"],
+      cliches_to_avoid: ["cutting-edge solutions","one-stop shop","digital transformation"],
+      emoji_policy: "Rare.",
+      profanity_policy: "Avoid in standard client-facing copy.",
+      capitalization_style: "Natural title and sentence case.",
+      cta_style: "Direct, low-pressure action.",
+      writing_notes: "Explain technology in ordinary language. Focus on ownership, usefulness, mobile usability, and clear customer actions. Do not attack competitors simply to make Black Stag look better.",
+      approved_examples: ["Custom-coded websites you actually own."]
+    },
+    facts: [
+      ["identity","region","Service region","North Georgia."],
+      ["identity","audience","Primary audience","Small and local businesses."],
+      ["development","approach","Development approach","Sites are primarily custom-coded with HTML, CSS, and JavaScript and designed mobile-first."],
+      ["ownership","client_ownership","Client ownership","After the project is paid, the client owns the site files and controls the domain and hosting."],
+      ["ownership","no_required_subscription","No required subscription","No mandatory Black Stag subscription is required to keep ownership of the website."],
+      ["pricing","tier_one","Tier One","One-page website; established range $250-$600."],
+      ["pricing","tier_two","Tier Two","Up to five pages; established range $800-$1,000."],
+      ["pricing","payment_structure","Payment structure","Standard structure is 50% deposit and 50% at launch."],
+      ["pricing","post_launch_rate","Post-launch work","Post-launch work is $60 per hour."],
+      ["portfolio","cavalier_country_farm","Portfolio project","Cavalier Country Farm is an established completed/launched portfolio project."],
+      ["portfolio","stag_and_stone","Portfolio project","Stag & Stone Coffee and Bakehouse is an established portfolio project."],
+      ["portfolio","excluded_projects","Excluded portfolio projects","Black Stag Inn and Black Stag BBQ are not current portfolio projects."],
+      ["messaging","core_philosophy","Core philosophy","Build practical websites that the business actually owns, without intentional proprietary platform lock-in."]
+    ],
+    rules: [
+      ["factual",10,"Never claim or guarantee Google rankings, leads, sales, conversions, or SEO results."],
+      ["factual",11,"Never fabricate traffic numbers, performance metrics, clients, testimonials, or portfolio projects."],
+      ["ownership",20,"Never imply a client's website remains Black Stag property after final payment."],
+      ["ownership",21,"Never imply clients must pay a recurring Black Stag subscription to keep ownership of their website."],
+      ["pricing",30,"Do not automatically describe hosting, domains, or third-party services as free."],
+      ["pricing",31,"Keep project-specific estimates separate from general package pricing."],
+      ["pricing",32,"Do not silently expand Tier One beyond one page."],
+      ["pricing",33,"Do not silently expand Tier Two beyond five pages."],
+      ["factual",34,"Do not invent functionality included in either package."],
+      ["factual",35,"Do not promise a delivery timeline unless one has been established for that project."],
+      ["portfolio",40,"Never use Black Stag Inn or Black Stag BBQ as current portfolio examples."],
+      ["factual",41,"Clearly distinguish Black Stag design/development fees from third-party expenses when applicable."],
+      ["voice",50,"Explain technical concepts in ordinary language and avoid unnecessary developer jargon."],
+      ["voice",51,"Do not attack competitors simply to make Black Stag look better."],
+      ["approval",5,"If a project-specific fact is not confirmed, do not invent it."]
+    ],
+    milestones: [
+      ["Black Stag Web Design established","completed","Black Stag Web Design established."],
+      ["blackstagweb.com established","completed","Primary website/domain established."],
+      ["Package and pricing structure established","completed","Tier One, Tier Two, deposit structure, and post-launch rate established."],
+      ["Client-ownership model established","completed","Client ownership and no-required-subscription model established."],
+      ["Cavalier Country Farm launched","completed","Cavalier Country Farm completed and launched."],
+      ["Stag & Stone Coffee and Bakehouse developed","completed","Stag & Stone website developed."],
+      ["Stag & Stone added to current portfolio","completed","Stag & Stone added to the current Black Stag portfolio."]
+    ]
+  }
+};
+
+
+function getApprovedBrandBrainImport(brand) {
+  if (!brand) {
+    return null;
+  }
+
+  const name =
+    String(
+      brand.name ||
+      brand.shortName ||
+      ""
+    ).trim().toLowerCase();
+
+  return (
+    Object.entries(
+      APPROVED_BRAND_BRAIN_IMPORTS
+    ).find(
+      ([, config]) =>
+        config.names.some(
+          candidate =>
+            candidate.toLowerCase() ===
+            name
+        )
+    ) ||
+    null
+  );
+}
+
+
+function canImportApprovedBrandBrain(brand) {
+  return Boolean(
+    getApprovedBrandBrainImport(
+      brand
+    )
+  );
+}
+
+
+function mergeUniqueText(existing, incoming) {
+  const values = [
+    ...(Array.isArray(existing) ? existing : []),
+    ...(Array.isArray(incoming) ? incoming : [])
+  ];
+
+  return Array.from(
+    new Map(
+      values
+        .filter(Boolean)
+        .map(
+          value => [
+            String(value).trim().toLowerCase(),
+            String(value).trim()
+          ]
+        )
+    ).values()
+  );
+}
+
+
+function ensureApprovedBrainImportButton() {
+  const brand =
+    getBrandBrainBrand();
+
+  const title =
+    $("#brandBrainTitle");
+
+  if (
+    !brand ||
+    !title
+  ) {
+    return;
+  }
+
+  const existing =
+    $("#approvedBrandBrainImportButton");
+
+  if (
+    !canImportApprovedBrandBrain(
+      brand
+    )
+  ) {
+    existing?.remove();
+    return;
+  }
+
+  let button =
+    existing;
+
+  if (!button) {
+    button =
+      document.createElement(
+        "button"
+      );
+
+    button.id =
+      "approvedBrandBrainImportButton";
+
+    button.className =
+      "secondary-button";
+
+    button.type =
+      "button";
+
+    button.style.marginTop =
+      "10px";
+
+    title.parentElement
+      ?.appendChild(
+        button
+      );
+  }
+
+  button.dataset
+    .importApprovedBrandBrain =
+      brand.id;
+
+  button.textContent =
+    "Load Approved Brain";
+}
+
+
+async function importApprovedBrandBrain(brandId) {
+  const brand =
+    getBrandById(
+      brandId
+    );
+
+  const match =
+    getApprovedBrandBrainImport(
+      brand
+    );
+
+  if (
+    !brand ||
+    !match
+  ) {
+    showToast(
+      "No approved importer exists for this brand.",
+      "error"
+    );
+    return;
+  }
+
+  const importKey =
+    match[0];
+
+  const config =
+    match[1];
+
+  const confirmed =
+    window.confirm(
+      "Load the approved Brand Brain for \"" +
+      brand.name +
+      "\"?\n\nThis adds missing approved facts, guardrails, milestones, and voice guidance. Existing records are preserved, and existing identity fields are only filled when blank."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const button =
+    $("#approvedBrandBrainImportButton");
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "Loading...";
+  }
+
+  try {
+    const identityPayload = {};
+
+    const identityMap = {
+      domain: brand.website,
+      business_type: brand.businessType,
+      business_stage: brand.stage,
+      stage_label: brand.stageLabel,
+      tagline: brand.tagline,
+      short_description: brand.shortDescription,
+      primary_marketing_goal: brand.primaryGoal
+    };
+
+    Object.entries(
+      config.identity || {}
+    ).forEach(
+      ([key, value]) => {
+        const current =
+          identityMap[key];
+
+        if (
+          !String(
+            current || ""
+          ).trim()
+        ) {
+          identityPayload[key] =
+            value;
+        }
+      }
+    );
+
+    if (
+      Object.keys(
+        identityPayload
+      ).length
+    ) {
+      const { error } =
+        await supabaseClient
+          .from("brands")
+          .update(
+            identityPayload
+          )
+          .eq(
+            "id",
+            brand.id
+          );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    const currentVoice =
+      brand.voice || {};
+
+    const voicePayload = {
+      brand_id: brand.id,
+      adjectives: mergeUniqueText(currentVoice.adjectives, config.voice.adjectives),
+      emotional_atmosphere: currentVoice.emotionalAtmosphere || config.voice.emotional_atmosphere,
+      formality: currentVoice.formality || config.voice.formality,
+      humor_style: currentVoice.humorStyle || config.voice.humor_style,
+      mystery_level: currentVoice.mysteryLevel || config.voice.mystery_level,
+      preferred_vocabulary: mergeUniqueText(currentVoice.preferredVocabulary, config.voice.preferred_vocabulary),
+      avoid_vocabulary: mergeUniqueText(currentVoice.avoidVocabulary, config.voice.avoid_vocabulary),
+      preferred_phrases: mergeUniqueText(currentVoice.preferredPhrases, config.voice.preferred_phrases),
+      avoid_phrases: mergeUniqueText(currentVoice.avoidPhrases, config.voice.avoid_phrases),
+      cliches_to_avoid: mergeUniqueText(currentVoice.clichesToAvoid, config.voice.cliches_to_avoid),
+      emoji_policy: currentVoice.emojiPolicy || config.voice.emoji_policy,
+      profanity_policy: currentVoice.profanityPolicy || config.voice.profanity_policy,
+      capitalization_style: currentVoice.capitalizationStyle || config.voice.capitalization_style,
+      cta_style: currentVoice.ctaStyle || config.voice.cta_style,
+      writing_notes: currentVoice.writingNotes || config.voice.writing_notes,
+      approved_examples: mergeUniqueText(currentVoice.approvedExamples, config.voice.approved_examples)
+    };
+
+    {
+      const { error } =
+        await supabaseClient
+          .from("brand_voice")
+          .upsert(
+            voicePayload,
+            {
+              onConflict:
+                "brand_id"
+            }
+          );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    const existingFactKeys =
+      new Set(
+        (brand.facts || [])
+          .map(
+            fact =>
+              String(
+                fact.fact_key ||
+                ""
+              ).trim()
+          )
+          .filter(Boolean)
+      );
+
+    const factRows =
+      (config.facts || [])
+        .filter(
+          row =>
+            !existingFactKeys.has(
+              "approved_import." +
+              importKey +
+              "." +
+              row[1]
+            )
+        )
+        .map(
+          row => ({
+            brand_id: brand.id,
+            category: row[0],
+            fact_key:
+              "approved_import." +
+              importKey +
+              "." +
+              row[1],
+            subject: row[2],
+            value_text: row[3],
+            status: "owner_approved",
+            source_type: "owner",
+            source_note: "Imported from the owner-approved Brand Brain plan.",
+            ai_can_modify: false,
+            is_sensitive: false,
+            active: true
+          })
+        );
+
+    if (factRows.length) {
+      const { error } =
+        await supabaseClient
+          .from("brand_facts")
+          .insert(
+            factRows
+          );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    const existingRules =
+      new Set(
+        (brand.rules || [])
+          .filter(
+            rule =>
+              rule.active !== false
+          )
+          .map(
+            rule =>
+              String(
+                rule.rule_text ||
+                ""
+              ).trim().toLowerCase()
+          )
+          .filter(Boolean)
+      );
+
+    const ruleRows =
+      (config.rules || [])
+        .filter(
+          row =>
+            !existingRules.has(
+              String(
+                row[2]
+              ).trim().toLowerCase()
+            )
+        )
+        .map(
+          row => ({
+            brand_id: brand.id,
+            rule_type: row[0],
+            priority: row[1],
+            rule_text: row[2],
+            active: true
+          })
+        );
+
+    if (ruleRows.length) {
+      const { error } =
+        await supabaseClient
+          .from("brand_rules")
+          .insert(
+            ruleRows
+          );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    const existingMilestones =
+      new Set(
+        (brand.milestones || [])
+          .map(
+            milestone =>
+              String(
+                milestone.title ||
+                ""
+              ).trim().toLowerCase()
+          )
+          .filter(Boolean)
+      );
+
+    const milestoneRows =
+      (config.milestones || [])
+        .filter(
+          row =>
+            !existingMilestones.has(
+              String(
+                row[0]
+              ).trim().toLowerCase()
+            )
+        )
+        .map(
+          row => ({
+            brand_id: brand.id,
+            title: row[0],
+            status: row[1],
+            description: row[2],
+            completed_at:
+              row[1] === "completed"
+                ? new Date()
+                    .toISOString()
+                : null,
+            marketing_worthy: false,
+            content_created: false
+          })
+        );
+
+    if (milestoneRows.length) {
+      const { error } =
+        await supabaseClient
+          .from("milestones")
+          .insert(
+            milestoneRows
+          );
+
+      if (error) {
+        throw error;
+      }
+    }
+
+    await reloadBrand(
+      brand.id
+    );
+
+    renderActiveBrand();
+    renderBrandPicker();
+    renderBrandGrid();
+
+    if (
+      APP_STATE.brandBrainBrandId ===
+      brand.id
+    ) {
+      renderBrandBrainHeader();
+      renderBrandBrainContent();
+    }
+
+    showToast(
+      brand.shortName +
+      " Brand Brain loaded.",
+      "success",
+      5000
+    );
+
+  } catch (error) {
+    console.error(
+      "Approved Brand Brain import failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Brand Brain import failed.",
+      "error",
+      6500
+    );
+
+  } finally {
+    const currentButton =
+      $("#approvedBrandBrainImportButton");
+
+    if (currentButton) {
+      currentButton.disabled =
+        false;
+      currentButton.textContent =
+        "Load Approved Brain";
+    }
+  }
+}
+
 /* =========================================================
    BRAND BRAIN
    ========================================================= */
@@ -2587,6 +3273,8 @@ function renderBrandBrainHeader() {
       brand.stageLabel ||
       "Brand Brain";
   }
+
+  ensureApprovedBrainImportButton();
 }
 
 
@@ -18124,6 +18812,20 @@ function handleGlobalClick(
     openBrandBrain(
       brandBrainButton.dataset
         .openBrand
+    );
+
+    return;
+  }
+
+  const approvedBrainImport =
+    event.target.closest(
+      "[data-import-approved-brand-brain]"
+    );
+
+  if (approvedBrainImport) {
+    importApprovedBrandBrain(
+      approvedBrainImport.dataset
+        .importApprovedBrandBrain
     );
 
     return;
