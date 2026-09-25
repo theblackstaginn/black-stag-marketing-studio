@@ -31,7 +31,9 @@ const $ = (selector, root = document) =>
   root.querySelector(selector);
 
 const $$ = (selector, root = document) =>
-  Array.from(root.querySelectorAll(selector));
+  Array.from(
+    root.querySelectorAll(selector)
+  );
 
 
 function escapeHtml(value = "") {
@@ -104,8 +106,10 @@ function formatDateTime(value) {
     return "";
   }
 
+
   const date =
     new Date(value);
+
 
   if (
     Number.isNaN(
@@ -114,6 +118,7 @@ function formatDateTime(value) {
   ) {
     return "";
   }
+
 
   return new Intl.DateTimeFormat(
     undefined,
@@ -133,8 +138,12 @@ function formatDate(value) {
     return "";
   }
 
+
   const date =
-    new Date(`${value}T12:00:00`);
+    new Date(
+      `${value}T12:00:00`
+    );
+
 
   if (
     Number.isNaN(
@@ -143,6 +152,7 @@ function formatDate(value) {
   ) {
     return value;
   }
+
 
   return new Intl.DateTimeFormat(
     undefined,
@@ -160,16 +170,24 @@ function makeSlug(value) {
     .toLowerCase()
     .trim()
     .replace(/&/g, " and ")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+    .replace(
+      /[^a-z0-9]+/g,
+      "-"
+    )
+    .replace(
+      /^-+|-+$/g,
+      ""
+    );
 }
 
 
 function titleCaseStatus(value) {
   return String(value || "")
     .replaceAll("_", " ")
-    .replace(/\b\w/g, character =>
-      character.toUpperCase()
+    .replace(
+      /\b\w/g,
+      character =>
+        character.toUpperCase()
     );
 }
 
@@ -179,15 +197,18 @@ function titleCaseStatus(value) {
    ========================================================= */
 
 const CONFIG =
-  window.BLACK_STAG_CONFIG || {};
+  window.BLACK_STAG_CONFIG ||
+  {};
 
 
 const SUPABASE_CONFIG =
-  CONFIG.supabase || {};
+  CONFIG.supabase ||
+  {};
 
 
 const SUPABASE_URL =
-  SUPABASE_CONFIG.url || "";
+  SUPABASE_CONFIG.url ||
+  "";
 
 
 const SUPABASE_KEY =
@@ -215,9 +236,12 @@ function readStorage(
 ) {
   try {
     const value =
-      window.localStorage.getItem(key);
+      window.localStorage.getItem(
+        key
+      );
 
     return value ?? fallback;
+
   } catch (error) {
     console.warn(
       "Unable to read local storage:",
@@ -238,6 +262,7 @@ function writeStorage(
       key,
       String(value)
     );
+
   } catch (error) {
     console.warn(
       "Unable to write local storage:",
@@ -258,7 +283,8 @@ let supabaseClient =
 function createSupabaseClient() {
   if (
     !window.supabase ||
-    typeof window.supabase.createClient !==
+    typeof window.supabase
+      .createClient !==
       "function"
   ) {
     throw new Error(
@@ -297,9 +323,14 @@ function createSupabaseClient() {
       SUPABASE_KEY,
       {
         auth: {
-          persistSession: true,
-          autoRefreshToken: true,
-          detectSessionInUrl: true
+          persistSession:
+            true,
+
+          autoRefreshToken:
+            true,
+
+          detectSessionInUrl:
+            true
         }
       }
     );
@@ -346,11 +377,14 @@ const APP_STATE = {
       null
     ),
 
-  user: null,
+  user:
+    null,
 
-  session: null,
+  session:
+    null,
 
-  loading: true,
+  loading:
+    true,
 
   campaignFilter:
     "all",
@@ -359,10 +393,10 @@ const APP_STATE = {
     "all",
 
   assetFilter:
-  "all",
+    "all",
 
-activeAssetFolderId:
-  null,
+  activeAssetFolderId:
+    null,
 
   createType:
     "social-post",
@@ -371,10 +405,17 @@ activeAssetFolderId:
     "",
 
   currentAiRequest: {
-    brandId: null,
-    type: null,
-    goal: null,
-    prompt: null
+    brandId:
+      null,
+
+    type:
+      null,
+
+    goal:
+      null,
+
+    prompt:
+      null
   },
 
   brandBrainBrandId:
@@ -427,31 +468,38 @@ const VIEW_TITLES = {
 
 const VIEW_DEFINITIONS = {
   dashboard: {
-    label: "Dashboard"
+    label:
+      "Dashboard"
   },
 
   brands: {
-    label: "Brands"
+    label:
+      "Brands"
   },
 
   campaigns: {
-    label: "Campaigns"
+    label:
+      "Campaigns"
   },
 
   studio: {
-    label: "Content Studio"
+    label:
+      "Content Studio"
   },
 
   calendar: {
-    label: "Calendar"
+    label:
+      "Calendar"
   },
 
   vault: {
-    label: "Asset Vault"
+    label:
+      "Asset Vault"
   },
 
   settings: {
-    label: "Settings"
+    label:
+      "Settings"
   }
 };
 
@@ -626,6 +674,7 @@ function ensureAuthDialog() {
     <div class="dialog-header">
 
       <div>
+
         <span class="eyebrow">
           Black Stag
         </span>
@@ -633,9 +682,11 @@ function ensureAuthDialog() {
         <h2>
           Marketing Studio
         </h2>
+
       </div>
 
     </div>
+
 
     <form
       class="create-form"
@@ -653,6 +704,7 @@ function ensureAuthDialog() {
         Sign in to your private marketing workspace.
       </p>
 
+
       <label class="field">
 
         <span>
@@ -667,6 +719,7 @@ function ensureAuthDialog() {
         />
 
       </label>
+
 
       <label class="field">
 
@@ -683,6 +736,7 @@ function ensureAuthDialog() {
 
       </label>
 
+
       <p
         id="authError"
         style="
@@ -693,6 +747,7 @@ function ensureAuthDialog() {
           line-height:1.5;
         "
       ></p>
+
 
       <button
         class="primary-button full-button"
@@ -721,7 +776,9 @@ function ensureAuthDialog() {
   dialog.addEventListener(
     "cancel",
     event => {
-      if (!APP_STATE.session) {
+      if (
+        !APP_STATE.session
+      ) {
         event.preventDefault();
       }
     }
@@ -757,7 +814,8 @@ function showAuthDialog() {
 
   window.setTimeout(
     () => {
-      $("#authEmail")?.focus();
+      $("#authEmail")
+        ?.focus();
     },
     100
   );
@@ -835,11 +893,13 @@ async function handleSignIn(
 
 
     APP_STATE.session =
-      data.session || null;
+      data.session ||
+      null;
 
 
     APP_STATE.user =
-      data.user || null;
+      data.user ||
+      null;
 
 
     safeDialogClose(
@@ -884,8 +944,6 @@ async function handleSignIn(
     }
   }
 }
-
-
 /* =========================================================
    DATABASE NORMALIZATION
    ========================================================= */
@@ -1198,7 +1256,7 @@ function normalizeContent(row) {
 
     type:
       DB_TYPE_TO_APP_TYPE[
-              row.content_type
+        row.content_type
       ] ||
       "social-post",
 
@@ -1433,8 +1491,10 @@ async function loadAppData() {
     return;
   }
 
+
   APP_STATE.loading =
     true;
+
 
   try {
     const [
@@ -1515,6 +1575,7 @@ async function loadAppData() {
 
       ]);
 
+
     const results = [
       [
         "brands",
@@ -1547,6 +1608,7 @@ async function loadAppData() {
       ]
     ];
 
+
     for (
       const [
         label,
@@ -1560,6 +1622,7 @@ async function loadAppData() {
       }
     }
 
+
     APP_DATA.brands =
       (
         brandsResult.data ||
@@ -1567,6 +1630,7 @@ async function loadAppData() {
       ).map(
         normalizeBrand
       );
+
 
     APP_DATA.campaigns =
       (
@@ -1576,6 +1640,7 @@ async function loadAppData() {
         normalizeCampaign
       );
 
+
     APP_DATA.content =
       (
         contentResult.data ||
@@ -1583,6 +1648,7 @@ async function loadAppData() {
       ).map(
         normalizeContent
       );
+
 
     APP_DATA.calendar =
       (
@@ -1592,6 +1658,7 @@ async function loadAppData() {
         normalizeCalendarItem
       );
 
+
     APP_DATA.assets =
       (
         assetsResult.data ||
@@ -1600,9 +1667,11 @@ async function loadAppData() {
         normalizeAsset
       );
 
+
     await hydrateAssetSignedUrls(
       APP_DATA.assets
     );
+
 
     APP_DATA.assetFolders =
       (
@@ -1611,6 +1680,7 @@ async function loadAppData() {
       ).map(
         normalizeAssetFolder
       );
+
 
     ensureValidActiveBrand();
 
@@ -1662,7 +1732,8 @@ async function reloadBrand(
   const index =
     APP_DATA.brands.findIndex(
       brand =>
-        brand.id === brandId
+        brand.id ===
+        brandId
     );
 
 
@@ -1671,6 +1742,7 @@ async function reloadBrand(
       index
     ] =
       normalized;
+
   } else {
     APP_DATA.brands.push(
       normalized
@@ -1680,8 +1752,6 @@ async function reloadBrand(
 
   return normalized;
 }
-
-
 /* =========================================================
    ACTIVE BRAND
    ========================================================= */
@@ -1795,6 +1865,17 @@ function setActiveBrand(
 
   APP_STATE.activeBrandId =
     brand.id;
+
+
+  /*
+   * A folder belongs to one specific brand.
+   * When the working brand changes, always
+   * return the Asset Vault to that brand's root.
+   */
+  if (changed) {
+    APP_STATE.activeAssetFolderId =
+      null;
+  }
 
 
   writeStorage(
@@ -2404,7 +2485,7 @@ function ensureBrandBrainDialog() {
           class="filter-button"
           type="button"
           data-brain-tab="facts"
-                  >
+        >
           Source of Truth
         </button>
 
@@ -2510,10 +2591,9 @@ function openBrandBrain(
 
 
   /*
-    Brand Brain always works in the context
-    of the brand being edited.
-  */
-
+   * Brand Brain always works in the context
+   * of the brand being edited.
+   */
   setActiveBrand(
     brand.id,
     {
@@ -2527,9 +2607,7 @@ function openBrandBrain(
 
 
   renderBrandBrainHeader();
-
   renderBrandBrainTabs();
-
   renderBrandBrainContent();
 
 
@@ -2608,7 +2686,6 @@ function setBrandBrainTab(
 
 
   renderBrandBrainTabs();
-
   renderBrandBrainContent();
 }
 
@@ -2700,8 +2777,6 @@ function renderBrandBrainContent() {
       break;
   }
 }
-
-
 /* =========================================================
    BRAND BRAIN SECTION HEADER
    ========================================================= */
@@ -2724,8 +2799,7 @@ function brandBrainSectionHeader(
 
       <h3
         style="
-          margin:
-            5px 0 7px;
+          margin:5px 0 7px;
           font-family:
             Georgia,
             'Times New Roman',
@@ -3500,27 +3574,16 @@ async function handleBrandIdentitySave(
 
 
     renderActiveBrand();
-
     renderBrandPicker();
-
     renderBrandGrid();
-
     renderDashboard();
-
     renderCampaigns();
-
     renderContentLibrary();
-
     renderCalendar();
-
     renderAssets();
-
     renderQuickCreateBrandOptions();
-
     syncQuickCreateBrand();
-
     renderBrandBrainHeader();
-
     renderBrandBrainContent();
 
 
@@ -3576,8 +3639,6 @@ function closeBrandBrain() {
   APP_STATE.brandBrainTab =
     "identity";
 }
-
-
 /* =========================================================
    BRAND VOICE EDITOR
    ========================================================= */
@@ -3608,7 +3669,7 @@ function renderBrandVoiceEditor(
 
           <span>
             Voice Adjectives
-                      </span>
+          </span>
 
           <input
             id="brandVoiceAdjectives"
@@ -3687,7 +3748,7 @@ function renderBrandVoiceEditor(
                 ""
               )
             }"
-            placeholder="Dry, playful, restrained…"
+            placeholder="Dry, playful, minimal…"
           />
 
         </label>
@@ -3708,7 +3769,49 @@ function renderBrandVoiceEditor(
                 ""
               )
             }"
-            placeholder="Subtle, moderate, none…"
+            placeholder="Low, subtle, moderate…"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Emoji Policy
+          </span>
+
+          <input
+            id="brandVoiceEmojiPolicy"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.emojiPolicy ||
+                ""
+              )
+            }"
+            placeholder="Rare, none, occasional…"
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Profanity Policy
+          </span>
+
+          <input
+            id="brandVoiceProfanityPolicy"
+            type="text"
+            value="${
+              escapeHtml(
+                voice.profanityPolicy ||
+                ""
+              )
+            }"
+            placeholder="None, mild, brand-specific…"
           />
 
         </label>
@@ -3734,157 +3837,6 @@ function renderBrandVoiceEditor(
 
         </label>
 
-      </div>
-
-
-      <label class="field">
-
-        <span>
-          Preferred Vocabulary
-        </span>
-
-        <textarea
-          id="brandVoicePreferredVocabulary"
-          rows="3"
-          placeholder="Words that naturally belong to this brand, separated by commas."
-        >${
-          escapeHtml(
-            arrayToText(
-              voice.preferredVocabulary
-            )
-          )
-        }</textarea>
-
-      </label>
-
-
-      <label class="field">
-
-        <span>
-          Vocabulary to Avoid
-        </span>
-
-        <textarea
-          id="brandVoiceAvoidVocabulary"
-          rows="3"
-          placeholder="Words the brand should avoid, separated by commas."
-        >${
-          escapeHtml(
-            arrayToText(
-              voice.avoidVocabulary
-            )
-          )
-        }</textarea>
-
-      </label>
-
-
-      <label class="field">
-
-        <span>
-          Preferred Phrases
-        </span>
-
-        <textarea
-          id="brandVoicePreferredPhrases"
-          rows="3"
-          placeholder="Approved recurring phrases, separated by commas."
-        >${
-          escapeHtml(
-            arrayToText(
-              voice.preferredPhrases
-            )
-          )
-        }</textarea>
-
-      </label>
-
-
-      <label class="field">
-
-        <span>
-          Phrases to Avoid
-        </span>
-
-        <textarea
-          id="brandVoiceAvoidPhrases"
-          rows="3"
-          placeholder="Phrases that feel wrong for the brand, separated by commas."
-        >${
-          escapeHtml(
-            arrayToText(
-              voice.avoidPhrases
-            )
-          )
-        }</textarea>
-
-      </label>
-
-
-      <label class="field">
-
-        <span>
-          Clichés to Avoid
-        </span>
-
-        <textarea
-          id="brandVoiceCliches"
-          rows="3"
-          placeholder="Overused ideas or phrases Marketing Studio should avoid."
-        >${
-          escapeHtml(
-            arrayToText(
-              voice.clichesToAvoid
-            )
-          )
-        }</textarea>
-
-      </label>
-
-
-      ${brandBrainGridOpen()}
-
-        <label class="field">
-
-          <span>
-            Emoji Policy
-          </span>
-
-          <input
-            id="brandVoiceEmojiPolicy"
-            type="text"
-            value="${
-              escapeHtml(
-                voice.emojiPolicy ||
-                ""
-              )
-            }"
-            placeholder="Rare, none, moderate…"
-          />
-
-        </label>
-
-
-        <label class="field">
-
-          <span>
-            Profanity Policy
-          </span>
-
-          <input
-            id="brandVoiceProfanityPolicy"
-            type="text"
-            value="${
-              escapeHtml(
-                voice.profanityPolicy ||
-                ""
-              )
-            }"
-            placeholder="None, light when appropriate…"
-          />
-
-        </label>
-
 
         <label class="field">
 
@@ -3901,7 +3853,7 @@ function renderBrandVoiceEditor(
                 ""
               )
             }"
-            placeholder="Warm invitation, direct action…"
+            placeholder="Inviting, direct, understated…"
           />
 
         </label>
@@ -3912,13 +3864,138 @@ function renderBrandVoiceEditor(
       <label class="field">
 
         <span>
+          Preferred Vocabulary
+        </span>
+
+        <textarea
+          id="brandVoicePreferredVocabulary"
+          rows="3"
+          placeholder="craft, ritual, bakehouse, gathering"
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.preferredVocabulary
+            )
+          )
+        }</textarea>
+
+        <small>
+          Separate with commas.
+        </small>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Vocabulary to Avoid
+        </span>
+
+        <textarea
+          id="brandVoiceAvoidVocabulary"
+          rows="3"
+          placeholder="Words that feel wrong for this brand"
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.avoidVocabulary
+            )
+          )
+        }</textarea>
+
+        <small>
+          Separate with commas.
+        </small>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Preferred Phrases
+        </span>
+
+        <textarea
+          id="brandVoicePreferredPhrases"
+          rows="4"
+          placeholder="Phrases that naturally belong to the brand"
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.preferredPhrases
+            )
+          )
+        }</textarea>
+
+        <small>
+          Separate with commas.
+        </small>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Phrases to Avoid
+        </span>
+
+        <textarea
+          id="brandVoiceAvoidPhrases"
+          rows="4"
+          placeholder="Phrases that should not appear in brand copy"
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.avoidPhrases
+            )
+          )
+        }</textarea>
+
+        <small>
+          Separate with commas.
+        </small>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
+          Clichés to Avoid
+        </span>
+
+        <textarea
+          id="brandVoiceCliches"
+          rows="4"
+          placeholder="Generic marketing language the brand should avoid"
+        >${
+          escapeHtml(
+            arrayToText(
+              voice.clichesToAvoid
+            )
+          )
+        }</textarea>
+
+        <small>
+          Separate with commas.
+        </small>
+
+      </label>
+
+
+      <label class="field">
+
+        <span>
           Writing Notes
         </span>
 
         <textarea
           id="brandVoiceWritingNotes"
-          rows="5"
-          placeholder="Anything else the AI should understand about how this brand writes."
+          rows="6"
+          placeholder="Anything else ChatGPT should know about how this brand writes."
         >${
           escapeHtml(
             voice.writingNotes ||
@@ -3937,27 +4014,22 @@ function renderBrandVoiceEditor(
 
         <textarea
           id="brandVoiceApprovedExamples"
-          rows="8"
-          placeholder="Paste examples of language that feels exactly right for this brand.
-
-Separate multiple examples with a line containing only:
----"
+          rows="6"
+          placeholder="Examples of copy that sounds exactly right"
         >${
           escapeHtml(
             Array.isArray(
               voice.approvedExamples
             )
-              ? voice.approvedExamples
-                  .join(
-                    "\n---\n"
-                  )
+              ? voice.approvedExamples.join(
+                  "\n\n"
+                )
               : ""
           )
         }</textarea>
 
         <small>
-          These become examples of on-brand language
-          when Marketing Studio builds an AI brief.
+          Separate examples with a blank line.
         </small>
 
       </label>
@@ -4010,27 +4082,6 @@ Separate multiple examples with a line containing only:
 
 
 /* =========================================================
-   APPROVED EXAMPLES
-   ========================================================= */
-
-function parseApprovedExamples(
-  value
-) {
-  return String(
-    value || ""
-  )
-    .split(
-      /\n\s*---\s*\n/g
-    )
-    .map(
-      example =>
-        example.trim()
-    )
-    .filter(Boolean);
-}
-
-
-/* =========================================================
    SAVE BRAND VOICE
    ========================================================= */
 
@@ -4052,6 +4103,20 @@ async function handleBrandVoiceSave(
 
     return;
   }
+
+
+  const approvedExamples =
+    String(
+      $("#brandVoiceApprovedExamples")
+        ?.value ||
+      ""
+    )
+      .split(/\n\s*\n/)
+      .map(
+        item =>
+          item.trim()
+      )
+      .filter(Boolean);
 
 
   const payload = {
@@ -4149,10 +4214,7 @@ async function handleBrandVoiceSave(
       ),
 
     approved_examples:
-      parseApprovedExamples(
-        $("#brandVoiceApprovedExamples")
-          ?.value
-      )
+      approvedExamples
   };
 
 
@@ -4170,24 +4232,29 @@ async function handleBrandVoiceSave(
 
 
   try {
-    const {
-      error
-    } =
-      await supabaseClient
-        .from(
-          "brand_voice"
-        )
-        .upsert(
-          payload,
-          {
-            onConflict:
-              "brand_id"
-          }
-        );
+    let result;
 
 
-    if (error) {
-      throw error;
+    if (brand.voice?.id) {
+      result =
+        await supabaseClient
+          .from("brand_voice")
+          .update(payload)
+          .eq(
+            "id",
+            brand.voice.id
+          );
+
+    } else {
+      result =
+        await supabaseClient
+          .from("brand_voice")
+          .insert(payload);
+    }
+
+
+    if (result.error) {
+      throw result.error;
     }
 
 
@@ -4196,14 +4263,7 @@ async function handleBrandVoiceSave(
     );
 
 
-    renderActiveBrand();
-
-    renderBrandPicker();
-
-    renderBrandGrid();
-
     renderBrandBrainHeader();
-
     renderBrandBrainContent();
 
 
@@ -4243,7 +4303,7 @@ async function handleBrandVoiceSave(
 
 
 /* =========================================================
-   SOURCE OF TRUTH
+   BRAND FACTS EDITOR
    ========================================================= */
 
 function renderBrandFactsEditor(
@@ -4255,22 +4315,17 @@ function renderBrandFactsEditor(
       brand.facts
     )
       ? brand.facts
-          .filter(
-            fact =>
-              fact.active !== false
-          )
           .slice()
           .sort(
             (a, b) =>
-              new Date(
-                b.updated_at ||
-                b.created_at ||
-                0
-              ) -
-              new Date(
-                a.updated_at ||
-                a.created_at ||
-                0
+              String(
+                a.fact_key ||
+                ""
+              ).localeCompare(
+                String(
+                  b.fact_key ||
+                  ""
+                )
               )
           )
       : [];
@@ -4278,1037 +4333,270 @@ function renderBrandFactsEditor(
 
   container.innerHTML = `
     ${brandBrainSectionHeader(
+      "Brand Brain",
       "Source of Truth",
-      "Verified Brand Facts",
-      "Store the information Marketing Studio is allowed to treat as factual. Every fact can carry a status, source, verification date, sensitivity flag, and AI permission."
+      "Store verified facts here so marketing copy can stay grounded in what is actually true about the business."
     )}
 
-    <div
+    <form
+      id="addBrandFactForm"
+      class="create-form"
       style="
-        display:flex;
-        justify-content:flex-end;
-        margin-bottom:16px;
+        margin-bottom:24px;
       "
     >
 
-      <button
-        class="primary-button"
-        type="button"
-        data-add-brand-fact
-      >
-        Add Fact
-      </button>
+      ${brandBrainGridOpen()}
 
-    </div>
+        <label class="field">
 
+          <span>
+            Fact Key
+          </span>
 
-    ${
-      facts.length
-        ? `
-          <div
-            style="
-              display:grid;
-              gap:12px;
-            "
-          >
-            ${
-              facts
-                .map(
-                  renderBrandFactCard
-                )
-                .join("")
-            }
-          </div>
-        `
-        : `
-          <div class="empty-state">
+          <input
+            id="brandFactKey"
+            type="text"
+            placeholder="hours, location, pricing…"
+            required
+          />
 
-            <span
-              class="empty-state-icon"
-              aria-hidden="true"
-            >
-              ◇
-            </span>
-
-            <h3>
-              No Source of Truth facts yet.
-            </h3>
-
-            <p>
-              Add verified business facts, owner-approved
-              information, and anything Marketing Studio
-              should know without guessing.
-            </p>
-
-            <button
-              class="secondary-button"
-              type="button"
-              data-add-brand-fact
-            >
-              Add First Fact
-            </button>
-
-          </div>
-        `
-    }
+        </label>
 
 
-    <div
-      class="form-actions"
-      style="
-        margin-top:20px;
-      "
-    >
+        <label class="field">
 
-      <button
-        class="secondary-button"
-        type="button"
-        data-close-brand-brain
-      >
-        Close
-      </button>
+          <span>
+            Source
+          </span>
 
-    </div>
-  `;
-}
+          <input
+            id="brandFactSource"
+            type="text"
+            placeholder="Owner confirmed, website…"
+          />
 
-
-/* =========================================================
-   SOURCE OF TRUTH CARD
-   ========================================================= */
-
-function renderBrandFactCard(
-  fact
-) {
-  let value =
-    fact.value_text ||
-    "";
-
-
-  if (
-    !value &&
-    fact.value_jsonb != null
-  ) {
-    try {
-      value =
-        JSON.stringify(
-          fact.value_jsonb,
-          null,
-          2
-        );
-    } catch {
-      value =
-        String(
-          fact.value_jsonb
-        );
-    }
-  }
-
-
-  const label =
-    fact.subject ||
-    fact.fact_key ||
-    fact.category ||
-    "Brand Fact";
-
-
-  return `
-    <article
-      class="content-panel"
-      data-brand-fact="${
-        escapeHtml(
-          fact.id
-        )
-      }"
-    >
-
-      <div
-        style="
-          display:flex;
-          justify-content:space-between;
-          align-items:flex-start;
-          gap:14px;
-          flex-wrap:wrap;
-        "
-      >
-
-        <div
-          style="
-            min-width:0;
-            flex:1;
-          "
-        >
-
-          <div
-            style="
-              display:flex;
-              gap:7px;
-              flex-wrap:wrap;
-              margin-bottom:8px;
-            "
-          >
-
-            <span class="eyebrow">
-              ${
-                escapeHtml(
-                  titleCaseStatus(
-                    fact.category ||
-                    "fact"
-                  )
-                )
-              }
-            </span>
-
-            <span
-              style="
-                display:inline-flex;
-                align-items:center;
-                min-height:22px;
-                padding:3px 7px;
-                border:1px solid var(--line);
-                border-radius:999px;
-                color:var(--muted);
-                font-size:.62rem;
-                letter-spacing:.04em;
-                text-transform:uppercase;
-              "
-            >
-              ${
-                escapeHtml(
-                  titleCaseStatus(
-                    fact.status ||
-                    "needs_confirmation"
-                  )
-                )
-              }
-            </span>
-
-            ${
-              fact.is_sensitive
-                ? `
-                  <span
-                    style="
-                      display:inline-flex;
-                      align-items:center;
-                      min-height:22px;
-                      padding:3px 7px;
-                      border:1px solid var(--line);
-                      border-radius:999px;
-                      color:var(--muted);
-                      font-size:.62rem;
-                      letter-spacing:.04em;
-                      text-transform:uppercase;
-                    "
-                  >
-                    Sensitive
-                  </span>
-                `
-                : ""
-            }
-
-          </div>
-
-
-          <h3
-            style="
-              margin:
-                0 0 7px;
-              font-family:
-                Georgia,
-                'Times New Roman',
-                serif;
-              font-size:1rem;
-              font-weight:400;
-            "
-          >
-            ${
-              escapeHtml(
-                label
-              )
-            }
-          </h3>
-
-
-          <p
-            style="
-              margin:0;
-              color:var(--muted);
-              font-size:.76rem;
-              line-height:1.6;
-              white-space:pre-wrap;
-              overflow-wrap:anywhere;
-            "
-          >${
-            escapeHtml(
-              value ||
-              "No value stored."
-            )
-          }</p>
-
-
-          ${
-            fact.source_type ||
-            fact.source_url ||
-            fact.source_note ||
-            fact.last_verified_at
-              ? `
-                <div
-                  style="
-                    margin-top:12px;
-                    color:var(--muted);
-                    font-size:.68rem;
-                    line-height:1.55;
-                  "
-                >
-
-                  ${
-                    fact.source_type
-                      ? `
-                        <div>
-                          Source type:
-                          ${
-                            escapeHtml(
-                              fact.source_type
-                            )
-                          }
-                        </div>
-                      `
-                      : ""
-                  }
-
-                  ${
-                    fact.source_url
-                      ? `
-                        <div
-                          style="
-                            overflow-wrap:anywhere;
-                          "
-                        >
-                          Source:
-                          ${
-                            escapeHtml(
-                              fact.source_url
-                            )
-                          }
-                        </div>
-                      `
-                      : ""
-                  }
-
-                  ${
-                    fact.source_note
-                      ? `
-                        <div>
-                          ${
-                            escapeHtml(
-                              fact.source_note
-                            )
-                          }
-                        </div>
-                      `
-                      : ""
-                  }
-
-                  ${
-                                      fact.last_verified_at
-                      ? `
-                        <div>
-                          Verified:
-                          ${
-                            escapeHtml(
-                              formatDateTime(
-                                fact.last_verified_at
-                              )
-                            )
-                          }
-                        </div>
-                      `
-                      : ""
-                  }
-
-                </div>
-              `
-              : ""
-          }
-
-
-          <div
-            style="
-              display:flex;
-              gap:8px;
-              flex-wrap:wrap;
-              margin-top:12px;
-              color:var(--muted);
-              font-size:.66rem;
-            "
-          >
-
-            <span>
-              AI may modify:
-              ${
-                fact.ai_can_modify
-                  ? "Yes"
-                  : "No"
-              }
-            </span>
-
-            ${
-              fact.expires_at
-                ? `
-                  <span>
-                    Expires:
-                    ${
-                      escapeHtml(
-                        formatDateTime(
-                          fact.expires_at
-                        )
-                      )
-                    }
-                  </span>
-                `
-                : ""
-            }
-
-          </div>
-
-        </div>
-
-
-        <div
-          style="
-            display:flex;
-            gap:7px;
-            flex-wrap:wrap;
-          "
-        >
-
-          <button
-            class="text-button"
-            type="button"
-            data-edit-brand-fact="${
-              escapeHtml(
-                fact.id
-              )
-            }"
-          >
-            Edit
-          </button>
-
-          <button
-            class="text-button"
-            type="button"
-            data-archive-brand-fact="${
-              escapeHtml(
-                fact.id
-              )
-            }"
-          >
-            Archive
-          </button>
-
-        </div>
+        </label>
 
       </div>
 
-    </article>
-  `;
-}
+
+      <label class="field">
+
+        <span>
+          Fact
+        </span>
+
+        <textarea
+          id="brandFactValue"
+          rows="4"
+          placeholder="The verified information"
+          required
+        ></textarea>
+
+      </label>
 
 
-/* =========================================================
-   GET SOURCE OF TRUTH FACT
-   ========================================================= */
+      <label
+        class="field"
+        style="
+          max-width:320px;
+        "
+      >
 
-function getBrandFactById(
-  factId
-) {
-  const brand =
-    getBrandBrainBrand();
+        <span>
+          Confidence
+        </span>
 
+        <select
+          id="brandFactConfidence"
+        >
+          <option value="confirmed">
+            Confirmed
+          </option>
 
-  if (!brand) {
-    return null;
-  }
+          <option value="likely">
+            Likely
+          </option>
 
+          <option value="unconfirmed">
+            Unconfirmed
+          </option>
+        </select>
 
-  return (
-    brand.facts.find(
-      fact =>
-        fact.id === factId
-    ) ||
-    null
-  );
-}
-
-
-/* =========================================================
-   SOURCE OF TRUTH DIALOG
-   ========================================================= */
-
-function ensureBrandFactDialog() {
-  let dialog =
-    $("#brandFactDialog");
+      </label>
 
 
-  if (dialog) {
-    return dialog;
-  }
-
-
-  dialog =
-    document.createElement(
-      "dialog"
-    );
-
-
-  dialog.id =
-    "brandFactDialog";
-
-
-  dialog.className =
-    "app-dialog create-dialog";
-
-
-  dialog.innerHTML = `
-    <div
-      style="
-        width:min(720px,94vw);
-        max-width:100%;
-        max-height:90vh;
-        overflow-y:auto;
-      "
-    >
-
-      <div class="dialog-header">
-
-        <div>
-
-          <span class="eyebrow">
-            Source of Truth
-          </span>
-
-          <h2 id="brandFactDialogTitle">
-            Add Fact
-          </h2>
-
-        </div>
-
+      <div class="form-actions">
 
         <button
-          id="closeBrandFactDialogButton"
-          class="dialog-close"
-          type="button"
-          aria-label="Close"
+          class="primary-button"
+          type="submit"
+          id="addBrandFactButton"
         >
-          ×
+          Add Fact
         </button>
 
       </div>
 
-
-      <form
-        id="brandFactForm"
-        class="create-form"
-      >
-
-        <input
-          id="brandFactId"
-          type="hidden"
-        />
-
-
-        ${brandBrainGridOpen()}
-
-          <label class="field">
-
-            <span>
-              Category
-            </span>
-
-            <input
-              id="brandFactCategory"
-              type="text"
-              placeholder="pricing, operations, location, product…"
-              required
-            />
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Fact Key
-            </span>
-
-            <input
-              id="brandFactKey"
-              type="text"
-              placeholder="opening_status"
-            />
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Subject
-            </span>
-
-            <input
-              id="brandFactSubject"
-              type="text"
-              placeholder="Opening Status"
-            />
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Status
-            </span>
-
-            <select
-              id="brandFactStatus"
-            >
-
-              <option value="verified">
-                Verified
-              </option>
-
-              <option value="owner_approved">
-                Owner Approved
-              </option>
-
-              <option value="needs_confirmation">
-                Needs Confirmation
-              </option>
-
-              <option value="ai_suggested">
-                AI Suggested
-              </option>
-
-            </select>
-
-          </label>
-
-        </div>
-
-
-        <label class="field">
-
-          <span>
-            Value
-          </span>
-
-          <textarea
-            id="brandFactValue"
-            rows="5"
-            required
-            placeholder="The factual information Marketing Studio should remember."
-          ></textarea>
-
-        </label>
-
-
-        ${brandBrainGridOpen()}
-
-          <label class="field">
-
-            <span>
-              Source Type
-            </span>
-
-            <input
-              id="brandFactSourceType"
-              type="text"
-              placeholder="website, owner, contract, menu…"
-            />
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Source URL
-            </span>
-
-            <input
-              id="brandFactSourceUrl"
-              type="url"
-              placeholder="https://..."
-            />
-
-          </label>
-
-        </div>
-
-
-        <label class="field">
-
-          <span>
-            Source Note
-          </span>
-
-          <textarea
-            id="brandFactSourceNote"
-            rows="3"
-            placeholder="Where this came from or why it is trusted."
-          ></textarea>
-
-        </label>
-
-
-        ${brandBrainGridOpen()}
-
-          <label class="field">
-
-            <span>
-              Last Verified
-            </span>
-
-            <input
-              id="brandFactLastVerified"
-              type="datetime-local"
-            />
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Expires
-            </span>
-
-            <input
-              id="brandFactExpires"
-              type="datetime-local"
-            />
-
-          </label>
-
-        </div>
-
-
-        <div
-          style="
-            display:grid;
-            gap:10px;
-          "
-        >
-
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:9px;
-              color:var(--muted);
-              font-size:.78rem;
-            "
-          >
-
-            <input
-              id="brandFactAiCanModify"
-              type="checkbox"
-              style="
-                width:auto;
-              "
-            />
-
-            AI may modify this value
-          </label>
-
-
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:9px;
-              color:var(--muted);
-              font-size:.78rem;
-            "
-          >
-
-            <input
-              id="brandFactSensitive"
-              type="checkbox"
-              style="
-                width:auto;
-              "
-            />
-
-            Mark as sensitive
-
-          </label>
-
-        </div>
-
-
-        <div class="form-actions">
-
-          <button
-            id="cancelBrandFactButton"
-            class="secondary-button"
-            type="button"
-          >
-            Cancel
-          </button>
-
-          <button
-            id="saveBrandFactButton"
-            class="primary-button"
-            type="submit"
-          >
-            Save Fact
-          </button>
-
-        </div>
-
-      </form>
+    </form>
+
+
+    <div
+      style="
+        display:grid;
+        gap:12px;
+      "
+    >
+
+      ${
+        facts.length
+          ? facts
+              .map(
+                fact => `
+                  <article
+                    class="content-panel"
+                    style="
+                      padding:16px;
+                    "
+                  >
+
+                    <div
+                      style="
+                        display:flex;
+                        align-items:flex-start;
+                        justify-content:space-between;
+                        gap:14px;
+                      "
+                    >
+
+                      <div
+                        style="
+                          min-width:0;
+                          flex:1;
+                        "
+                      >
+
+                        <span class="eyebrow">
+                          ${
+                            escapeHtml(
+                              fact.confidence ||
+                              "confirmed"
+                            )
+                          }
+                        </span>
+
+                        <h4
+                          style="
+                            margin:5px 0 7px;
+                          "
+                        >
+                          ${
+                            escapeHtml(
+                              fact.fact_key ||
+                              "Fact"
+                            )
+                          }
+                        </h4>
+
+                        <p
+                          style="
+                            margin:0;
+                            color:var(--muted);
+                            font-size:.8rem;
+                            line-height:1.65;
+                            white-space:pre-wrap;
+                          "
+                        >${
+                          escapeHtml(
+                            fact.fact_value ||
+                            ""
+                          )
+                        }</p>
+
+                        ${
+                          fact.source
+                            ? `
+                              <p
+                                style="
+                                  margin:9px 0 0;
+                                  color:var(--muted);
+                                  font-size:.7rem;
+                                "
+                              >
+                                Source:
+                                ${
+                                  escapeHtml(
+                                    fact.source
+                                  )
+                                }
+                              </p>
+                            `
+                            : ""
+                        }
+
+                      </div>
+
+
+                      <button
+                        class="text-button"
+                        type="button"
+                        data-delete-brand-fact="${
+                          escapeHtml(
+                            fact.id
+                          )
+                        }"
+                      >
+                        Delete
+                      </button>
+
+                    </div>
+
+                  </article>
+                `
+              )
+              .join("")
+          : `
+            <div class="empty-state">
+
+              <span
+                class="empty-state-icon"
+                aria-hidden="true"
+              >
+                ◆
+              </span>
+
+              <h3>
+                No source-of-truth facts yet.
+              </h3>
+
+              <p>
+                Add verified facts that Marketing
+                Studio should rely on when creating
+                content for this brand.
+              </p>
+
+            </div>
+          `
+      }
 
     </div>
   `;
 
 
-  document.body.appendChild(
-    dialog
-  );
-
-
-  $("#brandFactForm")
+  $("#addBrandFactForm")
     ?.addEventListener(
       "submit",
-      handleBrandFactSave
+      handleBrandFactAdd
     );
-
-
-  $("#closeBrandFactDialogButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
-
-
-  $("#cancelBrandFactButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
-
-
-  enableBackdropClose(
-    dialog
-  );
-
-
-  return dialog;
 }
 
 
 /* =========================================================
-   DATETIME-LOCAL HELPERS
+   ADD BRAND FACT
    ========================================================= */
 
-function toDateTimeLocalValue(
-  value
-) {
-  if (!value) {
-    return "";
-  }
-
-
-  const date =
-    new Date(value);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return "";
-  }
-
-
-  const pad =
-    number =>
-      String(number)
-        .padStart(
-          2,
-          "0"
-        );
-
-
-  return (
-    `${date.getFullYear()}-` +
-    `${pad(
-      date.getMonth() + 1
-    )}-` +
-    `${pad(
-      date.getDate()
-    )}T` +
-    `${pad(
-      date.getHours()
-    )}:` +
-    `${pad(
-      date.getMinutes()
-    )}`
-  );
-}
-
-
-function fromDateTimeLocalValue(
-  value
-) {
-  if (!value) {
-    return null;
-  }
-
-
-  const date =
-    new Date(value);
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return null;
-  }
-
-
-  return date.toISOString();
-}
-
-
-/* =========================================================
-   SHOW SOURCE OF TRUTH DIALOG
-   ========================================================= */
-
-function showBrandFactDialog(
-  factId = null
-) {
-  const dialog =
-    ensureBrandFactDialog();
-
-
-  const fact =
-    factId
-      ? getBrandFactById(
-          factId
-        )
-      : null;
-
-
-  $("#brandFactDialogTitle").textContent =
-    fact
-      ? "Edit Fact"
-      : "Add Fact";
-
-
-  $("#brandFactId").value =
-    fact?.id ||
-    "";
-
-
-  $("#brandFactCategory").value =
-    fact?.category ||
-    "";
-
-
-  $("#brandFactKey").value =
-    fact?.fact_key ||
-    "";
-
-
-  $("#brandFactSubject").value =
-    fact?.subject ||
-    "";
-
-
-  $("#brandFactValue").value =
-    fact?.value_text ||
-    "";
-
-
-  $("#brandFactStatus").value =
-    fact?.status ||
-    "verified";
-
-
-  $("#brandFactSourceType").value =
-    fact?.source_type ||
-    "";
-
-
-  $("#brandFactSourceUrl").value =
-    fact?.source_url ||
-    "";
-
-
-  $("#brandFactSourceNote").value =
-    fact?.source_note ||
-    "";
-
-
-  $("#brandFactLastVerified").value =
-    toDateTimeLocalValue(
-      fact?.last_verified_at
-    );
-
-
-  $("#brandFactExpires").value =
-    toDateTimeLocalValue(
-      fact?.expires_at
-    );
-
-
-  $("#brandFactAiCanModify").checked =
-    Boolean(
-      fact?.ai_can_modify
-    );
-
-
-  $("#brandFactSensitive").checked =
-    Boolean(
-      fact?.is_sensitive
-    );
-
-
-  safeDialogOpen(
-    dialog
-  );
-
-
-  window.setTimeout(
-    () => {
-      $("#brandFactCategory")
-        ?.focus();
-    },
-    100
-  );
-}
-
-
-/* =========================================================
-   SAVE SOURCE OF TRUTH FACT
-   ========================================================= */
-
-async function handleBrandFactSave(
+async function handleBrandFactAdd(
   event
 ) {
   event.preventDefault();
@@ -5319,39 +4607,28 @@ async function handleBrandFactSave(
 
 
   if (!brand) {
-    showToast(
-      "No Brand Brain is currently open.",
-      "error"
-    );
-
     return;
   }
 
 
-  const factId =
-    $("#brandFactId")
-      ?.value ||
-    null;
-
-
-  const category =
-    $("#brandFactCategory")
+  const factKey =
+    $("#brandFactKey")
       ?.value
       ?.trim();
 
 
-  const value =
+  const factValue =
     $("#brandFactValue")
       ?.value
       ?.trim();
 
 
   if (
-    !category ||
-    !value
+    !factKey ||
+    !factValue
   ) {
     showToast(
-      "Category and value are required.",
+      "Fact key and fact value are required.",
       "error"
     );
 
@@ -5359,103 +4636,8 @@ async function handleBrandFactSave(
   }
 
 
-  const status =
-    $("#brandFactStatus")
-      ?.value ||
-    "needs_confirmation";
-
-
-  let lastVerified =
-    fromDateTimeLocalValue(
-      $("#brandFactLastVerified")
-        ?.value
-    );
-
-
-  if (
-    status === "verified" &&
-    !lastVerified
-  ) {
-    lastVerified =
-      new Date()
-        .toISOString();
-  }
-
-
-  const payload = {
-    brand_id:
-      brand.id,
-
-    category:
-      category,
-
-    fact_key:
-      nullableText(
-        $("#brandFactKey")
-          ?.value
-      ),
-
-    subject:
-      nullableText(
-        $("#brandFactSubject")
-          ?.value
-      ),
-
-    value_text:
-      value,
-
-    value_jsonb:
-      null,
-
-    status:
-      status,
-
-    source_type:
-      nullableText(
-        $("#brandFactSourceType")
-          ?.value
-      ),
-
-    source_url:
-      nullableText(
-        $("#brandFactSourceUrl")
-          ?.value
-      ),
-
-    source_note:
-      nullableText(
-        $("#brandFactSourceNote")
-          ?.value
-      ),
-
-    last_verified_at:
-      lastVerified,
-
-    expires_at:
-      fromDateTimeLocalValue(
-        $("#brandFactExpires")
-          ?.value
-      ),
-
-    ai_can_modify:
-      Boolean(
-        $("#brandFactAiCanModify")
-          ?.checked
-      ),
-
-    is_sensitive:
-      Boolean(
-        $("#brandFactSensitive")
-          ?.checked
-      ),
-
-    active:
-      true
-  };
-
-
   const button =
-    $("#saveBrandFactButton");
+    $("#addBrandFactButton");
 
 
   if (button) {
@@ -5463,41 +4645,41 @@ async function handleBrandFactSave(
       true;
 
     button.textContent =
-      "Saving…";
+      "Adding…";
   }
 
 
   try {
-    let result;
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("brand_facts")
+        .insert({
+          brand_id:
+            brand.id,
+
+          fact_key:
+            factKey,
+
+          fact_value:
+            factValue,
+
+          source:
+            nullableText(
+              $("#brandFactSource")
+                ?.value
+            ),
+
+          confidence:
+            $("#brandFactConfidence")
+              ?.value ||
+            "confirmed"
+        });
 
 
-    if (factId) {
-      result =
-        await supabaseClient
-          .from(
-            "brand_facts"
-          )
-          .update(
-            payload
-          )
-          .eq(
-            "id",
-            factId
-          );
-    } else {
-      result =
-        await supabaseClient
-          .from(
-            "brand_facts"
-          )
-          .insert(
-            payload
-          );
-    }
-
-
-    if (result.error) {
-      throw result.error;
+    if (error) {
+      throw error;
     }
 
 
@@ -5506,38 +4688,31 @@ async function handleBrandFactSave(
     );
 
 
-    safeDialogClose(
-      $("#brandFactDialog")
-    );
-
-
     renderBrandBrainContent();
 
 
     showToast(
-      factId
-        ? "Source of Truth fact updated."
-        : "Source of Truth fact added.",
+      "Brand fact added.",
       "success"
     );
 
   } catch (error) {
     console.error(
-      "Unable to save Source of Truth fact:",
+      "Unable to add brand fact:",
       error
     );
 
 
     showToast(
       error?.message ||
-      "Unable to save the fact.",
+      "Unable to add brand fact.",
       "error",
       5000
     );
 
   } finally {
     const currentButton =
-      $("#saveBrandFactButton");
+      $("#addBrandFactButton");
 
 
     if (currentButton) {
@@ -5545,47 +4720,34 @@ async function handleBrandFactSave(
         false;
 
       currentButton.textContent =
-        "Save Fact";
+        "Add Fact";
     }
   }
 }
 
 
 /* =========================================================
-   ARCHIVE SOURCE OF TRUTH FACT
+   DELETE BRAND FACT
    ========================================================= */
 
-async function archiveBrandFact(
+async function deleteBrandFact(
   factId
 ) {
   const brand =
     getBrandBrainBrand();
 
 
-  const fact =
-    getBrandFactById(
-      factId
-    );
-
-
   if (
     !brand ||
-    !fact
+    !factId
   ) {
     return;
   }
 
 
-  const label =
-    fact.subject ||
-    fact.fact_key ||
-    fact.category ||
-    "this fact";
-
-
   const confirmed =
     window.confirm(
-      `Archive "${label}"?`
+      "Delete this source-of-truth fact?"
     );
 
 
@@ -5599,19 +4761,11 @@ async function archiveBrandFact(
       error
     } =
       await supabaseClient
-        .from(
-          "brand_facts"
-        )
-        .update({
-          status:
-            "archived",
-
-          active:
-            false
-        })
-                .eq(
+        .from("brand_facts")
+        .delete()
+        .eq(
           "id",
-          fact.id
+          factId
         );
 
 
@@ -5629,78 +4783,25 @@ async function archiveBrandFact(
 
 
     showToast(
-      "Source of Truth fact archived.",
+      "Brand fact deleted.",
       "success"
     );
 
   } catch (error) {
     console.error(
-      "Unable to archive Source of Truth fact:",
+      "Unable to delete brand fact:",
       error
     );
 
 
     showToast(
       error?.message ||
-      "Unable to archive the fact.",
+      "Unable to delete brand fact.",
       "error",
       5000
     );
   }
 }
-
-
-/* =========================================================
-   SOURCE OF TRUTH ACTIONS
-   ========================================================= */
-
-function handleBrandFactsClick(
-  event
-) {
-  const addButton =
-    event.target.closest(
-      "[data-add-brand-fact]"
-    );
-
-
-  if (addButton) {
-    showBrandFactDialog();
-
-    return;
-  }
-
-
-  const editButton =
-    event.target.closest(
-      "[data-edit-brand-fact]"
-    );
-
-
-  if (editButton) {
-    showBrandFactDialog(
-      editButton.dataset
-        .editBrandFact
-    );
-
-    return;
-  }
-
-
-  const archiveButton =
-    event.target.closest(
-      "[data-archive-brand-fact]"
-    );
-
-
-  if (archiveButton) {
-    archiveBrandFact(
-      archiveButton.dataset
-        .archiveBrandFact
-    );
-  }
-}
-
-
 /* =========================================================
    AI GUARDRAILS
    ========================================================= */
@@ -6551,6 +5652,7 @@ async function handleBrandRuleSave(
             "brand_id",
             brand.id
           );
+
     } else {
       result =
         await supabaseClient
@@ -6577,7 +5679,6 @@ async function handleBrandRuleSave(
 
 
     renderBrandBrainHeader();
-
     renderBrandBrainContent();
 
 
@@ -6610,7 +5711,8 @@ async function handleBrandRuleSave(
     if (currentButton) {
       currentButton.disabled =
         false;
-              currentButton.textContent =
+
+      currentButton.textContent =
         "Save Guardrail";
     }
   }
@@ -6757,8 +5859,6 @@ function handleBrandRulesClick(
     );
   }
 }
-
-
 /* =========================================================
    BRAND MILESTONES
    ========================================================= */
@@ -7610,7 +6710,9 @@ function ensureBrandMilestoneDialog() {
             </span>
 
           </label>
-                    <label
+
+
+          <label
             style="
               display:flex;
               align-items:flex-start;
@@ -7969,6 +7071,7 @@ async function handleBrandMilestoneSave(
             "brand_id",
             brand.id
           );
+
     } else {
       result =
         await supabaseClient
@@ -7995,7 +7098,6 @@ async function handleBrandMilestoneSave(
 
 
     renderBrandBrainHeader();
-
     renderBrandBrainContent();
 
 
@@ -8107,6 +7209,7 @@ async function completeBrandMilestone(
         "Milestone completed — this one is worth talking about.",
         "success"
       );
+
     } else {
       showToast(
         "Milestone completed.",
@@ -8157,11 +7260,10 @@ function createContentFromMilestone(
 
 
   /*
-    Close Brand Brain first so Quick Create
-    becomes the active dialog instead of
-    stacking dialogs.
-  */
-
+   * Close Brand Brain first so Quick Create
+   * becomes the active dialog instead of
+   * stacking dialogs.
+   */
   safeDialogClose(
     $("#brandBrainDialog")
   );
@@ -8306,8 +7408,6 @@ function handleBrandMilestonesClick(
     );
   }
 }
-
-
 /* =========================================================
    DASHBOARD
    ========================================================= */
@@ -8612,7 +7712,7 @@ function getContentTypeLabel(
   return (
     CREATE_TYPES[
       normalized
-          ]?.label ||
+    ]?.label ||
     titleCaseStatus(
       normalized
     )
@@ -8804,9 +7904,11 @@ function renderCampaignCard(
   return `
     <article
       class="content-panel"
-      style="
-        margin-bottom:12px;
-      "
+      data-campaign-card="${
+        escapeHtml(
+          campaign.id
+        )
+      }"
     >
 
       <div
@@ -8826,50 +7928,22 @@ function renderCampaignCard(
           "
         >
 
-          <div
-            style="
-              display:flex;
-              align-items:center;
-              gap:8px;
-              flex-wrap:wrap;
-              margin-bottom:8px;
-            "
-          >
-
-            <span class="eyebrow">
-              Campaign
-            </span>
-
-            <span
-              style="
-                display:inline-flex;
-                align-items:center;
-                min-height:24px;
-                padding:4px 8px;
-                border:1px solid var(--line);
-                border-radius:999px;
-                color:var(--muted);
-                font-size:.65rem;
-                letter-spacing:.05em;
-                text-transform:uppercase;
-              "
-            >
-              ${
-                escapeHtml(
-                  titleCaseStatus(
-                    campaign.status
-                  )
+          <span class="eyebrow">
+            ${
+              escapeHtml(
+                titleCaseStatus(
+                  campaign.status ||
+                  "draft"
                 )
-              }
-            </span>
-
-          </div>
+              )
+            }
+          </span>
 
 
           <h3
             style="
               margin:
-                0 0 8px;
+                5px 0 7px;
               font-family:
                 Georgia,
                 'Times New Roman',
@@ -8892,8 +7966,7 @@ function renderCampaignCard(
               ? `
                 <p
                   style="
-                    margin:
-                      0 0 10px;
+                    margin:0;
                     color:var(--muted);
                     font-size:.78rem;
                     line-height:1.6;
@@ -8916,8 +7989,7 @@ function renderCampaignCard(
               ? `
                 <p
                   style="
-                    margin:
-                      0 0 8px;
+                    margin:10px 0 0;
                     color:var(--ink);
                     font-size:.76rem;
                     line-height:1.55;
@@ -8926,7 +7998,6 @@ function renderCampaignCard(
                   <strong>
                     Objective:
                   </strong>
-
                   ${
                     escapeHtml(
                       campaign.objective
@@ -8941,23 +8012,41 @@ function renderCampaignCard(
           ${
             channels.length
               ? `
-                <p
+                <div
                   style="
-                    margin:
-                      0 0 8px;
-                    color:var(--muted);
-                    font-size:.7rem;
-                    line-height:1.5;
+                    display:flex;
+                    gap:6px;
+                    flex-wrap:wrap;
+                    margin-top:12px;
                   "
                 >
                   ${
-                    escapeHtml(
-                      channels.join(
-                        " · "
+                    channels
+                      .map(
+                        channel => `
+                          <span
+                            style="
+                              display:inline-flex;
+                              align-items:center;
+                              min-height:24px;
+                              padding:4px 8px;
+                              border:1px solid var(--line);
+                              border-radius:999px;
+                              color:var(--muted);
+                              font-size:.65rem;
+                            "
+                          >
+                            ${
+                              escapeHtml(
+                                channel
+                              )
+                            }
+                          </span>
+                        `
                       )
-                    )
+                      .join("")
                   }
-                </p>
+                </div>
               `
               : ""
           }
@@ -8966,11 +8055,11 @@ function renderCampaignCard(
           ${
             dateParts.length
               ? `
-                <small
+                <p
                   style="
-                    display:block;
+                    margin:12px 0 0;
                     color:var(--muted);
-                    font-size:.68rem;
+                    font-size:.7rem;
                   "
                 >
                   ${
@@ -8980,7 +8069,7 @@ function renderCampaignCard(
                       )
                     )
                   }
-                </small>
+                </p>
               `
               : ""
           }
@@ -8988,18 +8077,27 @@ function renderCampaignCard(
         </div>
 
 
-        <button
-          class="secondary-button"
-          type="button"
-          data-create-type="campaign"
-          data-campaign-id="${
-            escapeHtml(
-              campaign.id
-            )
-          }"
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          "
         >
-          Build Content
-        </button>
+
+          <button
+            class="secondary-button"
+            type="button"
+            data-open-campaign="${
+              escapeHtml(
+                campaign.id
+              )
+            }"
+          >
+            Open
+          </button>
+
+        </div>
 
       </div>
 
@@ -9031,8 +8129,6 @@ function setCampaignFilter(
 
   renderCampaigns();
 }
-
-
 /* =========================================================
    CONTENT LIBRARY
    ========================================================= */
@@ -9162,629 +8258,6 @@ function renderContentLibrary() {
           )
       )
       .join("");
-}
-
-
-/* =========================================================
-   CONTENT EDITOR
-   ========================================================= */
-
-function ensureContentEditorDialog() {
-  let dialog =
-    $("#contentEditorDialog");
-
-
-  if (dialog) {
-    return dialog;
-  }
-
-
-  dialog =
-    document.createElement(
-      "dialog"
-    );
-
-
-  dialog.id =
-    "contentEditorDialog";
-
-
-  dialog.className =
-    "app-dialog create-dialog";
-
-
-  dialog.innerHTML = `
-    <div
-      style="
-        width:min(760px,94vw);
-        max-width:100%;
-        max-height:92vh;
-        overflow-y:auto;
-      "
-    >
-
-      <div class="dialog-header">
-
-        <div>
-
-          <span
-            id="contentEditorEyebrow"
-            class="eyebrow"
-          >
-            Content
-          </span>
-
-          <h2 id="contentEditorHeading">
-            Edit Content
-          </h2>
-
-        </div>
-
-
-        <button
-          id="closeContentEditorButton"
-          class="dialog-close"
-          type="button"
-          aria-label="Close"
-        >
-          ×
-        </button>
-
-      </div>
-
-
-      <form
-        id="contentEditorForm"
-        class="create-form"
-      >
-
-        <input
-          id="contentEditorId"
-          type="hidden"
-        />
-
-
-        <label class="field">
-
-          <span>
-            Title
-          </span>
-
-          <input
-            id="contentEditorTitle"
-            type="text"
-            placeholder="Content title"
-          />
-
-        </label>
-
-
-        <div
-          style="
-            display:grid;
-            grid-template-columns:
-              repeat(
-                2,
-                minmax(0,1fr)
-              );
-            gap:12px;
-          "
-        >
-
-          <label class="field">
-
-            <span>
-              Platform
-            </span>
-
-            <input
-              id="contentEditorPlatform"
-              type="text"
-              placeholder="Facebook, Instagram…"
-            />
-
-          </label>
-
-
-          <label class="field">
-
-            <span>
-              Status
-            </span>
-
-            <select
-              id="contentEditorStatus"
-            >
-
-              <option value="draft">
-                Draft
-              </option>
-
-              <option value="review">
-                Review
-              </option>
-
-              <option value="approved">
-                Approved
-              </option>
-
-              <option value="scheduled">
-                Scheduled
-              </option>
-
-              <option value="published">
-                Published
-              </option>
-
-            </select>
-
-          </label>
-
-        </div>
-
-
-        <label class="field">
-
-          <span>
-            Content
-          </span>
-
-          <textarea
-            id="contentEditorBody"
-            style="
-              min-height:300px;
-            "
-            placeholder="Write or edit the content here."
-          ></textarea>
-
-        </label>
-
-
-        <label class="field">
-
-          <span>
-            Goal
-          </span>
-
-          <input
-            id="contentEditorGoal"
-            type="text"
-            placeholder="Build awareness, drive bookings…"
-          />
-
-        </label>
-
-
-        <label
-          id="contentEditorScheduleField"
-          class="field"
-          hidden
-        >
-
-          <span>
-            Scheduled date & time
-          </span>
-
-          <input
-            id="contentEditorScheduledFor"
-            type="datetime-local"
-          />
-
-        </label>
-
-
-        <div
-          style="
-            padding-top:4px;
-            color:var(--muted);
-            font-size:.7rem;
-            line-height:1.55;
-          "
-        >
-          Saving updates this content item only.
-          Scheduling does not publish it.
-        </div>
-
-
-        <div class="form-actions">
-
-          <button
-            id="cancelContentEditorButton"
-            class="secondary-button"
-            type="button"
-          >
-            Cancel
-          </button>
-
-          <button
-            id="saveContentEditorButton"
-            class="primary-button"
-            type="submit"
-          >
-            Save Changes
-          </button>
-
-        </div>
-
-      </form>
-
-    </div>
-  `;
-
-
-  document.body.appendChild(
-    dialog
-  );
-
-
-  $("#closeContentEditorButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
-
-
-  $("#cancelContentEditorButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
-
-
-  $("#contentEditorStatus")
-    ?.addEventListener(
-      "change",
-      updateContentEditorScheduleVisibility
-    );
-
-
-  $("#contentEditorForm")
-    ?.addEventListener(
-      "submit",
-      saveContentEditor
-    );
-
-
-  enableBackdropClose(
-    dialog
-  );
-
-
-  return dialog;
-}
-
-
-/* =========================================================
-   CONTENT EDITOR SCHEDULE VISIBILITY
-   ========================================================= */
-
-function updateContentEditorScheduleVisibility() {
-  const status =
-    $("#contentEditorStatus")
-      ?.value;
-
-
-  const field =
-    $("#contentEditorScheduleField");
-
-
-  if (!field) {
-    return;
-  }
-
-
-  field.hidden =
-    status !==
-    "scheduled";
-}
-
-
-/* =========================================================
-   DATETIME INPUT VALUE
-   ========================================================= */
-
-function toLocalDateTimeInputValue(
-  value
-) {
-  if (!value) {
-    return "";
-  }
-
-
-  const date =
-    new Date(
-      value
-    );
-
-
-  if (
-    Number.isNaN(
-      date.getTime()
-    )
-  ) {
-    return "";
-  }
-
-
-  const pad =
-    number =>
-      String(number)
-        .padStart(
-          2,
-          "0"
-        );
-
-
-  return [
-    date.getFullYear(),
-    "-",
-    pad(
-      date.getMonth() + 1
-    ),
-    "-",
-    pad(
-      date.getDate()
-    ),
-    "T",
-    pad(
-      date.getHours()
-    ),
-    ":",
-    pad(
-      date.getMinutes()
-    )
-  ].join("");
-}
-
-
-/* =========================================================
-   SAVE CONTENT EDITOR
-   ========================================================= */
-
-async function saveContentEditor(
-  event
-) {
-  event.preventDefault();
-
-
-  const id =
-    $("#contentEditorId")
-      ?.value;
-
-
-  const title =
-    $("#contentEditorTitle")
-      ?.value
-      ?.trim();
-
-
-  const platform =
-    $("#contentEditorPlatform")
-      ?.value
-      ?.trim();
-
-
-  const status =
-    $("#contentEditorStatus")
-      ?.value ||
-    "draft";
-
-
-  const body =
-    $("#contentEditorBody")
-      ?.value
-      ?.trim();
-
-
-  const goal =
-    $("#contentEditorGoal")
-      ?.value
-      ?.trim();
-
-
-  const scheduledInput =
-    $("#contentEditorScheduledFor")
-      ?.value;
-
-
-  if (!id) {
-    showToast(
-      "The content item is missing.",
-      "error"
-    );
-
-    return;
-  }
-
-
-  if (!title) {
-    showToast(
-      "Give this content a title.",
-      "error"
-    );
-
-
-    $("#contentEditorTitle")
-      ?.focus();
-          return;
-  }
-
-
-  if (!body) {
-    showToast(
-      "Content cannot be empty.",
-      "error"
-    );
-
-
-    $("#contentEditorBody")
-      ?.focus();
-
-
-    return;
-  }
-
-
-  if (
-    status ===
-      "scheduled" &&
-    !scheduledInput
-  ) {
-    showToast(
-      "Choose a date and time before scheduling.",
-      "error"
-    );
-
-
-    $("#contentEditorScheduledFor")
-      ?.focus();
-
-
-    return;
-  }
-
-
-  const button =
-    $("#saveContentEditorButton");
-
-
-  if (button) {
-    button.disabled =
-      true;
-
-    button.textContent =
-      "Saving…";
-  }
-
-
-  try {
-    const scheduledFor =
-      status ===
-        "scheduled"
-        ? new Date(
-            scheduledInput
-          ).toISOString()
-        : null;
-
-
-    const payload = {
-      title,
-      body,
-
-      platform:
-        nullableText(
-          platform
-        ),
-
-      goal:
-        nullableText(
-          goal
-        ),
-
-      status,
-
-      scheduled_for:
-        scheduledFor,
-
-      updated_at:
-        new Date()
-          .toISOString()
-    };
-
-
-    const {
-      data,
-      error
-    } =
-      await supabaseClient
-        .from(
-          "content_items"
-        )
-        .update(
-          payload
-        )
-        .eq(
-          "id",
-          id
-        )
-        .select()
-        .single();
-
-
-    if (error) {
-      throw error;
-    }
-
-
-    if (!data?.id) {
-      throw new Error(
-        "The content update did not return a saved item."
-      );
-    }
-
-
-    safeDialogClose(
-      $("#contentEditorDialog")
-    );
-
-
-    await refreshWorkingData();
-
-
-    renderDashboard();
-
-    renderCampaigns();
-
-    renderContentLibrary();
-
-    renderCalendar();
-
-    renderAssets();
-
-
-    showToast(
-      status ===
-        "scheduled"
-        ? "Content scheduled."
-        : "Changes saved.",
-      "success"
-    );
-
-  } catch (error) {
-    console.error(
-      "Unable to update content:",
-      error
-    );
-
-
-    showToast(
-      error?.message ||
-      "Unable to save the content.",
-      "error",
-      5000
-    );
-
-  } finally {
-    const currentButton =
-      $("#saveContentEditorButton");
-
-
-    if (currentButton) {
-      currentButton.disabled =
-        false;
-
-      currentButton.textContent =
-        "Save Changes";
-    }
-  }
 }
 
 
@@ -10453,13 +8926,9 @@ async function saveContentEditor(
 
 
     renderDashboard();
-
     renderCampaigns();
-
     renderContentLibrary();
-
     renderCalendar();
-
     renderAssets();
 
 
@@ -10616,7 +9085,7 @@ function renderContentCard(
           >
             ${
               escapeHtml(
-                              item.title ||
+                item.title ||
                 "Untitled Content"
               )
             }
@@ -10789,8 +9258,1149 @@ function setContentFilter(
 
   renderContentLibrary();
 }
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
+
+function renderDashboard() {
+  const brand =
+    getActiveBrand();
 
 
+  const greeting =
+    $("#dashboardGreeting");
+
+
+  if (greeting) {
+    greeting.textContent =
+      brand
+        ? `Working on ${brand.shortName}`
+        : "Your marketing workspace";
+  }
+
+
+  if (!brand) {
+    setDashboardStat(
+      "#reviewDraftCount",
+      0
+    );
+
+    setDashboardStat(
+      "#upcomingContentCount",
+      0
+    );
+
+    setDashboardStat(
+      "#activeCampaignCount",
+      0
+    );
+
+
+    renderDashboardUpcoming(
+      []
+    );
+
+
+    return;
+  }
+
+
+  const brandContent =
+    APP_DATA.content.filter(
+      item =>
+        item.brandId ===
+        brand.id
+    );
+
+
+  const reviewDrafts =
+    brandContent.filter(
+      item =>
+        item.status ===
+          "draft" ||
+        item.status ===
+          "review"
+    );
+
+
+  const now =
+    new Date();
+
+
+  const upcomingContent =
+    brandContent
+      .filter(
+        item => {
+          if (
+            item.status !==
+              "scheduled" ||
+            !item.scheduledFor
+          ) {
+            return false;
+          }
+
+
+          const scheduled =
+            new Date(
+              item.scheduledFor
+            );
+
+
+          return (
+            !Number.isNaN(
+              scheduled.getTime()
+            ) &&
+            scheduled >= now
+          );
+        }
+      )
+      .sort(
+        (a, b) =>
+          new Date(
+            a.scheduledFor
+          ) -
+          new Date(
+            b.scheduledFor
+          )
+      );
+
+
+  const activeCampaigns =
+    APP_DATA.campaigns.filter(
+      campaign =>
+        campaign.brandId ===
+          brand.id &&
+        campaign.status ===
+          "active"
+    );
+
+
+  setDashboardStat(
+    "#reviewDraftCount",
+    reviewDrafts.length
+  );
+
+
+  setDashboardStat(
+    "#upcomingContentCount",
+    upcomingContent.length
+  );
+
+
+  setDashboardStat(
+    "#activeCampaignCount",
+    activeCampaigns.length
+  );
+
+
+  renderDashboardUpcoming(
+    upcomingContent
+  );
+}
+
+
+function setDashboardStat(
+  selector,
+  value
+) {
+  const element =
+    $(selector);
+
+
+  if (element) {
+    element.textContent =
+      String(
+        value
+      );
+  }
+}
+
+
+/* =========================================================
+   DASHBOARD UPCOMING CONTENT
+   ========================================================= */
+
+function renderDashboardUpcoming(
+  items
+) {
+  const container =
+    $("#dashboardUpcoming");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          Nothing scheduled yet.
+        </h3>
+
+        <p>
+          Approved and scheduled content for the
+          working brand will appear here.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    items
+      .slice(
+        0,
+        5
+      )
+      .map(
+        item => `
+          <article
+            class="content-panel"
+            style="
+              margin-bottom:10px;
+            "
+          >
+
+            <div
+              style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:12px;
+                flex-wrap:wrap;
+              "
+            >
+
+              <div>
+
+                <span class="eyebrow">
+                  ${
+                    escapeHtml(
+                      getContentTypeLabel(
+                        item.type
+                      )
+                    )
+                  }
+                </span>
+
+                <h3
+                  style="
+                    margin:
+                      5px 0 6px;
+                    font-family:
+                      Georgia,
+                      'Times New Roman',
+                      serif;
+                    font-size:1rem;
+                    font-weight:400;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      item.title ||
+                      "Untitled Content"
+                    )
+                  }
+                </h3>
+
+              </div>
+
+
+              <span
+                style="
+                  color:var(--muted);
+                  font-size:.72rem;
+                  white-space:nowrap;
+                "
+              >
+                ${
+                  escapeHtml(
+                    formatDateTime(
+                      item.scheduledFor
+                    )
+                  )
+                }
+              </span>
+
+            </div>
+
+          </article>
+        `
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   CONTENT TYPE LABEL
+   ========================================================= */
+
+function getContentTypeLabel(
+  type
+) {
+  const normalized =
+    DB_TYPE_TO_APP_TYPE[
+      type
+    ] ||
+    type ||
+    "content";
+
+
+  return (
+    CREATE_TYPES[
+      normalized
+    ]?.label ||
+    titleCaseStatus(
+      normalized
+    )
+  );
+}
+
+
+/* =========================================================
+   CAMPAIGNS
+   ========================================================= */
+
+function renderCampaigns() {
+  const container =
+    $("#campaignList");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <h3>
+          Choose a working brand.
+        </h3>
+
+        <p>
+          Campaigns are organized by brand.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const activeFilter =
+    document.querySelector(
+      "[data-campaign-filter].is-active"
+    )
+      ?.dataset
+      ?.campaignFilter ||
+    "all";
+
+
+  let campaigns =
+    APP_DATA.campaigns
+      .filter(
+        campaign =>
+          campaign.brandId ===
+          brand.id
+      )
+      .slice();
+
+
+  if (
+    activeFilter !==
+    "all"
+  ) {
+    campaigns =
+      campaigns.filter(
+        campaign =>
+          campaign.status ===
+          activeFilter
+      );
+  }
+
+
+  campaigns.sort(
+    (a, b) =>
+      new Date(
+        b.updatedAt ||
+        b.createdAt ||
+        0
+      ) -
+      new Date(
+        a.updatedAt ||
+        a.createdAt ||
+        0
+      )
+  );
+
+
+  if (!campaigns.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          ${
+            activeFilter ===
+              "all"
+              ? "No campaigns yet."
+              : `No ${escapeHtml(
+                  titleCaseStatus(
+                    activeFilter
+                  )
+                )} campaigns.`
+          }
+        </h3>
+
+        <p>
+          Build campaigns around real goals,
+          launches, offers, events, or brand
+          milestones.
+        </p>
+
+        <button
+          class="secondary-button"
+          type="button"
+          data-create-type="campaign"
+        >
+          Create Campaign
+        </button>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    campaigns
+      .map(
+        campaign =>
+          renderCampaignCard(
+            campaign
+          )
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   CAMPAIGN CARD
+   ========================================================= */
+
+function renderCampaignCard(
+  campaign
+) {
+  const channels =
+    Array.isArray(
+      campaign.channels
+    )
+      ? campaign.channels
+      : [];
+
+
+  const dateParts = [];
+
+
+  if (campaign.startsOn) {
+    dateParts.push(
+      `Starts ${
+        formatDate(
+          campaign.startsOn
+        )
+      }`
+    );
+  }
+
+
+  if (campaign.endsOn) {
+    dateParts.push(
+      `Ends ${
+        formatDate(
+          campaign.endsOn
+        )
+      }`
+    );
+  }
+
+
+  return `
+    <article
+      class="content-panel"
+      data-campaign-card="${
+        escapeHtml(
+          campaign.id
+        )
+      }"
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <span class="eyebrow">
+            ${
+              escapeHtml(
+                titleCaseStatus(
+                  campaign.status ||
+                  "draft"
+                )
+              )
+            }
+          </span>
+
+
+          <h3
+            style="
+              margin:
+                5px 0 7px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                campaign.name ||
+                "Untitled Campaign"
+              )
+            }
+          </h3>
+
+
+          ${
+            campaign.description
+              ? `
+                <p
+                  style="
+                    margin:0;
+                    color:var(--muted);
+                    font-size:.78rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      campaign.description
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            campaign.objective
+              ? `
+                <p
+                  style="
+                    margin:10px 0 0;
+                    color:var(--ink);
+                    font-size:.76rem;
+                    line-height:1.55;
+                  "
+                >
+                  <strong>
+                    Objective:
+                  </strong>
+                  ${
+                    escapeHtml(
+                      campaign.objective
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          ${
+            channels.length
+              ? `
+                <div
+                  style="
+                    display:flex;
+                    gap:6px;
+                    flex-wrap:wrap;
+                    margin-top:12px;
+                  "
+                >
+                  ${
+                    channels
+                      .map(
+                        channel => `
+                          <span
+                            style="
+                              display:inline-flex;
+                              align-items:center;
+                              min-height:24px;
+                              padding:4px 8px;
+                              border:1px solid var(--line);
+                              border-radius:999px;
+                              color:var(--muted);
+                              font-size:.65rem;
+                            "
+                          >
+                            ${
+                              escapeHtml(
+                                channel
+                              )
+                            }
+                          </span>
+                        `
+                      )
+                      .join("")
+                  }
+                </div>
+              `
+              : ""
+          }
+
+
+          ${
+            dateParts.length
+              ? `
+                <p
+                  style="
+                    margin:12px 0 0;
+                    color:var(--muted);
+                    font-size:.7rem;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      dateParts.join(
+                        " · "
+                      )
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <button
+            class="secondary-button"
+            type="button"
+            data-open-campaign="${
+              escapeHtml(
+                campaign.id
+              )
+            }"
+          >
+            Open
+          </button>
+
+        </div>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   CAMPAIGN FILTERS
+   ========================================================= */
+
+function setCampaignFilter(
+  filter
+) {
+  $$(
+    "[data-campaign-filter]"
+  ).forEach(
+    button => {
+      button.classList.toggle(
+        "is-active",
+        button.dataset
+          .campaignFilter ===
+          filter
+      );
+    }
+  );
+
+
+  renderCampaigns();
+}
+
+
+/* =========================================================
+   CONTENT LIBRARY
+   ========================================================= */
+
+function renderContentLibrary() {
+  const container =
+    $("#contentLibrary");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <h3>
+          Choose a working brand.
+        </h3>
+
+        <p>
+          Content is organized by brand.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  const activeFilter =
+    document.querySelector(
+      "[data-content-filter].is-active"
+    )
+      ?.dataset
+      ?.contentFilter ||
+    "all";
+
+
+  let items =
+    APP_DATA.content
+      .filter(
+        item =>
+          item.brandId ===
+          brand.id
+      )
+      .slice();
+
+
+  if (
+    activeFilter !==
+    "all"
+  ) {
+    items =
+      items.filter(
+        item =>
+          item.status ===
+          activeFilter
+      );
+  }
+
+
+  items.sort(
+    (a, b) =>
+      new Date(
+        b.updatedAt ||
+        b.createdAt ||
+        0
+      ) -
+      new Date(
+        a.updatedAt ||
+        a.createdAt ||
+        0
+      )
+  );
+
+
+  if (!items.length) {
+    container.innerHTML = `
+      <div class="empty-state">
+
+        <span
+          class="empty-state-icon"
+          aria-hidden="true"
+        >
+          ◇
+        </span>
+
+        <h3>
+          ${
+            activeFilter ===
+              "all"
+              ? "No content yet."
+              : `No ${escapeHtml(
+                  titleCaseStatus(
+                    activeFilter
+                  )
+                )} content.`
+          }
+        </h3>
+
+        <p>
+          Start with Quick Create or one of the
+          Content Studio tools.
+        </p>
+
+      </div>
+    `;
+
+    return;
+  }
+
+
+  container.innerHTML =
+    items
+      .map(
+        item =>
+          renderContentCard(
+            item
+          )
+      )
+      .join("");
+}
+
+
+/* =========================================================
+   CONTENT CARD
+   ========================================================= */
+
+function renderContentCard(
+  item
+) {
+  const preview =
+    item.body ||
+    item.originalRequest ||
+    "";
+
+
+  return `
+    <article
+      class="content-panel"
+      data-open-content="${
+        escapeHtml(
+          item.id
+        )
+      }"
+      role="button"
+      tabindex="0"
+      aria-label="Open ${
+        escapeHtml(
+          item.title ||
+          "content"
+        )
+      }"
+      style="
+        margin-bottom:12px;
+        cursor:pointer;
+        transition:
+          transform .18s var(--ease),
+          border-color .18s var(--ease),
+          background .18s var(--ease);
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          justify-content:space-between;
+          align-items:flex-start;
+          gap:14px;
+          flex-wrap:wrap;
+        "
+      >
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:8px;
+              flex-wrap:wrap;
+              margin-bottom:8px;
+            "
+          >
+
+            <span class="eyebrow">
+              ${
+                escapeHtml(
+                  getContentTypeLabel(
+                    item.type
+                  )
+                )
+              }
+            </span>
+
+            <span
+              style="
+                display:inline-flex;
+                align-items:center;
+                min-height:24px;
+                padding:4px 8px;
+                border:1px solid var(--line);
+                border-radius:999px;
+                color:var(--muted);
+                font-size:.65rem;
+                letter-spacing:.05em;
+                text-transform:uppercase;
+              "
+            >
+              ${
+                escapeHtml(
+                  titleCaseStatus(
+                    item.status
+                  )
+                )
+              }
+            </span>
+
+          </div>
+
+
+          <h3
+            style="
+              margin:0 0 8px;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:1.08rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                item.title ||
+                "Untitled Content"
+              )
+            }
+          </h3>
+
+
+          ${
+            preview
+              ? `
+                <p
+                  style="
+                    margin:0 0 9px;
+                    color:var(--muted);
+                    font-size:.78rem;
+                    line-height:1.6;
+                    white-space:pre-wrap;
+                  "
+                >
+                  ${
+                    escapeHtml(
+                      truncateText(
+                        preview,
+                        260
+                      )
+                    )
+                  }
+                </p>
+              `
+              : ""
+          }
+
+
+          <div
+            style="
+              display:flex;
+              gap:10px;
+              flex-wrap:wrap;
+              color:var(--muted);
+              font-size:.68rem;
+            "
+          >
+
+            ${
+              item.platform
+                ? `
+                  <span>
+                    ${
+                      escapeHtml(
+                        item.platform
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              item.goal
+                ? `
+                  <span>
+                    •
+                    ${
+                      escapeHtml(
+                        item.goal
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+            ${
+              item.scheduledFor
+                ? `
+                  <span>
+                    Scheduled:
+                    ${
+                      escapeHtml(
+                        formatDateTime(
+                          item.scheduledFor
+                        )
+                      )
+                    }
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+
+        <span
+          aria-hidden="true"
+          style="
+            flex:0 0 auto;
+            color:var(--bronze-light);
+            font-size:1.1rem;
+            line-height:1;
+            padding-top:4px;
+          "
+        >
+          ›
+        </span>
+
+      </div>
+
+    </article>
+  `;
+}
+
+
+/* =========================================================
+   TEXT PREVIEW
+   ========================================================= */
+
+function truncateText(
+  value,
+  maxLength = 220
+) {
+  const text =
+    String(
+      value ||
+      ""
+    )
+      .trim();
+
+
+  if (
+    text.length <=
+    maxLength
+  ) {
+    return text;
+  }
+
+
+  return (
+    text
+      .slice(
+        0,
+        maxLength
+      )
+      .trimEnd() +
+    "…"
+  );
+}
+
+
+/* =========================================================
+   CONTENT FILTERS
+   ========================================================= */
+
+function setContentFilter(
+  filter
+) {
+  $$(
+    "[data-content-filter]"
+  ).forEach(
+    button => {
+      button.classList.toggle(
+        "is-active",
+        button.dataset
+          .contentFilter ===
+          filter
+      );
+    }
+  );
+
+
+  renderContentLibrary();
+}
 /* =========================================================
    CALENDAR
    ========================================================= */
@@ -11148,13 +10758,16 @@ function renderCalendarItem(
 
 
   const isScheduledContent =
-    item.itemType === "scheduled-content" &&
+    item.itemType ===
+      "scheduled-content" &&
     item.contentId;
+
 
   const calendarItemId =
     isScheduledContent
       ? item.contentId
       : item.id;
+
 
   const calendarAction =
     isScheduledContent
@@ -11165,13 +10778,24 @@ function renderCalendarItem(
   return `
     <article
       class="content-panel calendar-item-card"
-      data-calendar-action="${escapeHtml(calendarAction)}"
-      data-calendar-item-id="${escapeHtml(calendarItemId)}"
+      data-calendar-action="${
+        escapeHtml(
+          calendarAction
+        )
+      }"
+      data-calendar-item-id="${
+        escapeHtml(
+          calendarItemId
+        )
+      }"
       role="button"
       tabindex="0"
-      aria-label="Open ${escapeHtml(
-        item.title || "calendar item"
-      )}"
+      aria-label="Open ${
+        escapeHtml(
+          item.title ||
+          "calendar item"
+        )
+      }"
       style="
         margin-bottom:10px;
         cursor:pointer;
@@ -11323,7 +10947,11 @@ function renderCalendarItem(
         >
 
           <div>
-            ${escapeHtml(startLabel)}
+            ${
+              escapeHtml(
+                startLabel
+              )
+            }
           </div>
 
 
@@ -11332,7 +10960,11 @@ function renderCalendarItem(
               ? `
                 <div>
                   to
-                  ${escapeHtml(endLabel)}
+                  ${
+                    escapeHtml(
+                      endLabel
+                    )
+                  }
                 </div>
               `
               : ""
@@ -11345,10 +10977,8 @@ function renderCalendarItem(
     </article>
   `;
 }
-
-
 /* =========================================================
-   ASSET VAULT
+   ASSETS
    ========================================================= */
 
 function renderAssets() {
@@ -11374,7 +11004,7 @@ function renderAssets() {
         </h3>
 
         <p>
-          Brand assets are organized by brand.
+          Assets are organized by brand.
         </p>
 
       </div>
@@ -11384,128 +11014,90 @@ function renderAssets() {
   }
 
 
-  const activeFilter =
-    document.querySelector(
-      "[data-asset-filter].is-active"
-    )
-      ?.dataset
-      ?.assetFilter ||
-    "all";
-
-
-  const activeFolderId =
-    APP_STATE.activeAssetFolderId ||
-    null;
-
-
-  /*
-   * FOLDERS
-   *
-   * At the root, show folders that do not
-   * have a parent.
-   *
-   * Inside a folder, show its child folders.
-   */
-  let folders =
-    (
-      APP_DATA.assetFolders ||
-      []
-    )
+  const brandFolders =
+    APP_DATA.assetFolders
       .filter(
         folder =>
-          String(
-            folder.brandId
+          folder.brandId ===
+          brand.id
+      );
+
+
+  const currentFolder =
+    APP_STATE.activeAssetFolderId
+      ? brandFolders.find(
+          folder =>
+            folder.id ===
+            APP_STATE.activeAssetFolderId
+        ) || null
+      : null;
+
+
+  if (
+    APP_STATE.activeAssetFolderId &&
+    !currentFolder
+  ) {
+    APP_STATE.activeAssetFolderId =
+      null;
+
+    return renderAssets();
+  }
+
+
+  const visibleFolders =
+    brandFolders
+      .filter(
+        folder =>
+          (
+            folder.parentFolderId ||
+            null
           ) ===
-          String(
-            brand.id
+          (
+            APP_STATE.activeAssetFolderId ||
+            null
           )
       )
-      .filter(
-        folder => {
-          if (activeFolderId) {
-            return (
-              String(
-                folder.parentFolderId ||
-                ""
-              ) ===
-              String(
-                activeFolderId
-              )
-            );
-          }
-
-          return (
-            !folder.parentFolderId
-          );
-        }
-      )
-      .slice();
+      .sort(
+        (a, b) =>
+          String(
+            a.name ||
+            ""
+          ).localeCompare(
+            String(
+              b.name ||
+              ""
+            )
+          )
+      );
 
 
-  folders.sort(
-    (a, b) =>
-      String(
-        a.name || ""
-      ).localeCompare(
-        String(
-          b.name || ""
-        )
-      )
-  );
-
-
-  /*
-   * ASSETS
-   */
   let assets =
     APP_DATA.assets
       .filter(
         asset =>
-          String(
-            asset.brandId
+          asset.brandId ===
+            brand.id &&
+          (
+            asset.folderId ||
+            null
           ) ===
-            String(
-              brand.id
-            ) &&
-          asset.active !==
-            false
-      )
-      .filter(
-        asset => {
-          if (activeFolderId) {
-            return (
-              String(
-                asset.folderId ||
-                ""
-              ) ===
-              String(
-                activeFolderId
-              )
-            );
-          }
-
-
-          /*
-           * Root view only shows assets
-           * that are not inside a folder.
-           */
-          return !asset.folderId;
-        }
+          (
+            APP_STATE.activeAssetFolderId ||
+            null
+          )
       )
       .slice();
 
 
   if (
-    activeFilter !==
+    APP_STATE.assetFilter !==
     "all"
   ) {
     assets =
       assets.filter(
         asset =>
-          assetMatchesFilter(
-            asset,
-            activeFilter
-          )
+          asset.category ===
+          APP_STATE.assetFilter
       );
   }
 
@@ -11513,50 +11105,27 @@ function renderAssets() {
   assets.sort(
     (a, b) =>
       new Date(
-        b.updatedAt ||
         b.createdAt ||
         0
       ) -
       new Date(
-        a.updatedAt ||
         a.createdAt ||
         0
       )
   );
 
 
-  /*
-   * CURRENT FOLDER
-   */
-  const currentFolder =
-    activeFolderId
-      ? (
-          APP_DATA.assetFolders ||
-          []
-        ).find(
-          folder =>
-            String(
-              folder.id
-            ) ===
-            String(
-              activeFolderId
-            )
-        )
-      : null;
+  const breadcrumb =
+    buildAssetFolderBreadcrumb(
+      brandFolders,
+      currentFolder
+    );
 
 
-  /*
-   * TOOLBAR
-   */
-  const toolbarHtml = `
+  container.innerHTML = `
     <div
       style="
         grid-column:1 / -1;
-        display:flex;
-        flex-wrap:wrap;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
         margin-bottom:4px;
       "
     >
@@ -11564,31 +11133,144 @@ function renderAssets() {
       <div
         style="
           display:flex;
-          flex-wrap:wrap;
+          justify-content:space-between;
           align-items:center;
-          gap:10px;
+          gap:12px;
+          flex-wrap:wrap;
+          margin-bottom:14px;
         "
       >
 
-        ${
-          currentFolder
-            ? `
-              <button
-                class="secondary-button"
-                type="button"
-                data-asset-folder-back
-              >
-                ← Back
-              </button>
+        <div
+          style="
+            min-width:0;
+          "
+        >
 
-              <strong>
-                ${escapeHtml(
-                  currentFolder.name
-                )}
-              </strong>
-            `
-            : ""
-        }
+          ${
+            breadcrumb.length
+              ? `
+                <div
+                  style="
+                    display:flex;
+                    align-items:center;
+                    gap:6px;
+                    flex-wrap:wrap;
+                    color:var(--muted);
+                    font-size:.7rem;
+                    margin-bottom:6px;
+                  "
+                >
+                  ${breadcrumb}
+                </div>
+              `
+              : ""
+          }
+
+
+          <div
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+              flex-wrap:wrap;
+            "
+          >
+
+            ${
+              currentFolder
+                ? `
+                  <button
+                    class="text-button"
+                    type="button"
+                    data-asset-folder-back
+                  >
+                    ← Back
+                  </button>
+                `
+                : ""
+            }
+
+
+            <h3
+              style="
+                margin:0;
+                font-family:
+                  Georgia,
+                  'Times New Roman',
+                  serif;
+                font-size:1.1rem;
+                font-weight:400;
+              "
+            >
+              ${
+                currentFolder
+                  ? escapeHtml(
+                      currentFolder.name
+                    )
+                  : "Asset Vault"
+              }
+            </h3>
+
+
+            ${
+              currentFolder
+                ? `
+                  <button
+                    class="text-button"
+                    type="button"
+                    data-rename-current-asset-folder
+                    title="Rename folder"
+                  >
+                    Rename
+                  </button>
+
+                  <button
+                    class="text-button"
+                    type="button"
+                    data-delete-asset-folder="${
+                      escapeHtml(
+                        currentFolder.id
+                      )
+                    }"
+                    title="Delete folder"
+                  >
+                    Delete
+                  </button>
+                `
+                : ""
+            }
+
+          </div>
+
+        </div>
+
+
+        <div
+          style="
+            display:flex;
+            gap:8px;
+            flex-wrap:wrap;
+          "
+        >
+
+          <button
+            class="secondary-button"
+            type="button"
+            data-create-asset-folder
+          >
+            + Folder
+          </button>
+
+          <button
+            class="primary-button"
+            type="button"
+            data-upload-asset
+          >
+            + Upload Asset
+          </button>
+
+        </div>
 
       </div>
 
@@ -11596,220 +11278,407 @@ function renderAssets() {
       <div
         style="
           display:flex;
+          gap:7px;
           flex-wrap:wrap;
-          gap:10px;
+          margin-bottom:16px;
         "
       >
 
-        <button
-          class="secondary-button"
-          type="button"
-          data-create-asset-folder
-        >
-          + Create Folder
-        </button>
+        ${renderAssetFilterButton(
+          "all",
+          "All"
+        )}
 
-        <button
-          class="secondary-button"
-          type="button"
-          data-add-asset
-        >
-          + Add Asset
-        </button>
+        ${renderAssetFilterButton(
+          "logo",
+          "Logos"
+        )}
+
+        ${renderAssetFilterButton(
+          "photo",
+          "Photos"
+        )}
+
+        ${renderAssetFilterButton(
+          "generated_artwork",
+          "Generated"
+        )}
+
+        ${renderAssetFilterButton(
+          "brand_asset",
+          "Brand Assets"
+        )}
+
+        ${renderAssetFilterButton(
+          "document",
+          "Documents"
+        )}
+
+        ${renderAssetFilterButton(
+          "other",
+          "Other"
+        )}
 
       </div>
 
     </div>
-  `;
 
 
-  /*
-   * FOLDER CARDS
-   */
-  const foldersHtml =
-    folders
-      .map(
-        folder => `
-          <article
-            class="content-panel"
-            data-open-asset-folder="${
-              escapeHtml(
-                folder.id
-                              )
-            }"
-            role="button"
-            tabindex="0"
-            style="
-              min-width:0;
-              cursor:pointer;
-            "
-          >
-
-            <div
-              style="
-                aspect-ratio:4 / 3;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                margin-bottom:12px;
-                border:1px solid var(--line);
-                border-radius:calc(
-                  var(--radius) - 4px
-                );
-                background:
-                  rgba(255,255,255,.02);
-                font-size:44px;
-              "
-              aria-hidden="true"
-            >
-              ◇
-            </div>
-
-            <div
-              class="eyebrow"
-            >
-              Folder
-            </div>
-
-            <h3
-              style="
-                margin-top:6px;
-                margin-bottom:0;
-              "
-            >
-              ${escapeHtml(
-                folder.name ||
-                "Untitled Folder"
-              )}
-            </h3>
-
-          </article>
-        `
-      )
-      .join("");
-
-
-  /*
-   * ASSET CARDS
-   */
-  const assetsHtml =
-    assets
-      .map(
-        asset =>
-          renderAssetCard(
-            asset
-          )
-      )
-      .join("");
-
-
-  /*
-   * EMPTY FOLDER / EMPTY VAULT
-   */
-  if (
-    !folders.length &&
-    !assets.length
-  ) {
-    container.innerHTML = `
-      ${toolbarHtml}
-
-      <div
-        class="empty-state"
-        style="
-          grid-column:1 / -1;
-        "
-      >
-
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ◇
-        </span>
-
-        <h3>
-          ${
-            currentFolder
-              ? "This folder is empty."
-              : (
-                  activeFilter ===
-                    "all"
-                    ? "The Asset Vault is empty."
-                    : `No ${escapeHtml(
-                        titleCaseStatus(
-                          activeFilter
-                        )
-                      )} here yet.`
+    ${
+      visibleFolders.length
+        ? visibleFolders
+            .map(
+              folder =>
+                renderAssetFolderCard(
+                  folder
                 )
-          }
-        </h3>
-
-        <p>
-          ${
-            currentFolder
-              ? "Add assets or create another folder here."
-              : "Create folders to organize your library, or add assets individually."
-          }
-        </p>
-
-      </div>
-    `;
-
-    return;
-  }
+            )
+            .join("")
+        : ""
+    }
 
 
-  container.innerHTML = `
-    ${toolbarHtml}
-    ${foldersHtml}
-    ${assetsHtml}
+    ${
+      assets.length
+        ? assets
+            .map(
+              asset =>
+                renderAssetCard(
+                  asset
+                )
+            )
+            .join("")
+        : (
+            visibleFolders.length
+              ? ""
+              : `
+                <div
+                  class="empty-state"
+                  style="
+                    grid-column:1 / -1;
+                  "
+                >
+
+                  <span
+                    class="empty-state-icon"
+                    aria-hidden="true"
+                  >
+                    ◇
+                  </span>
+
+                  <h3>
+                    ${
+                      currentFolder
+                        ? "This folder is empty."
+                        : "No assets yet."
+                    }
+                  </h3>
+
+                  <p>
+                    ${
+                      currentFolder
+                        ? "Upload an asset here or create a nested folder."
+                        : "Upload logos, photos, generated artwork, documents, and other reusable brand files."
+                    }
+                  </p>
+
+                </div>
+              `
+          )
+    }
   `;
 }
 
 
 /* =========================================================
-   ASSET FILTER MATCHING
+   ASSET FILTER BUTTON
    ========================================================= */
 
-function assetMatchesFilter(
-  asset,
-  filter
+function renderAssetFilterButton(
+  filter,
+  label
 ) {
-  const type =
-    asset.category ||
-    "other";
+  const active =
+    APP_STATE.assetFilter ===
+    filter;
 
 
-  switch (filter) {
-    case "logos":
-      return (
-        type === "logo"
-      );
+  return `
+    <button
+      class="${
+        active
+          ? "primary-button"
+          : "secondary-button"
+      }"
+      type="button"
+      data-asset-filter="${
+        escapeHtml(
+          filter
+        )
+      }"
+      style="
+        min-height:34px;
+        padding:
+          7px 11px;
+        font-size:.7rem;
+      "
+    >
+      ${escapeHtml(label)}
+    </button>
+  `;
+}
 
 
-    case "photos":
-      return (
-        type === "photo"
-      );
+/* =========================================================
+   ASSET FOLDER BREADCRUMB
+   ========================================================= */
 
-
-    case "generated":
-      return (
-        type ===
-        "generated_artwork"
-      );
-
-
-    case "brand":
-      return (
-        type ===
-        "brand_asset"
-      );
-
-
-    default:
-      return true;
+function buildAssetFolderBreadcrumb(
+  folders,
+  currentFolder
+) {
+  if (!currentFolder) {
+    return "";
   }
+
+
+  const chain = [];
+
+  const visited =
+    new Set();
+
+
+  let folder =
+    currentFolder;
+
+
+  while (
+    folder &&
+    !visited.has(
+      folder.id
+    )
+  ) {
+    visited.add(
+      folder.id
+    );
+
+
+    chain.unshift(
+      folder
+    );
+
+
+    folder =
+      folder.parentFolderId
+        ? folders.find(
+            item =>
+              item.id ===
+              folder.parentFolderId
+          ) || null
+        : null;
+  }
+
+
+  const rootButton = `
+    <button
+      class="text-button"
+      type="button"
+      data-open-asset-folder=""
+      style="
+        padding:0;
+        min-height:auto;
+        font-size:inherit;
+      "
+    >
+      Asset Vault
+    </button>
+  `;
+
+
+  return [
+    rootButton,
+
+    ...chain.map(
+      folderItem => `
+        <span
+          aria-hidden="true"
+        >
+          /
+        </span>
+
+        <button
+          class="text-button"
+          type="button"
+          data-open-asset-folder="${
+            escapeHtml(
+              folderItem.id
+            )
+          }"
+          style="
+            padding:0;
+            min-height:auto;
+            font-size:inherit;
+          "
+        >
+          ${
+            escapeHtml(
+              folderItem.name ||
+              "Folder"
+            )
+          }
+        </button>
+      `
+    )
+  ].join("");
+}
+
+
+/* =========================================================
+   ASSET FOLDER CARD
+   ========================================================= */
+
+function renderAssetFolderCard(
+  folder
+) {
+  const assetCount =
+    APP_DATA.assets.filter(
+      asset =>
+        asset.folderId ===
+        folder.id
+    ).length;
+
+
+  const childFolderCount =
+    APP_DATA.assetFolders.filter(
+      item =>
+        item.parentFolderId ===
+        folder.id
+    ).length;
+
+
+  const itemCount =
+    assetCount +
+    childFolderCount;
+
+
+  return `
+    <article
+      class="content-panel asset-folder-card"
+      data-open-asset-folder="${
+        escapeHtml(
+          folder.id
+        )
+      }"
+      role="button"
+      tabindex="0"
+      aria-label="Open folder ${
+        escapeHtml(
+          folder.name ||
+          "Folder"
+        )
+      }"
+      style="
+        cursor:pointer;
+        min-width:0;
+      "
+    >
+
+      <div
+        style="
+          display:flex;
+          align-items:center;
+          gap:12px;
+        "
+      >
+
+        <div
+          aria-hidden="true"
+          style="
+            display:grid;
+            place-items:center;
+            flex:0 0 42px;
+            width:42px;
+            height:36px;
+            border:1px solid var(--line);
+            border-radius:9px;
+            background:
+              rgba(
+                255,
+                255,
+                255,
+                .025
+              );
+            color:
+              var(--bronze-light);
+            font-size:1.15rem;
+          "
+        >
+          ▱
+        </div>
+
+
+        <div
+          style="
+            min-width:0;
+            flex:1;
+          "
+        >
+
+          <h3
+            style="
+              margin:0 0 4px;
+              overflow:hidden;
+              text-overflow:ellipsis;
+              white-space:nowrap;
+              font-family:
+                Georgia,
+                'Times New Roman',
+                serif;
+              font-size:.95rem;
+              font-weight:400;
+            "
+          >
+            ${
+              escapeHtml(
+                folder.name ||
+                "Untitled Folder"
+              )
+            }
+          </h3>
+
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.68rem;
+            "
+          >
+            ${itemCount}
+            ${
+              itemCount === 1
+                ? "item"
+                : "items"
+            }
+          </p>
+
+        </div>
+
+
+        <span
+          aria-hidden="true"
+          style="
+            color:var(--muted);
+            font-size:1rem;
+          "
+        >
+          ›
+        </span>
+
+      </div>
+
+    </article>
+  `;
 }
 
 
@@ -11817,113 +11686,12 @@ function assetMatchesFilter(
    ASSET CARD
    ========================================================= */
 
-async function hydrateAssetSignedUrls(
-  assets
-) {
-  if (
-    !supabaseClient ||
-    !Array.isArray(assets)
-  ) {
-    return assets || [];
-  }
-
-
-  await Promise.all(
-    assets.map(
-      async asset => {
-        if (!asset) {
-          return;
-        }
-
-
-        /*
-         * Assets that already have an
-         * external URL don't need a
-         * Supabase signed URL.
-         */
-        if (asset.externalUrl) {
-          asset.signedUrl =
-            asset.externalUrl;
-
-          return;
-        }
-
-
-        if (
-          !asset.storageBucket ||
-          !asset.storagePath
-        ) {
-          asset.signedUrl = "";
-          return;
-        }
-
-
-        try {
-          const {
-            data,
-            error
-          } =
-            await supabaseClient
-              .storage
-              .from(
-                asset.storageBucket
-              )
-              .createSignedUrl(
-                asset.storagePath,
-                60 * 60
-              );
-
-
-          if (error) {
-            throw error;
-          }
-
-
-          asset.signedUrl =
-            data?.signedUrl || "";
-
-        } catch (error) {
-          console.warn(
-            "Could not create signed asset URL:",
-            asset.name,
-            error
-          );
-
-
-          asset.signedUrl = "";
-        }
-      }
-    )
-  );
-
-
-  return assets;
-}
-
-
-function getAssetDisplayUrl(
-  asset
-) {
-  if (!asset) {
-    return "";
-  }
-
-
-  return (
-    asset.signedUrl ||
-    asset.externalUrl ||
-    ""
-  );
-}
-
-
 function renderAssetCard(
   asset
 ) {
   const imageUrl =
-    getAssetDisplayUrl(
-      asset
-    );
+    asset.externalUrl ||
+    "";
 
 
   const isImage =
@@ -11943,7 +11711,7 @@ function renderAssetCard(
 
   return `
     <article
-      class="content-panel"
+      class="content-panel asset-card"
       data-open-asset="${
         escapeHtml(
           asset.id
@@ -11951,6 +11719,12 @@ function renderAssetCard(
       }"
       role="button"
       tabindex="0"
+      aria-label="Open asset ${
+        escapeHtml(
+          asset.name ||
+          "Asset"
+        )
+      }"
       style="
         min-width:0;
         overflow:hidden;
@@ -11967,12 +11741,18 @@ function renderAssetCard(
                 aspect-ratio:4 / 3;
                 margin-bottom:12px;
                 border:1px solid var(--line);
-                border-radius:calc(
-                  var(--radius) - 4px
-                );
+                border-radius:
+                  calc(
+                    var(--radius) - 4px
+                  );
                 overflow:hidden;
                 background:
-                  rgba(255,255,255,.02);
+                  rgba(
+                    255,
+                    255,
+                    255,
+                    .02
+                  );
               "
             >
 
@@ -12008,16 +11788,18 @@ function renderAssetCard(
                 aspect-ratio:4 / 3;
                 margin-bottom:12px;
                 border:1px solid var(--line);
-                border-radius:calc(
-                  var(--radius) - 4px
-                );
+                border-radius:
+                  calc(
+                    var(--radius) - 4px
+                  );
                 background:
-                  rgba(255,255,255,.018);
+                  rgba(
+                    255,
+                    255,
+                    255,
+                    .018
+                  );
                 color:var(--muted);
-                font-family:
-                  Georgia,
-                  'Times New Roman',
-                  serif;
                 font-size:2rem;
               "
               aria-hidden="true"
@@ -12028,117 +11810,103 @@ function renderAssetCard(
       }
 
 
-      <span class="eyebrow">
-        ${
-          escapeHtml(
-            titleCaseStatus(
-              asset.category ||
-              "asset"
-            )
-          )
-        }
-      </span>
-
-
-      <h3
-        style="
-          margin:
-            5px 0 6px;
-          font-family:
-            Georgia,
-            'Times New Roman',
-            serif;
-          font-size:1rem;
-          font-weight:400;
-        "
-      >
-        ${
-          escapeHtml(
-            asset.name ||
-            "Untitled Asset"
-          )
-        }
-      </h3>
-
-
-      ${
-        asset.description
-          ? `
-            <p
-              style="
-                margin:
-                  0 0 10px;
-                color:var(--muted);
-                font-size:.74rem;
-                line-height:1.55;
-              "
-            >
-              ${
-                escapeHtml(
-                  truncateText(
-                    asset.description,
-                    160
-                  )
-                )
-              }
-            </p>
-          `
-          : ""
-      }
-
-
       <div
         style="
-          display:flex;
-          gap:7px;
-          flex-wrap:wrap;
-          margin-top:9px;
+          min-width:0;
         "
       >
 
-        ${
-          asset.approvedForAi
-            ? `
-              <span
-                style="
-                  display:inline-flex;
-                  align-items:center;
-                  min-height:22px;
-                  padding:3px 7px;
-                  border:1px solid var(--line);
-                  border-radius:999px;
-                  color:var(--muted);
-                  font-size:.62rem;
-                  text-transform:uppercase;
-                  letter-spacing:.04em;
-                "
-              >
-                AI Approved
-              </span>
-            `
-            : ""
-        }
+        <div
+          style="
+            display:flex;
+            align-items:center;
+            gap:7px;
+            flex-wrap:wrap;
+            margin-bottom:6px;
+          "
+        >
+
+          <span class="eyebrow">
+            ${
+              escapeHtml(
+                titleCaseStatus(
+                  asset.category ||
+                  "asset"
+                )
+              )
+            }
+          </span>
+
+
+          ${
+            asset.isPrimary
+              ? `
+                <span
+                  style="
+                    display:inline-flex;
+                    align-items:center;
+                    min-height:22px;
+                    padding:3px 7px;
+                    border:1px solid var(--line);
+                    border-radius:999px;
+                    color:var(--muted);
+                    font-size:.62rem;
+                    letter-spacing:.04em;
+                    text-transform:uppercase;
+                  "
+                >
+                  Primary
+                </span>
+              `
+              : ""
+          }
+
+        </div>
+
+
+        <h3
+          style="
+            margin:0 0 5px;
+            overflow:hidden;
+            text-overflow:ellipsis;
+            white-space:nowrap;
+            font-family:
+              Georgia,
+              'Times New Roman',
+              serif;
+            font-size:.95rem;
+            font-weight:400;
+          "
+        >
+          ${
+            escapeHtml(
+              asset.name ||
+              "Untitled Asset"
+            )
+          }
+        </h3>
 
 
         ${
-          asset.approvedForMarketing
+          asset.description
             ? `
-              <span
+              <p
                 style="
-                  display:inline-flex;
-                  align-items:center;
-                  min-height:22px;
-                  padding:3px 7px;
-                  border:1px solid var(--line);
-                  border-radius:999px;
+                  margin:0;
                   color:var(--muted);
-                  font-size:.62rem;
-                  text-transform:uppercase;
-                  letter-spacing:.04em;
+                  font-size:.7rem;
+                  line-height:1.5;
                 "
               >
-                Marketing Approved
-              </span>
+                ${
+                  escapeHtml(
+                    truncateText(
+                      asset.description,
+                      110
+                    )
+                  )
+                }
+              </p>
             `
             : ""
         }
@@ -12148,797 +11916,570 @@ function renderAssetCard(
     </article>
   `;
 }
-
-
 /* =========================================================
-   ASSET FILTERS
+   ASSET EDITOR
    ========================================================= */
 
-function setAssetFilter(
-  filter
-) {
-  $$(
-    "[data-asset-filter]"
-  ).forEach(
-    button => {
-      button.classList.toggle(
-        "is-active",
-        button.dataset
-          .assetFilter ===
-          filter
-      );
-    }
+function ensureAssetEditorDialog() {
+  let dialog =
+    $("#assetEditorDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "assetEditorDialog";
+
+
+  dialog.className =
+    "app-dialog";
+
+
+  dialog.innerHTML = `
+    <div class="asset-editor-shell">
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span class="eyebrow">
+            Asset Vault
+          </span>
+
+          <h2 id="assetEditorTitle">
+            Edit Asset
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeAssetEditorButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close asset editor"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="asset-editor-body">
+
+        <div
+          id="assetEditorPreview"
+          class="asset-editor-preview"
+        ></div>
+
+
+        <form
+          id="assetEditorForm"
+          class="create-form"
+          style="padding:0;"
+        >
+
+          <input
+            id="assetEditorId"
+            type="hidden"
+          />
+
+
+          <label class="field">
+
+            <span>
+              Name
+            </span>
+
+            <input
+              id="assetEditorName"
+              type="text"
+              maxlength="160"
+              required
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Type
+            </span>
+
+            <select
+              id="assetEditorCategory"
+            >
+
+              <option value="logo">
+                Logo
+              </option>
+
+              <option value="photo">
+                Photo
+              </option>
+
+              <option value="generated_artwork">
+                Generated Artwork
+              </option>
+
+              <option value="brand_asset">
+                Brand Asset
+              </option>
+
+            </select>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Folder
+            </span>
+
+            <select
+              id="assetEditorFolder"
+            >
+              <option value="">
+                Asset Vault Root
+              </option>
+            </select>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Description
+            </span>
+
+            <textarea
+              id="assetEditorDescription"
+              style="min-height:120px;"
+            ></textarea>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Alt Text
+            </span>
+
+            <input
+              id="assetEditorAltText"
+              type="text"
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Tags
+            </span>
+
+            <input
+              id="assetEditorTags"
+              type="text"
+              placeholder="logo, coffee, social"
+            />
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+            "
+          >
+
+            <input
+              id="assetEditorApprovedAi"
+              type="checkbox"
+            />
+
+            Approved for AI
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+            "
+          >
+
+            <input
+              id="assetEditorApprovedMarketing"
+              type="checkbox"
+            />
+
+            Approved for Marketing
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+            "
+          >
+
+            <input
+              id="assetEditorActive"
+              type="checkbox"
+            />
+
+            Active
+
+          </label>
+
+
+          <div class="asset-editor-actions">
+
+            <button
+              id="deleteAssetEditorButton"
+              class="danger-button"
+              type="button"
+            >
+              Delete Asset
+            </button>
+
+            <button
+              id="cancelAssetEditorButton"
+              class="secondary-button"
+              type="button"
+            >
+              Cancel
+            </button>
+
+            <button
+              id="saveAssetEditorButton"
+              class="primary-button"
+              type="submit"
+            >
+              Save Changes
+            </button>
+
+          </div>
+
+        </form>
+
+      </div>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
   );
 
 
-  renderAssets();
+  $("#closeAssetEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelAssetEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#deleteAssetEditorButton")
+    ?.addEventListener(
+      "click",
+      deleteAssetEditor
+    );
+
+
+  $("#assetEditorForm")
+    ?.addEventListener(
+      "submit",
+      saveAssetEditor
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
 }
 
 
 /* =========================================================
-ASSET EDITOR
-========================================================= */
-
-function ensureAssetEditorDialog() {
-let dialog =
-$("#assetEditorDialog");
-
-
-if (dialog) {
-return dialog;
-}
-
-
-dialog =
-document.createElement(
-"dialog"
-);
-
-
-dialog.id =
-"assetEditorDialog";
-
-
-dialog.className =
-"app-dialog";
-
-
-dialog.innerHTML = `
-<div class="asset-editor-shell">
-
-<div class="dialog-header">
-
-<div>
-<span class="eyebrow">
-Asset Vault
-</span>
-
-<h2 id="assetEditorTitle">
-Edit Asset
-</h2>
-</div>
-
-<button
-id="closeAssetEditorButton"
-class="dialog-close"
-type="button"
-aria-label="Close asset editor"
->
-×
-</button>
-
-</div>
-
-
-<div class="asset-editor-body">
-
-<div
-id="assetEditorPreview"
-class="asset-editor-preview"
-></div>
-
-
-<form
-id="assetEditorForm"
-class="create-form"
-style="padding:0;"
->
-
-<input
-id="assetEditorId"
-type="hidden"
-/>
-
-
-<label class="field">
-
-<span>
-Name
-</span>
-
-<input
-id="assetEditorName"
-type="text"
-maxlength="160"
-required
-/>
-
-</label>
-
-
-<label class="field">
-
-<span>
-Type
-</span>
-
-<select
-id="assetEditorCategory"
->
-
-<option value="logo">
-Logo
-</option>
-
-<option value="photo">
-Photo
-</option>
-
-<option value="generated_artwork">
-Generated Artwork
-</option>
-
-<option value="brand_asset">
-Brand Asset
-</option>
-
-</select>
-
-</label>
-
-
-<label class="field">
-
-<span>
-Folder
-</span>
-
-<select
-id="assetEditorFolder"
->
-<option value="">
-Asset Vault Root
-</option>
-</select>
-
-</label>
-
-
-<label class="field">
-
-<span>
-Description
-</span>
-
-<textarea
-id="assetEditorDescription"
-style="min-height:120px;"
-></textarea>
-
-</label>
-
-
-<label class="field">
-
-<span>
-Alt Text
-</span>
-
-<input
-id="assetEditorAltText"
-type="text"
-/>
-
-</label>
-
-
-<label class="field">
-
-<span>
-Tags
-</span>
-
-<input
-id="assetEditorTags"
-type="text"
-placeholder="logo, coffee, social"
-/>
-
-</label>
-
-
-<label
-style="
-display:flex;
-align-items:center;
-gap:10px;
-"
->
-
-<input
-id="assetEditorApprovedAi"
-type="checkbox"
-/>
-
-Approved for AI
-
-</label>
-
-
-<label
-style="
-display:flex;
-align-items:center;
-gap:10px;
-"
->
-
-<input
-id="assetEditorApprovedMarketing"
-type="checkbox"
-/>
-
-Approved for Marketing
-
-</label>
-
-
-<label
-style="
-display:flex;
-align-items:center;
-gap:10px;
-"
->
-
-<input
-id="assetEditorActive"
-type="checkbox"
-/>
-
-Active
-
-</label>
-
-
-<div class="asset-editor-actions">
-
-<button
-id="deleteAssetEditorButton"
-class="danger-button"
-type="button"
->
-Delete Asset
-</button>
-
-<button
-id="cancelAssetEditorButton"
-class="secondary-button"
-type="button"
->
-Cancel
-</button>
-
-<button
-id="saveAssetEditorButton"
-class="primary-button"
-type="submit"
->
-Save Changes
-</button>
-
-</div>
-
-</form>
-
-</div>
-
-</div>
-`;
-
-
-document.body.appendChild(
-dialog
-);
-
-
-$("#closeAssetEditorButton")
-?.addEventListener(
-"click",
-() => {
-safeDialogClose(
-dialog
-);
-}
-);
-
-
-$("#cancelAssetEditorButton")
-?.addEventListener(
-"click",
-() => {
-safeDialogClose(
-dialog
-);
-}
-);
-
-
-$("#deleteAssetEditorButton")
-?.addEventListener(
-"click",
-deleteAssetEditor
-);
-
-
-$("#assetEditorForm")
-?.addEventListener(
-"submit",
-saveAssetEditor
-);
-
-
-enableBackdropClose(
-dialog
-);
-
-
-return dialog;
-}
-
+   OPEN ASSET EDITOR
+   ========================================================= */
 
 function openAssetEditor(
-assetId
+  assetId
 ) {
-const asset =
-APP_DATA.assets.find(
-item =>
-String(item.id) ===
-String(assetId)
-);
+  const asset =
+    APP_DATA.assets.find(
+      item =>
+        String(
+          item.id
+        ) ===
+        String(
+          assetId
+        )
+    );
 
 
-if (!asset) {
-showToast(
-"Asset could not be found.",
-"error"
-);
+  if (!asset) {
+    showToast(
+      "Asset could not be found.",
+      "error"
+    );
 
-return;
+    return;
+  }
+
+
+  const dialog =
+    ensureAssetEditorDialog();
+
+
+  $("#assetEditorId").value =
+    asset.id;
+
+
+  $("#assetEditorName").value =
+    asset.name ||
+    "";
+
+
+  $("#assetEditorCategory").value =
+    asset.category ||
+    "brand_asset";
+
+
+  const folderSelect =
+    $("#assetEditorFolder");
+
+
+  if (folderSelect) {
+    const brand =
+      getActiveBrand();
+
+
+    const folders =
+      (
+        APP_DATA.assetFolders ||
+        []
+      )
+        .filter(
+          folder =>
+            !brand ||
+            String(
+              folder.brandId
+            ) ===
+            String(
+              brand.id
+            )
+        )
+        .slice()
+        .sort(
+          (a, b) =>
+            folderName(a)
+              .localeCompare(
+                folderName(b)
+              )
+        );
+
+
+    folderSelect.innerHTML = `
+      <option value="">
+        Asset Vault Root
+      </option>
+
+      ${
+        folders
+          .map(
+            folder => `
+              <option
+                value="${
+                  escapeHtml(
+                    folder.id
+                  )
+                }"
+              >
+                ${
+                  escapeHtml(
+                    folderName(
+                      folder
+                    )
+                  )
+                }
+              </option>
+            `
+          )
+          .join("")
+      }
+    `;
+
+
+    folderSelect.value =
+      asset.folderId ||
+      "";
+  }
+
+
+  $("#assetEditorDescription").value =
+    asset.description ||
+    "";
+
+
+  $("#assetEditorAltText").value =
+    asset.altText ||
+    "";
+
+
+  $("#assetEditorTags").value =
+    Array.isArray(
+      asset.tags
+    )
+      ? asset.tags.join(
+          ", "
+        )
+      : "";
+
+
+  $("#assetEditorApprovedAi").checked =
+    Boolean(
+      asset.approvedForAi
+    );
+
+
+  $("#assetEditorApprovedMarketing").checked =
+    Boolean(
+      asset.approvedForMarketing
+    );
+
+
+  $("#assetEditorActive").checked =
+    asset.active !==
+    false;
+
+
+  const title =
+    $("#assetEditorTitle");
+
+
+  if (title) {
+    title.textContent =
+      asset.name ||
+      "Edit Asset";
+  }
+
+
+  const preview =
+    $("#assetEditorPreview");
+
+
+  if (preview) {
+    const imageUrl =
+      getAssetDisplayUrl(
+        asset
+      );
+
+
+    const isImage =
+      asset.mimeType
+        ?.startsWith(
+          "image/"
+        ) ||
+      [
+        "logo",
+        "photo",
+        "generated_artwork",
+        "brand_asset"
+      ].includes(
+        asset.category
+      );
+
+
+    if (
+      imageUrl &&
+      isImage
+    ) {
+      preview.innerHTML = `
+        <img
+          src="${
+            escapeHtml(
+              imageUrl
+            )
+          }"
+          alt="${
+            escapeHtml(
+              asset.altText ||
+              asset.name ||
+              ""
+            )
+          }"
+        />
+      `;
+
+    } else {
+      preview.innerHTML = `
+        <div
+          style="
+            padding:32px 16px;
+            color:var(--muted);
+            text-align:center;
+            font-size:.8rem;
+          "
+        >
+          No image preview available.
+        </div>
+      `;
+    }
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
 }
 
 
-const dialog =
-ensureAssetEditorDialog();
-
-
-$("#assetEditorId").value =
-asset.id;
-
-
-$("#assetEditorName").value =
-asset.name || "";
-
-
-$("#assetEditorCategory").value =
-asset.category ||
-"brand_asset";
-
-
-const folderSelect =
-$("#assetEditorFolder");
-
-
-if (folderSelect) {
-const brand =
-getActiveBrand();
-
-const folders =
-(
-APP_DATA.assetFolders ||
-[]
-)
-.filter(
-folder =>
-!brand ||
-String(
-folder.brandId
-) ===
-String(
-brand.id
-)
-)
-.slice()
-.sort(
-(a, b) =>
-folderName(a)
-.localeCompare(
-folderName(b)
-)
-);
-
-
-folderSelect.innerHTML = `
-<option value="">
-Asset Vault Root
-</option>
-
-${
-folders
-.map(
-folder => `
-<option
-value="${
-escapeHtml(
-folder.id
-)
-}"
->
-${
-escapeHtml(
-folderName(
-folder
-)
-)
-}
-</option>
-`
-)
-.join("")
-}
-`;
-
-
-folderSelect.value =
-asset.folderId ||
-"";
-}
-
-
-$("#assetEditorDescription").value =
-asset.description || "";
-
-
-$("#assetEditorAltText").value =
-asset.altText || "";
-
-
-$("#assetEditorTags").value =
-Array.isArray(
-asset.tags
-)
-? asset.tags.join(", ")
-: "";
-
-
-$("#assetEditorApprovedAi").checked =
-Boolean(
-asset.approvedForAi
-);
-
-
-$("#assetEditorApprovedMarketing").checked =
-Boolean(
-asset.approvedForMarketing
-);
-
-
-$("#assetEditorActive").checked =
-asset.active !== false;
-
-
-const title =
-$("#assetEditorTitle");
-
-
-if (title) {
-title.textContent =
-asset.name ||
-"Edit Asset";
-}
-
-
-const preview =
-$("#assetEditorPreview");
-
-
-if (preview) {
-const imageUrl =
-getAssetDisplayUrl(
-asset
-);
-
-
-const isImage =
-asset.mimeType
-?.startsWith(
-"image/"
-) ||
-[
-"logo",
-"photo",
-"generated_artwork",
-"brand_asset"
-].includes(
-asset.category
-);
-
-
-if (
-imageUrl &&
-isImage
-) {
-preview.innerHTML = `
-<img
-src="${
-escapeHtml(
-imageUrl
-)
-}"
-alt="${
-escapeHtml(
-asset.altText ||
-asset.name ||
-""
-)
-}"
-/>
-`;
-} else {
-preview.innerHTML = `
-<div
-style="
-padding:32px 16px;
-color:var(--muted);
-text-align:center;
-font-size:.8rem;
-"
->
-No image preview available.
-</div>
-`;
-}
-}
-
-
-safeDialogOpen(
-dialog
-);
-}
-
-
-async function saveAssetEditor(
-event
-) {
-event.preventDefault();
-
-
-const id =
-$("#assetEditorId")
-?.value;
-
-
-const name =
-String(
-$("#assetEditorName")
-?.value ||
-""
-).trim();
-
-
-const category =
-$("#assetEditorCategory")
-?.value ||
-"brand_asset";
-
-
-const folderId =
-$("#assetEditorFolder")
-?.value ||
-null;
-
-
-const description =
-nullableText(
-$("#assetEditorDescription")
-?.value
-);
-
-
-const altText =
-nullableText(
-$("#assetEditorAltText")
-?.value
-);
-
-
-const tags =
-textToArray(
-$("#assetEditorTags")
-?.value
-);
-
-
-const approvedForAi =
-Boolean(
-$("#assetEditorApprovedAi")
-?.checked
-);
-
-
-const approvedForMarketing =
-Boolean(
-$("#assetEditorApprovedMarketing")
-?.checked
-);
-
-
-const active =
-Boolean(
-$("#assetEditorActive")
-?.checked
-);
-
-
-if (!id) {
-showToast(
-"Asset ID is missing.",
-"error"
-);
-
-return;
-}
-
-
-if (!name) {
-showToast(
-"Give this asset a name.",
-"error"
-);
-
-return;
-}
-
-
-const button =
-$("#saveAssetEditorButton");
-
-
-if (button) {
-button.disabled =
-true;
-
-button.textContent =
-"Saving…";
-}
-
-
-try {
-const {
-error
-} =
-await supabaseClient
-.from("assets")
-.update({
-name,
-
-asset_type:
-category,
-
-folder_id:
-folderId,
-
-description,
-
-alt_text:
-altText,
-
-tags,
-
-approved_for_ai:
-approvedForAi,
-
-approved_for_marketing:
-approvedForMarketing,
-
-active
-})
-.eq(
-"id",
-id
-);
-
-
-if (error) {
-throw error;
-}
-
-
-const asset =
-APP_DATA.assets.find(
-item =>
-String(item.id) ===
-String(id)
-);
-
-
-if (asset) {
-asset.name =
-name;
-
-asset.category =
-category;
-
-asset.folderId =
-folderId;
-
-asset.description =
-description;
-
-asset.altText =
-altText;
-
-asset.tags =
-tags;
-
-asset.approvedForAi =
-approvedForAi;
-
-asset.approvedForMarketing =
-approvedForMarketing;
-
-asset.active =
-active;
-}
-
-
-safeDialogClose(
-$("#assetEditorDialog")
-);
-
-
-renderApp();
-
-
-showToast(
-"Asset updated.",
-"success"
-);
-
-} catch (error) {
-console.error(
-"Asset update failed:",
-error
-);
-
-
-showToast(
-error?.message ||
-"Asset could not be updated.",
-"error"
-);
-
-} finally {
-if (button) {
-button.disabled =
-false;
-
-button.textContent =
-"Save Changes";
-}
-}
-}
-
+/* =========================================================
+   SAVE ASSET EDITOR
+   ========================================================= */
 
 async function saveAssetEditor(
   event
@@ -12965,6 +12506,12 @@ async function saveAssetEditor(
     "brand_asset";
 
 
+  const folderId =
+    $("#assetEditorFolder")
+      ?.value ||
+    null;
+
+
   const description =
     nullableText(
       $("#assetEditorDescription")
@@ -12974,7 +12521,7 @@ async function saveAssetEditor(
 
   const altText =
     nullableText(
-          $("#assetEditorAltText")
+      $("#assetEditorAltText")
         ?.value
     );
 
@@ -13048,16 +12595,26 @@ async function saveAssetEditor(
         .from("assets")
         .update({
           name,
+
           asset_type:
             category,
+
+          folder_id:
+            folderId,
+
           description,
+
           alt_text:
             altText,
+
           tags,
+
           approved_for_ai:
             approvedForAi,
+
           approved_for_marketing:
             approvedForMarketing,
+
           active
         })
         .eq(
@@ -13074,8 +12631,12 @@ async function saveAssetEditor(
     const asset =
       APP_DATA.assets.find(
         item =>
-          String(item.id) ===
-          String(id)
+          String(
+            item.id
+          ) ===
+          String(
+            id
+          )
       );
 
 
@@ -13085,6 +12646,9 @@ async function saveAssetEditor(
 
       asset.category =
         category;
+
+      asset.folderId =
+        folderId;
 
       asset.description =
         description;
@@ -13144,6 +12708,10 @@ async function saveAssetEditor(
 }
 
 
+/* =========================================================
+   DELETE ASSET
+   ========================================================= */
+
 async function deleteAssetEditor() {
   const id =
     $("#assetEditorId")
@@ -13163,8 +12731,12 @@ async function deleteAssetEditor() {
   const asset =
     APP_DATA.assets.find(
       item =>
-        String(item.id) ===
-        String(id)
+        String(
+          item.id
+        ) ===
+        String(
+          id
+        )
     );
 
 
@@ -13203,10 +12775,6 @@ async function deleteAssetEditor() {
 
 
   try {
-
-    /*
-     * First delete the database record.
-     */
     const {
       error:
         databaseError
@@ -13225,16 +12793,6 @@ async function deleteAssetEditor() {
     }
 
 
-    /*
-     * If this asset was uploaded into
-     * Supabase Storage, remove the
-     * underlying file as well.
-     *
-     * Failure here does not restore the
-     * database record. It is logged so a
-     * stray storage object can be cleaned
-     * manually if necessary.
-     */
     if (
       asset.storageBucket &&
       asset.storagePath
@@ -13265,8 +12823,12 @@ async function deleteAssetEditor() {
     APP_DATA.assets =
       APP_DATA.assets.filter(
         item =>
-          String(item.id) !==
-          String(id)
+          String(
+            item.id
+          ) !==
+          String(
+            id
+          )
       );
 
 
@@ -13306,11 +12868,7 @@ async function deleteAssetEditor() {
     }
   }
 }
-  
 
-/* =========================================================
-   ASSET FOLDERS
-   ========================================================= */
 
 /* =========================================================
    ASSET FOLDERS
@@ -13320,24 +12878,34 @@ function getAssetFoldersForActiveBrand() {
   const brand =
     getActiveBrand();
 
+
   if (!brand) {
     return [];
   }
 
+
   return (
-    APP_DATA.assetFolders || []
+    APP_DATA.assetFolders ||
+    []
   )
     .filter(
       folder =>
-        String(folder.brandId) ===
-        String(brand.id)
+        String(
+          folder.brandId
+        ) ===
+        String(
+          brand.id
+        )
     )
     .sort(
       (a, b) =>
-        String(folderName(a))
-          .localeCompare(
-            String(folderName(b))
+        String(
+          folderName(a)
+        ).localeCompare(
+          String(
+            folderName(b)
           )
+        )
     );
 }
 
@@ -13346,7 +12914,9 @@ function getAssetFoldersForActiveBrand() {
    ASSET FOLDER NAME
    ========================================================= */
 
-function folderName(folder) {
+function folderName(
+  folder
+) {
   return (
     folder?.name ||
     "Untitled Folder"
@@ -13364,142 +12934,13 @@ function getAssetFolderAssetCount(
   return APP_DATA.assets.filter(
     asset =>
       String(
-        asset.folderId || ""
+        asset.folderId ||
+        ""
       ) ===
-      String(folderId)
+      String(
+        folderId
+      )
   ).length;
-}
-
-
-/* =========================================================
-   RENDER ASSET FOLDER CARD
-   ========================================================= */
-
-function renderAssetFolderCard(
-  folder
-) {
-  const assetCount =
-    getAssetFolderAssetCount(
-      folder.id
-    );
-
-  return `
-    <article
-      class="content-panel"
-      data-open-asset-folder="${
-        escapeHtml(folder.id)
-      }"
-      role="button"
-      tabindex="0"
-      style="
-        min-width:0;
-        cursor:pointer;
-        position:relative;
-      "
-    >
-
-      <button
-        type="button"
-        data-delete-asset-folder="${
-          escapeHtml(folder.id)
-        }"
-        aria-label="Delete ${
-          escapeHtml(
-            folderName(folder)
-          )
-        }"
-        title="Delete Folder"
-        style="
-          position:absolute;
-          top:12px;
-          right:12px;
-          z-index:5;
-
-          display:grid;
-          place-items:center;
-
-          width:34px;
-          height:34px;
-
-          padding:0;
-
-          border:
-            1px solid
-            rgba(163,95,95,.28);
-
-          border-radius:10px;
-
-          color:
-            var(--danger);
-
-          background:
-            rgba(8,10,9,.82);
-
-          font-size:1rem;
-          line-height:1;
-        "
-      >
-        ×
-      </button>
-
-      <div
-        style="
-          min-height:145px;
-          display:flex;
-          flex-direction:column;
-          justify-content:space-between;
-          gap:20px;
-        "
-      >
-
-        <div
-          aria-hidden="true"
-          style="
-            font-size:2.1rem;
-            line-height:1;
-          "
-        >
-          ◇
-        </div>
-
-        <div>
-          <span class="eyebrow">
-            Folder
-          </span>
-
-          <h3
-            style="
-              margin:6px 0 4px;
-              padding-right:36px;
-            "
-          >
-            ${
-              escapeHtml(
-                folderName(folder)
-              )
-            }
-          </h3>
-
-          <p
-            style="
-              margin:0;
-              color:var(--muted);
-              font-size:.75rem;
-            "
-          >
-            ${assetCount}
-            ${
-              assetCount === 1
-                ? "asset"
-                : "assets"
-            }
-          </p>
-        </div>
-
-      </div>
-
-    </article>
-  `;
 }
 
 
@@ -13513,9 +12954,14 @@ function openAssetFolderById(
   const folder =
     APP_DATA.assetFolders.find(
       item =>
-        String(item.id) ===
-        String(folderId)
+        String(
+          item.id
+        ) ===
+        String(
+          folderId
+        )
     );
+
 
   if (!folder) {
     showToast(
@@ -13526,10 +12972,162 @@ function openAssetFolderById(
     return;
   }
 
+
   APP_STATE.activeAssetFolderId =
     folder.id;
 
+
   renderApp();
+}
+
+
+/* =========================================================
+   RENAME ASSET FOLDER
+   ========================================================= */
+
+async function renameAssetFolder(
+  folderId
+) {
+  const folder =
+    (
+      APP_DATA.assetFolders ||
+      []
+    ).find(
+      item =>
+        String(
+          item.id
+        ) ===
+        String(
+          folderId
+        )
+    );
+
+
+  if (!folder) {
+    showToast(
+      "Asset folder could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const currentName =
+    folderName(
+      folder
+    );
+
+
+  const requestedName =
+    window.prompt(
+      "Rename folder:",
+      currentName
+    );
+
+
+  if (
+    requestedName ===
+    null
+  ) {
+    return;
+  }
+
+
+  const name =
+    String(
+      requestedName
+    ).trim();
+
+
+  if (!name) {
+    showToast(
+      "Folder name cannot be empty.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (
+    name ===
+    currentName
+  ) {
+    return;
+  }
+
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "asset_folders"
+        )
+        .update({
+          name
+        })
+        .eq(
+          "id",
+          folder.id
+        )
+        .select("*")
+        .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const updatedFolder =
+      normalizeAssetFolder(
+        data
+      );
+
+
+    APP_DATA.assetFolders =
+      (
+        APP_DATA.assetFolders ||
+        []
+      ).map(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            folder.id
+          )
+            ? updatedFolder
+            : item
+      );
+
+
+    renderApp();
+
+
+    showToast(
+      "Folder renamed.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Folder rename failed:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Folder could not be renamed.",
+      "error",
+      5500
+    );
+  }
 }
 
 
@@ -13546,9 +13144,14 @@ async function deleteAssetFolder(
       []
     ).find(
       item =>
-        String(item.id) ===
-        String(folderId)
+        String(
+          item.id
+        ) ===
+        String(
+          folderId
+        )
     );
+
 
   if (!folder) {
     showToast(
@@ -13566,15 +13169,15 @@ async function deleteAssetFolder(
     );
 
 
-  /*
-   * Do not delete folders containing
-   * assets. This keeps deletion safe
-   * and prevents orphaned records.
-   */
-  if (assetCount > 0) {
+  if (
+    assetCount >
+    0
+  ) {
     showToast(
       `${
-        folderName(folder)
+        folderName(
+          folder
+        )
       } contains ${
         assetCount
       } ${
@@ -13594,12 +13197,6 @@ async function deleteAssetFolder(
   }
 
 
-  /*
-   * Also protect against deleting a
-   * parent folder containing folders.
-   * This matters if nested folders are
-   * enabled later.
-   */
   const childFolders =
     (
       APP_DATA.assetFolders ||
@@ -13610,14 +13207,20 @@ async function deleteAssetFolder(
           item.parentFolderId ||
           ""
         ) ===
-        String(folder.id)
+        String(
+          folder.id
+        )
     );
 
 
-  if (childFolders.length) {
+  if (
+    childFolders.length
+  ) {
     showToast(
       `${
-        folderName(folder)
+        folderName(
+          folder
+        )
       } contains ${
         childFolders.length
       } ${
@@ -13651,7 +13254,6 @@ async function deleteAssetFolder(
 
 
   try {
-
     const {
       error
     } =
@@ -13671,32 +13273,29 @@ async function deleteAssetFolder(
     }
 
 
-    /*
-     * Remove the deleted folder from
-     * local application state.
-     */
     APP_DATA.assetFolders =
       (
         APP_DATA.assetFolders ||
         []
       ).filter(
         item =>
-          String(item.id) !==
-          String(folder.id)
+          String(
+            item.id
+          ) !==
+          String(
+            folder.id
+          )
       );
 
 
-    /*
-     * If the user somehow deletes the
-     * folder currently being viewed,
-     * return to the parent/root.
-     */
     if (
       String(
         APP_STATE.activeAssetFolderId ||
         ""
       ) ===
-      String(folder.id)
+      String(
+        folder.id
+      )
     ) {
       APP_STATE.activeAssetFolderId =
         folder.parentFolderId ||
@@ -13713,7 +13312,6 @@ async function deleteAssetFolder(
     );
 
   } catch (error) {
-
     console.error(
       "Folder deletion failed:",
       error
@@ -13738,6 +13336,7 @@ function openCreateAssetFolderDialog() {
   const brand =
     getActiveBrand();
 
+
   if (!brand) {
     showToast(
       "Choose a working brand first.",
@@ -13747,8 +13346,10 @@ function openCreateAssetFolderDialog() {
     return;
   }
 
+
   let dialog =
     $("#assetFolderDialog");
+
 
   if (!dialog) {
     dialog =
@@ -13756,16 +13357,20 @@ function openCreateAssetFolderDialog() {
         "dialog"
       );
 
+
     dialog.id =
       "assetFolderDialog";
 
+
     dialog.className =
       "app-dialog";
+
 
     document.body.appendChild(
       dialog
     );
   }
+
 
   dialog.innerHTML = `
     <div
@@ -13777,6 +13382,7 @@ function openCreateAssetFolderDialog() {
         );
       "
     >
+
       <div
         style="
           display:flex;
@@ -13786,7 +13392,9 @@ function openCreateAssetFolderDialog() {
           margin-bottom:22px;
         "
       >
+
         <div>
+
           <span class="eyebrow">
             Asset Vault
           </span>
@@ -13816,7 +13424,9 @@ function openCreateAssetFolderDialog() {
               brand.name
             )}.
           </p>
+
         </div>
+
 
         <button
           type="button"
@@ -13826,13 +13436,17 @@ function openCreateAssetFolderDialog() {
         >
           ×
         </button>
+
       </div>
+
 
       <form
         id="assetFolderForm"
         autocomplete="off"
       >
+
         <label>
+
           <span>
             Folder Name
           </span>
@@ -13844,7 +13458,9 @@ function openCreateAssetFolderDialog() {
             placeholder="Campaign Photography"
             required
           />
+
         </label>
+
 
         <div
           style="
@@ -13854,6 +13470,7 @@ function openCreateAssetFolderDialog() {
             margin-top:22px;
           "
         >
+
           <button
             type="button"
             class="secondary-button"
@@ -13869,10 +13486,14 @@ function openCreateAssetFolderDialog() {
           >
             Create Folder
           </button>
+
         </div>
+
       </form>
+
     </div>
   `;
+
 
   $("#assetFolderForm")
     ?.addEventListener(
@@ -13880,9 +13501,11 @@ function openCreateAssetFolderDialog() {
       handleCreateAssetFolder
     );
 
+
   safeDialogOpen(
     dialog
   );
+
 
   requestAnimationFrame(
     () => {
@@ -13902,12 +13525,15 @@ async function handleCreateAssetFolder(
 ) {
   event.preventDefault();
 
+
   const brand =
     getActiveBrand();
+
 
   if (!brand) {
     return;
   }
+
 
   const name =
     String(
@@ -13915,6 +13541,7 @@ async function handleCreateAssetFolder(
         ?.value ||
       ""
     ).trim();
+
 
   if (!name) {
     showToast(
@@ -13925,8 +13552,10 @@ async function handleCreateAssetFolder(
     return;
   }
 
+
   const button =
     $("#saveAssetFolderButton");
+
 
   if (button) {
     button.disabled =
@@ -13935,6 +13564,7 @@ async function handleCreateAssetFolder(
     button.textContent =
       "Creating…";
   }
+
 
   try {
     const {
@@ -13946,21 +13576,23 @@ async function handleCreateAssetFolder(
           "asset_folders"
         )
         .insert({
-  brand_id:
-    brand.id,
+          brand_id:
+            brand.id,
 
-  parent_folder_id:
-    APP_STATE.activeAssetFolderId ||
-    null,
+          parent_folder_id:
+            APP_STATE.activeAssetFolderId ||
+            null,
 
-  name
-})
+          name
+        })
         .select("*")
         .single();
+
 
     if (error) {
       throw error;
     }
+
 
     APP_DATA.assetFolders.push(
       normalizeAssetFolder(
@@ -13968,11 +13600,14 @@ async function handleCreateAssetFolder(
       )
     );
 
+
     safeDialogClose(
       $("#assetFolderDialog")
     );
 
+
     renderApp();
+
 
     showToast(
       "Folder created.",
@@ -13984,6 +13619,7 @@ async function handleCreateAssetFolder(
       "Folder creation failed:",
       error
     );
+
 
     showToast(
       error?.message ||
@@ -14868,8 +14504,6 @@ async function handleAssetUploadSubmit(
     }
   }
 }
-
-
 /* =========================================================
    QUICK CREATE BRAND OPTIONS
    ========================================================= */
@@ -14981,20 +14615,26 @@ function openQuickCreate(
 
   const promptField =
     $("#createPrompt");
-      if (typeField) {
+
+
+  if (typeField) {
     typeField.value =
       normalizedType;
   }
+
 
   if (title) {
     title.textContent =
       `Create ${definition.label}`;
   }
 
+
   renderQuickCreateBrandOptions();
+
 
   const activeBrand =
     getActiveBrand();
+
 
   if (
     activeBrand &&
@@ -15004,22 +14644,27 @@ function openQuickCreate(
       activeBrand.id;
   }
 
+
   if (promptField) {
     promptField.value =
       "";
   }
 
+
   const goalField =
     $("#createGoal");
+
 
   if (goalField) {
     goalField.selectedIndex =
       0;
   }
 
+
   safeDialogOpen(
     dialog
   );
+
 
   window.setTimeout(
     () => {
@@ -15028,8 +14673,1733 @@ function openQuickCreate(
     100
   );
 }
+/* =========================================================
+   QUICK CREATE SUBMIT
+   ========================================================= */
+
+async function handleQuickCreate(
+  event
+) {
+  event.preventDefault();
 
 
+  const type =
+    $("#createContentType")
+      ?.value ||
+    "social-post";
+
+
+  const brandId =
+    $("#createBrand")
+      ?.value;
+
+
+  const prompt =
+    $("#createPrompt")
+      ?.value
+      ?.trim();
+
+
+  const goal =
+    $("#createGoal")
+      ?.value ||
+    "";
+
+
+  const brand =
+    getBrandById(
+      brandId
+    );
+
+
+  if (!brand) {
+    showToast(
+      "Choose a brand.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (!prompt) {
+    showToast(
+      "Tell Marketing Studio what you want to create.",
+      "error"
+    );
+
+
+    $("#createPrompt")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  const definition =
+    CREATE_TYPES[type] ||
+    CREATE_TYPES[
+      "social-post"
+    ];
+
+
+  const button =
+    $("#quickCreateSubmitButton");
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Creating…";
+  }
+
+
+  try {
+    const title =
+      buildQuickCreateTitle(
+        definition.label,
+        prompt
+      );
+
+
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from("content")
+        .insert({
+          brand_id:
+            brand.id,
+
+          content_type:
+            APP_TYPE_TO_DB_TYPE[
+              type
+            ] ||
+            type,
+
+          title,
+
+          body:
+            null,
+
+          original_request:
+            prompt,
+
+          goal:
+            nullableText(
+              goal
+            ),
+
+          status:
+            "draft"
+        })
+        .select("*")
+        .single();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const content =
+      normalizeContent(
+        data
+      );
+
+
+    APP_DATA.content.unshift(
+      content
+    );
+
+
+    safeDialogClose(
+      $("#quickCreateDialog")
+    );
+
+
+    setActiveBrand(
+      brand.id,
+      {
+        toast: false
+      }
+    );
+
+
+    renderApp();
+
+
+    openContentEditor(
+      content.id
+    );
+
+
+    showToast(
+      `${definition.label} draft created.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Quick Create failed:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Content could not be created.",
+      "error",
+      6000
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Create Draft";
+    }
+  }
+}
+
+
+/* =========================================================
+   QUICK CREATE TITLE
+   ========================================================= */
+
+function buildQuickCreateTitle(
+  typeLabel,
+  prompt
+) {
+  const cleanPrompt =
+    String(
+      prompt ||
+      ""
+    )
+      .replace(
+        /\s+/g,
+        " "
+      )
+      .trim();
+
+
+  if (!cleanPrompt) {
+    return (
+      typeLabel ||
+      "New Content"
+    );
+  }
+
+
+  const maxLength =
+    72;
+
+
+  const preview =
+    cleanPrompt.length >
+    maxLength
+      ? `${cleanPrompt
+          .slice(
+            0,
+            maxLength
+          )
+          .trim()}…`
+      : cleanPrompt;
+
+
+  return `${typeLabel}: ${preview}`;
+}
+
+
+/* =========================================================
+   CREATE TYPE BUTTONS
+   ========================================================= */
+
+function handleCreateTypeButton(
+  button
+) {
+  const type =
+    button?.dataset
+      ?.createType;
+
+
+  if (!type) {
+    return;
+  }
+
+
+  if (
+    type ===
+    "campaign"
+  ) {
+    openCampaignEditor();
+
+    return;
+  }
+
+
+  openQuickCreate(
+    type
+  );
+}
+
+
+/* =========================================================
+   CAMPAIGN EDITOR
+   ========================================================= */
+
+function ensureCampaignEditorDialog() {
+  let dialog =
+    $("#campaignEditorDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "campaignEditorDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(720px,92vw);
+        max-width:100%;
+        max-height:88vh;
+        overflow-y:auto;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span class="eyebrow">
+            Campaign
+          </span>
+
+          <h2
+            id="campaignEditorDialogTitle"
+          >
+            Create Campaign
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeCampaignEditorButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="campaignEditorForm"
+        class="create-form"
+      >
+
+        <input
+          id="campaignEditorId"
+          type="hidden"
+        />
+
+
+        <label class="field">
+
+          <span>
+            Campaign Name
+          </span>
+
+          <input
+            id="campaignEditorName"
+            type="text"
+            placeholder="Fall Launch"
+            required
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Description
+          </span>
+
+          <textarea
+            id="campaignEditorDescription"
+            style="
+              min-height:110px;
+            "
+            placeholder="What is this campaign about?"
+          ></textarea>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Objective
+          </span>
+
+          <textarea
+            id="campaignEditorObjective"
+            style="
+              min-height:90px;
+            "
+            placeholder="What should this campaign accomplish?"
+          ></textarea>
+
+        </label>
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(
+                auto-fit,
+                minmax(180px,1fr)
+              );
+            gap:14px;
+          "
+        >
+
+          <label class="field">
+
+            <span>
+              Status
+            </span>
+
+            <select
+              id="campaignEditorStatus"
+            >
+
+              <option value="draft">
+                Draft
+              </option>
+
+              <option value="active">
+                Active
+              </option>
+
+              <option value="paused">
+                Paused
+              </option>
+
+              <option value="completed">
+                Completed
+              </option>
+
+            </select>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Start Date
+            </span>
+
+            <input
+              id="campaignEditorStartsOn"
+              type="date"
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              End Date
+            </span>
+
+            <input
+              id="campaignEditorEndsOn"
+              type="date"
+            />
+
+          </label>
+
+        </div>
+
+
+        <label class="field">
+
+          <span>
+            Channels
+          </span>
+
+          <input
+            id="campaignEditorChannels"
+            type="text"
+            placeholder="Instagram, Facebook, Email"
+          />
+
+          <small
+            style="
+              display:block;
+              margin-top:5px;
+              color:var(--muted);
+              font-size:.68rem;
+            "
+          >
+            Separate channels with commas.
+          </small>
+
+        </label>
+
+
+        <div class="form-actions">
+
+          <button
+            id="cancelCampaignEditorButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveCampaignEditorButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Campaign
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeCampaignEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelCampaignEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#campaignEditorForm")
+    ?.addEventListener(
+      "submit",
+      saveCampaignEditor
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   OPEN CAMPAIGN EDITOR
+   ========================================================= */
+
+function openCampaignEditor(
+  campaignId = null
+) {
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    showToast(
+      "Choose a working brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const dialog =
+    ensureCampaignEditorDialog();
+
+
+  const campaign =
+    campaignId
+      ? APP_DATA.campaigns.find(
+          item =>
+            String(
+              item.id
+            ) ===
+            String(
+              campaignId
+            )
+        ) || null
+      : null;
+
+
+  const title =
+    $("#campaignEditorDialogTitle");
+
+
+  if (title) {
+    title.textContent =
+      campaign
+        ? "Edit Campaign"
+        : "Create Campaign";
+  }
+
+
+  $("#campaignEditorId").value =
+    campaign?.id ||
+    "";
+
+
+  $("#campaignEditorName").value =
+    campaign?.name ||
+    "";
+
+
+  $("#campaignEditorDescription").value =
+    campaign?.description ||
+    "";
+
+
+  $("#campaignEditorObjective").value =
+    campaign?.objective ||
+    "";
+
+
+  $("#campaignEditorStatus").value =
+    campaign?.status ||
+    "draft";
+
+
+  $("#campaignEditorStartsOn").value =
+    campaign?.startsOn ||
+    "";
+
+
+  $("#campaignEditorEndsOn").value =
+    campaign?.endsOn ||
+    "";
+
+
+  $("#campaignEditorChannels").value =
+    Array.isArray(
+      campaign?.channels
+    )
+      ? campaign.channels.join(
+          ", "
+        )
+      : "";
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      $("#campaignEditorName")
+        ?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   SAVE CAMPAIGN
+   ========================================================= */
+
+async function saveCampaignEditor(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const campaignId =
+    $("#campaignEditorId")
+      ?.value
+      ?.trim();
+
+
+  const name =
+    $("#campaignEditorName")
+      ?.value
+      ?.trim();
+
+
+  if (!name) {
+    showToast(
+      "Give the campaign a name.",
+      "error"
+    );
+
+
+    $("#campaignEditorName")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  const payload = {
+    brand_id:
+      brand.id,
+
+    name,
+
+    description:
+      nullableText(
+        $("#campaignEditorDescription")
+          ?.value
+      ),
+
+    objective:
+      nullableText(
+        $("#campaignEditorObjective")
+          ?.value
+      ),
+
+    status:
+      $("#campaignEditorStatus")
+        ?.value ||
+      "draft",
+
+    starts_on:
+      nullableDate(
+        $("#campaignEditorStartsOn")
+          ?.value
+      ),
+
+    ends_on:
+      nullableDate(
+        $("#campaignEditorEndsOn")
+          ?.value
+      ),
+
+    channels:
+      textToArray(
+        $("#campaignEditorChannels")
+          ?.value
+      )
+  };
+
+
+  const button =
+    $("#saveCampaignEditorButton");
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    let result;
+
+
+    if (campaignId) {
+      result =
+        await supabaseClient
+          .from("campaigns")
+          .update(
+            payload
+          )
+          .eq(
+            "id",
+            campaignId
+          )
+          .eq(
+            "brand_id",
+            brand.id
+          )
+          .select("*")
+          .single();
+
+    } else {
+      result =
+        await supabaseClient
+          .from("campaigns")
+          .insert(
+            payload
+          )
+          .select("*")
+          .single();
+    }
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    const normalized =
+      normalizeCampaign(
+        result.data
+      );
+
+
+    const existingIndex =
+      APP_DATA.campaigns
+        .findIndex(
+          item =>
+            String(
+              item.id
+            ) ===
+            String(
+              normalized.id
+            )
+        );
+
+
+    if (
+      existingIndex >=
+      0
+    ) {
+      APP_DATA.campaigns[
+        existingIndex
+      ] =
+        normalized;
+
+    } else {
+      APP_DATA.campaigns.unshift(
+        normalized
+      );
+    }
+
+
+    safeDialogClose(
+      $("#campaignEditorDialog")
+    );
+
+
+    renderApp();
+
+
+    showToast(
+      campaignId
+        ? "Campaign updated."
+        : "Campaign created.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Campaign save failed:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Campaign could not be saved.",
+      "error",
+      6000
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Save Campaign";
+    }
+  }
+}
+/* =========================================================
+   CALENDAR ITEM EDITOR
+   ========================================================= */
+
+function ensureCalendarEditorDialog() {
+  let dialog =
+    $("#calendarEditorDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "calendarEditorDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div
+      style="
+        width:min(720px,92vw);
+        max-width:100%;
+        max-height:88vh;
+        overflow-y:auto;
+      "
+    >
+
+      <div class="dialog-header">
+
+        <div>
+
+          <span class="eyebrow">
+            Marketing Calendar
+          </span>
+
+          <h2
+            id="calendarEditorDialogTitle"
+          >
+            Add Calendar Item
+          </h2>
+
+        </div>
+
+
+        <button
+          id="closeCalendarEditorButton"
+          class="dialog-close"
+          type="button"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <form
+        id="calendarEditorForm"
+        class="create-form"
+      >
+
+        <input
+          id="calendarEditorId"
+          type="hidden"
+        />
+
+
+        <label class="field">
+
+          <span>
+            Title
+          </span>
+
+          <input
+            id="calendarEditorTitle"
+            type="text"
+            placeholder="Fall menu launch"
+            required
+          />
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Description
+          </span>
+
+          <textarea
+            id="calendarEditorDescription"
+            style="
+              min-height:110px;
+            "
+            placeholder="Add useful context for this date or event."
+          ></textarea>
+
+        </label>
+
+
+        <div
+          style="
+            display:grid;
+            grid-template-columns:
+              repeat(
+                auto-fit,
+                minmax(180px,1fr)
+              );
+            gap:14px;
+          "
+        >
+
+          <label class="field">
+
+            <span>
+              Type
+            </span>
+
+            <select
+              id="calendarEditorType"
+            >
+
+              <option value="event">
+                Event
+              </option>
+
+              <option value="launch">
+                Launch
+              </option>
+
+              <option value="promotion">
+                Promotion
+              </option>
+
+              <option value="holiday">
+                Holiday
+              </option>
+
+              <option value="deadline">
+                Deadline
+              </option>
+
+              <option value="reminder">
+                Reminder
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+
+            </select>
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Starts
+            </span>
+
+            <input
+              id="calendarEditorStartsAt"
+              type="datetime-local"
+            />
+
+          </label>
+
+
+          <label class="field">
+
+            <span>
+              Ends
+            </span>
+
+            <input
+              id="calendarEditorEndsAt"
+              type="datetime-local"
+            />
+
+          </label>
+
+        </div>
+
+
+        <div
+          style="
+            display:grid;
+            gap:12px;
+            padding:16px;
+            border:1px solid var(--line);
+            border-radius:var(--radius);
+            background:rgba(255,255,255,.018);
+          "
+        >
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="calendarEditorAllDay"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+            />
+
+            <span>
+
+              <strong>
+                All-day item
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                Treat this as a date rather than a
+                specific publishing time.
+              </small>
+
+            </span>
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="calendarEditorMarketingRelevant"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+              checked
+            />
+
+            <span>
+
+              <strong>
+                Marketing relevant
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                Marketing Studio may use this date
+                when planning content.
+              </small>
+
+            </span>
+
+          </label>
+
+
+          <label
+            style="
+              display:flex;
+              align-items:flex-start;
+              gap:10px;
+              font-size:.8rem;
+              line-height:1.5;
+            "
+          >
+
+            <input
+              id="calendarEditorConfirmed"
+              type="checkbox"
+              style="
+                margin-top:3px;
+              "
+            />
+
+            <span>
+
+              <strong>
+                Confirmed
+              </strong>
+
+              <small
+                style="
+                  display:block;
+                  margin-top:3px;
+                  color:var(--muted);
+                  font-size:.7rem;
+                "
+              >
+                Mark this date as confirmed rather
+                than tentative.
+              </small>
+
+            </span>
+
+          </label>
+
+        </div>
+
+
+        <div class="form-actions">
+
+          <button
+            id="cancelCalendarEditorButton"
+            class="secondary-button"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveCalendarEditorButton"
+            class="primary-button"
+            type="submit"
+          >
+            Save Calendar Item
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#closeCalendarEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#cancelCalendarEditorButton")
+    ?.addEventListener(
+      "click",
+      () => {
+        safeDialogClose(
+          dialog
+        );
+      }
+    );
+
+
+  $("#calendarEditorForm")
+    ?.addEventListener(
+      "submit",
+      saveCalendarEditor
+    );
+
+
+  enableBackdropClose(
+    dialog
+  );
+
+
+  return dialog;
+}
+
+
+/* =========================================================
+   OPEN CALENDAR ITEM EDITOR
+   ========================================================= */
+
+function openCalendarEditor(
+  itemId = null
+) {
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    showToast(
+      "Choose a working brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const dialog =
+    ensureCalendarEditorDialog();
+
+
+  const item =
+    itemId
+      ? APP_DATA.calendar.find(
+          calendarItem =>
+            String(
+              calendarItem.id
+            ) ===
+            String(
+              itemId
+            )
+        ) || null
+      : null;
+
+
+  const dialogTitle =
+    $("#calendarEditorDialogTitle");
+
+
+  if (dialogTitle) {
+    dialogTitle.textContent =
+      item
+        ? "Edit Calendar Item"
+        : "Add Calendar Item";
+  }
+
+
+  $("#calendarEditorId").value =
+    item?.id ||
+    "";
+
+
+  $("#calendarEditorTitle").value =
+    item?.title ||
+    "";
+
+
+  $("#calendarEditorDescription").value =
+    item?.description ||
+    "";
+
+
+  $("#calendarEditorType").value =
+    item?.type ||
+    "event";
+
+
+  $("#calendarEditorStartsAt").value =
+    item?.startsAt
+      ? toLocalDateTimeInputValue(
+          item.startsAt
+        )
+      : "";
+
+
+  $("#calendarEditorEndsAt").value =
+    item?.endsAt
+      ? toLocalDateTimeInputValue(
+          item.endsAt
+        )
+      : "";
+
+
+  $("#calendarEditorAllDay").checked =
+    Boolean(
+      item?.allDay
+    );
+
+
+  $("#calendarEditorMarketingRelevant").checked =
+    item
+      ? Boolean(
+          item.marketingRelevant
+        )
+      : true;
+
+
+  $("#calendarEditorConfirmed").checked =
+    Boolean(
+      item?.confirmed
+    );
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      $("#calendarEditorTitle")
+        ?.focus();
+    },
+    100
+  );
+}
+
+
+/* =========================================================
+   SAVE CALENDAR ITEM
+   ========================================================= */
+
+async function saveCalendarEditor(
+  event
+) {
+  event.preventDefault();
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
+    return;
+  }
+
+
+  const itemId =
+    $("#calendarEditorId")
+      ?.value
+      ?.trim();
+
+
+  const title =
+    $("#calendarEditorTitle")
+      ?.value
+      ?.trim();
+
+
+  if (!title) {
+    showToast(
+      "Give the calendar item a title.",
+      "error"
+    );
+
+
+    $("#calendarEditorTitle")
+      ?.focus();
+
+
+    return;
+  }
+
+
+  const startsAtValue =
+    $("#calendarEditorStartsAt")
+      ?.value;
+
+
+  const endsAtValue =
+    $("#calendarEditorEndsAt")
+      ?.value;
+
+
+  const startsAt =
+    startsAtValue
+      ? new Date(
+          startsAtValue
+        ).toISOString()
+      : null;
+
+
+  const endsAt =
+    endsAtValue
+      ? new Date(
+          endsAtValue
+        ).toISOString()
+      : null;
+
+
+  if (
+    startsAt &&
+    endsAt &&
+    new Date(
+      endsAt
+    ) <
+    new Date(
+      startsAt
+    )
+  ) {
+    showToast(
+      "The end time cannot be before the start time.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const payload = {
+    brand_id:
+      brand.id,
+
+    title,
+
+    description:
+      nullableText(
+        $("#calendarEditorDescription")
+          ?.value
+      ),
+
+    item_type:
+      $("#calendarEditorType")
+        ?.value ||
+      "event",
+
+    starts_at:
+      startsAt,
+
+    ends_at:
+      endsAt,
+
+    all_day:
+      Boolean(
+        $("#calendarEditorAllDay")
+          ?.checked
+      ),
+
+    marketing_relevant:
+      Boolean(
+        $("#calendarEditorMarketingRelevant")
+          ?.checked
+      ),
+
+    confirmed:
+      Boolean(
+        $("#calendarEditorConfirmed")
+          ?.checked
+      )
+  };
+
+
+  const button =
+    $("#saveCalendarEditorButton");
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+
+  try {
+    let result;
+
+
+    if (itemId) {
+      result =
+        await supabaseClient
+          .from(
+            "calendar_items"
+          )
+          .update(
+            payload
+          )
+          .eq(
+            "id",
+            itemId
+          )
+          .eq(
+            "brand_id",
+            brand.id
+          )
+          .select("*")
+          .single();
+
+    } else {
+      result =
+        await supabaseClient
+          .from(
+            "calendar_items"
+          )
+          .insert(
+            payload
+          )
+          .select("*")
+          .single();
+    }
+
+
+    if (result.error) {
+      throw result.error;
+    }
+
+
+    const normalized =
+      normalizeCalendarItem(
+        result.data
+      );
+
+
+    const existingIndex =
+      APP_DATA.calendar
+        .findIndex(
+          item =>
+            String(
+              item.id
+            ) ===
+            String(
+              normalized.id
+            )
+        );
+
+
+    if (
+      existingIndex >=
+      0
+    ) {
+      APP_DATA.calendar[
+        existingIndex
+      ] =
+        normalized;
+
+    } else {
+      APP_DATA.calendar.push(
+        normalized
+      );
+    }
+
+
+    safeDialogClose(
+      $("#calendarEditorDialog")
+    );
+
+
+    renderApp();
+
+
+    showToast(
+      itemId
+        ? "Calendar item updated."
+        : "Calendar item added.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Calendar item save failed:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Calendar item could not be saved.",
+      "error",
+      6000
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Save Calendar Item";
+    }
+  }
+}
+
+
+/* =========================================================
+   OPEN CALENDAR ENTRY
+   ========================================================= */
+
+function handleCalendarItemOpen(
+  element
+) {
+  const action =
+    element?.dataset
+      ?.calendarAction;
+
+
+  const itemId =
+    element?.dataset
+      ?.calendarItemId;
+
+
+  if (!itemId) {
+    return;
+  }
+
+
+  if (
+    action ===
+    "content"
+  ) {
+    openContentEditor(
+      itemId
+    );
+
+    return;
+  }
+
+
+  openCalendarEditor(
+    itemId
+  );
+}
 /* =========================================================
    QUICK CREATE TYPE → DATABASE TYPE
    ========================================================= */
@@ -16469,8 +17839,6 @@ async function copyManualAiBrief() {
     );
   }
 }
-
-
 /* =========================================================
    SAVE MANUAL AI DRAFT
    ========================================================= */
@@ -17267,8 +18635,6 @@ function saveStudioSettings() {
     return false;
   }
 }
-
-
 /* =========================================================
    SETTINGS — HELPERS
    ========================================================= */
@@ -17606,10 +18972,10 @@ function openAiSettings() {
                 "aiBrandBrainRequired",
 
               title:
-                "Enforce Brand Brain",
+                "Require Brand Brain",
 
               description:
-                "Use the active brand's strategy, voice, audience, and identity when generating content.",
+                "Use the active brand's stored identity, voice, facts, milestones, and guardrails when creating content.",
 
               checked:
                 settings.brandBrainRequired
@@ -17620,10 +18986,10 @@ function openAiSettings() {
                 "aiPreferVaultAssets",
 
               title:
-                "Prefer Asset Vault",
+                "Prefer Vault Assets",
 
               description:
-                "Favor existing brand assets before requesting or generating new visuals.",
+                "Favor existing brand assets before suggesting newly generated artwork.",
 
               checked:
                 settings.preferVaultAssets
@@ -17634,10 +19000,10 @@ function openAiSettings() {
                 "aiApprovedAssetsOnly",
 
               title:
-                "AI-approved assets only",
+                "Approved Assets Only",
 
               description:
-                "Prevent AI workflows from using Vault assets that are not approved for AI.",
+                "Only allow assets approved for AI use to enter generation workflows.",
 
               checked:
                 settings.approvedAssetsOnly
@@ -17648,10 +19014,10 @@ function openAiSettings() {
                 "aiGenerateAltText",
 
               title:
-                "Generate alt text",
+                "Generate Alt Text",
 
               description:
-                "Create accessibility descriptions for generated visual content.",
+                "Include accessibility alt-text suggestions for generated image content.",
 
               checked:
                 settings.generateAltText
@@ -17662,10 +19028,10 @@ function openAiSettings() {
                 "aiGenerateCaptions",
 
               title:
-                "Generate captions",
+                "Generate Captions",
 
               description:
-                "Prepare caption copy alongside generated marketing content.",
+                "Create caption suggestions alongside visual content when appropriate.",
 
               checked:
                 settings.generateCaptions
@@ -17676,10 +19042,10 @@ function openAiSettings() {
                 "aiRequireGeneratedApproval",
 
               title:
-                "Require generated-content approval",
+                "Require Approval for Generated Assets",
 
               description:
-                "Generated content must be reviewed before entering a publishing workflow.",
+                "Keep generated assets unapproved until you explicitly approve them.",
 
               checked:
                 settings.requireGeneratedApproval
@@ -17710,15 +19076,84 @@ function openAiSettings() {
       `
     });
 
+
   bindSettingsDialogClose(
     dialog
   );
 
-  $("#aiSettingsForm")
+
+  $("#aiSettingsForm", dialog)
     ?.addEventListener(
       "submit",
-      saveAiSettings
+      event => {
+        event.preventDefault();
+
+        STUDIO_SETTINGS.ai = {
+          ...STUDIO_SETTINGS.ai,
+
+          creativity:
+            $("#aiCreativity", dialog)
+              ?.value ||
+            "balanced",
+
+          defaultImageFormat:
+            $("#aiDefaultImageFormat", dialog)
+              ?.value ||
+            "square",
+
+          brandBrainRequired:
+            Boolean(
+              $("#aiBrandBrainRequired", dialog)
+                ?.checked
+            ),
+
+          preferVaultAssets:
+            Boolean(
+              $("#aiPreferVaultAssets", dialog)
+                ?.checked
+            ),
+
+          approvedAssetsOnly:
+            Boolean(
+              $("#aiApprovedAssetsOnly", dialog)
+                ?.checked
+            ),
+
+          generateAltText:
+            Boolean(
+              $("#aiGenerateAltText", dialog)
+                ?.checked
+            ),
+
+          generateCaptions:
+            Boolean(
+              $("#aiGenerateCaptions", dialog)
+                ?.checked
+            ),
+
+          requireGeneratedApproval:
+            Boolean(
+              $("#aiRequireGeneratedApproval", dialog)
+                ?.checked
+            )
+        };
+
+
+        if (
+          saveStudioSettings()
+        ) {
+          safeDialogClose(
+            dialog
+          );
+
+          showToast(
+            "AI settings saved.",
+            "success"
+          );
+        }
+      }
     );
+
 
   safeDialogOpen(
     dialog
@@ -17726,76 +19161,8 @@ function openAiSettings() {
 }
 
 
-function saveAiSettings(
-  event
-) {
-  event.preventDefault();
-
-  STUDIO_SETTINGS.ai = {
-    creativity:
-      $("#aiCreativity")
-        ?.value ||
-      "balanced",
-
-    defaultImageFormat:
-      $("#aiDefaultImageFormat")
-        ?.value ||
-      "square",
-
-    brandBrainRequired:
-      Boolean(
-        $("#aiBrandBrainRequired")
-          ?.checked
-      ),
-
-    preferVaultAssets:
-      Boolean(
-        $("#aiPreferVaultAssets")
-          ?.checked
-      ),
-
-    approvedAssetsOnly:
-      Boolean(
-        $("#aiApprovedAssetsOnly")
-          ?.checked
-      ),
-
-    generateAltText:
-      Boolean(
-        $("#aiGenerateAltText")
-          ?.checked
-      ),
-
-    generateCaptions:
-      Boolean(
-        $("#aiGenerateCaptions")
-          ?.checked
-      ),
-
-    requireGeneratedApproval:
-      Boolean(
-        $("#aiRequireGeneratedApproval")
-          ?.checked
-      )
-  };
-
-  if (!saveStudioSettings()) {
-    return;
-  }
-
-  safeDialogClose(
-    $("#studioSettingsDialog")
-  );
-
-  showToast(
-    "AI settings saved.",
-    "success"
-  );
-}
-
-
 /* =========================================================
-   SOCIAL ACCOUNTS
+   SOCIAL SETTINGS
    ========================================================= */
 
 function openSocialSettings() {
@@ -17805,13 +19172,14 @@ function openSocialSettings() {
   const settings =
     STUDIO_SETTINGS.social;
 
+
   dialog.innerHTML =
     settingsDialogShell({
       title:
-        "Social Accounts",
+        "Social Connections",
 
       description:
-        "Choose the publishing destinations the studio should prepare content for.",
+        "Choose which social channels are available to the studio. These switches prepare the interface for future direct account connections.",
 
       content: `
         <form
@@ -17820,6 +19188,7 @@ function openSocialSettings() {
         >
 
           <div>
+
             ${settingToggle({
               id:
                 "socialFacebook",
@@ -17828,7 +19197,7 @@ function openSocialSettings() {
                 "Facebook",
 
               description:
-                "Enable Facebook as an available publishing destination.",
+                "Enable Facebook as an available publishing and planning channel.",
 
               checked:
                 settings.facebookEnabled
@@ -17842,7 +19211,7 @@ function openSocialSettings() {
                 "Instagram",
 
               description:
-                "Enable Instagram as an available publishing destination.",
+                "Enable Instagram for posts, stories, reels, and campaign planning.",
 
               checked:
                 settings.instagramEnabled
@@ -17856,7 +19225,7 @@ function openSocialSettings() {
                 "LinkedIn",
 
               description:
-                "Enable LinkedIn as an available publishing destination.",
+                "Enable LinkedIn as an available marketing channel.",
 
               checked:
                 settings.linkedinEnabled
@@ -17870,7 +19239,7 @@ function openSocialSettings() {
                 "Pinterest",
 
               description:
-                "Enable Pinterest as an available publishing destination.",
+                "Enable Pinterest for visual campaign planning.",
 
               checked:
                 settings.pinterestEnabled
@@ -17884,37 +19253,29 @@ function openSocialSettings() {
                 "TikTok",
 
               description:
-                "Enable TikTok as an available publishing destination.",
+                "Enable TikTok for short-form video planning.",
 
               checked:
                 settings.tiktokEnabled
             })}
+
           </div>
 
 
           <div
-            class="content-panel"
             style="
-              padding:16px;
+              padding:14px 16px;
+              border:1px solid var(--line);
+              border-radius:var(--radius);
+              color:var(--muted);
+              font-size:.72rem;
+              line-height:1.55;
+              background:rgba(255,255,255,.018);
             "
           >
-            <span class="eyebrow">
-              Connections
-            </span>
-
-            <p
-              style="
-                margin:6px 0 0;
-                color:var(--muted);
-                font-size:.74rem;
-                line-height:1.55;
-              "
-            >
-              These switches define available
-              destinations. Account authorization
-              will be connected separately when
-              publishing APIs are wired.
-            </p>
+            Direct account authorization is not connected yet.
+            These settings control which platforms the studio
+            treats as active while we build the publishing layer.
           </div>
 
 
@@ -17932,7 +19293,7 @@ function openSocialSettings() {
               type="submit"
               class="primary-button"
             >
-              Save Accounts
+              Save Social Settings
             </button>
 
           </div>
@@ -17941,70 +19302,71 @@ function openSocialSettings() {
       `
     });
 
+
   bindSettingsDialogClose(
     dialog
   );
 
-  $("#socialSettingsForm")
+
+  $("#socialSettingsForm", dialog)
     ?.addEventListener(
       "submit",
-      saveSocialSettings
+      event => {
+        event.preventDefault();
+
+        STUDIO_SETTINGS.social = {
+          ...STUDIO_SETTINGS.social,
+
+          facebookEnabled:
+            Boolean(
+              $("#socialFacebook", dialog)
+                ?.checked
+            ),
+
+          instagramEnabled:
+            Boolean(
+              $("#socialInstagram", dialog)
+                ?.checked
+            ),
+
+          linkedinEnabled:
+            Boolean(
+              $("#socialLinkedIn", dialog)
+                ?.checked
+            ),
+
+          pinterestEnabled:
+            Boolean(
+              $("#socialPinterest", dialog)
+                ?.checked
+            ),
+
+          tiktokEnabled:
+            Boolean(
+              $("#socialTikTok", dialog)
+                ?.checked
+            )
+        };
+
+
+        if (
+          saveStudioSettings()
+        ) {
+          safeDialogClose(
+            dialog
+          );
+
+          showToast(
+            "Social settings saved.",
+            "success"
+          );
+        }
+      }
     );
+
 
   safeDialogOpen(
     dialog
-  );
-}
-
-
-function saveSocialSettings(
-  event
-) {
-  event.preventDefault();
-
-  STUDIO_SETTINGS.social = {
-    facebookEnabled:
-      Boolean(
-        $("#socialFacebook")
-          ?.checked
-      ),
-
-    instagramEnabled:
-      Boolean(
-        $("#socialInstagram")
-          ?.checked
-      ),
-
-    linkedinEnabled:
-      Boolean(
-        $("#socialLinkedIn")
-          ?.checked
-      ),
-
-    pinterestEnabled:
-      Boolean(
-        $("#socialPinterest")
-          ?.checked
-      ),
-
-    tiktokEnabled:
-      Boolean(
-        $("#socialTikTok")
-          ?.checked
-      )
-  };
-
-  if (!saveStudioSettings()) {
-    return;
-  }
-
-  safeDialogClose(
-    $("#studioSettingsDialog")
-  );
-
-  showToast(
-    "Social settings saved.",
-    "success"
   );
 }
 
@@ -18020,13 +19382,14 @@ function openPublishingSettings() {
   const settings =
     STUDIO_SETTINGS.publishing;
 
+
   dialog.innerHTML =
     settingsDialogShell({
       title:
-        "Publishing",
+        "Publishing Settings",
 
       description:
-        "Set the guardrails for drafts, approvals, scheduling, and direct publishing.",
+        "Control approval requirements and the default behavior for new marketing content.",
 
       content: `
         <form
@@ -18035,6 +19398,7 @@ function openPublishingSettings() {
         >
 
           <label class="field">
+
             <span>
               Default Content Status
             </span>
@@ -18042,6 +19406,7 @@ function openPublishingSettings() {
             <select
               id="publishingDefaultStatus"
             >
+
               <option
                 value="draft"
                 ${
@@ -18063,13 +19428,28 @@ function openPublishingSettings() {
                     : ""
                 }
               >
-                Ready for Review
+                Review
               </option>
+
+              <option
+                value="approved"
+                ${
+                  settings.defaultStatus ===
+                  "approved"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Approved
+              </option>
+
             </select>
+
           </label>
 
 
           <label class="field">
+
             <span>
               Default Scheduling
             </span>
@@ -18077,6 +19457,7 @@ function openPublishingSettings() {
             <select
               id="publishingDefaultSchedule"
             >
+
               <option
                 value="manual"
                 ${
@@ -18100,20 +19481,35 @@ function openPublishingSettings() {
               >
                 Next Available Slot
               </option>
+
+              <option
+                value="suggest"
+                ${
+                  settings.defaultSchedule ===
+                  "suggest"
+                    ? "selected"
+                    : ""
+                }
+              >
+                Suggest a Time
+              </option>
+
             </select>
+
           </label>
 
 
           <div>
+
             ${settingToggle({
               id:
                 "publishingRequireApproval",
 
               title:
-                "Require approval",
+                "Require Approval",
 
               description:
-                "Content must be approved before it can be published.",
+                "Keep content from being treated as publish-ready until it has been approved.",
 
               checked:
                 settings.requireApproval
@@ -18124,10 +19520,10 @@ function openPublishingSettings() {
                 "publishingConfirmBeforePublish",
 
               title:
-                "Confirm before publishing",
+                "Confirm Before Publishing",
 
               description:
-                "Show a final confirmation before content is sent live.",
+                "Require a final confirmation before any future direct-publishing action.",
 
               checked:
                 settings.confirmBeforePublish
@@ -18135,13 +19531,13 @@ function openPublishingSettings() {
 
             ${settingToggle({
               id:
-                "publishingAllowDirect",
+                "publishingAllowDirectPublish",
 
               title:
-                "Allow direct publishing",
+                "Allow Direct Publishing",
 
               description:
-                "Permit approved content to bypass scheduling and publish immediately.",
+                "Permit direct publishing once social integrations are connected.",
 
               checked:
                 settings.allowDirectPublish
@@ -18152,14 +19548,15 @@ function openPublishingSettings() {
                 "publishingIncludeBrandName",
 
               title:
-                "Include brand name by default",
+                "Include Brand Name by Default",
 
               description:
-                "Prefer explicit brand identification in generated publishing copy.",
+                "Encourage generated marketing content to mention the active brand name when appropriate.",
 
               checked:
                 settings.includeBrandName
             })}
+
           </div>
 
 
@@ -18177,7 +19574,7 @@ function openPublishingSettings() {
               type="submit"
               class="primary-button"
             >
-              Save Publishing
+              Save Publishing Settings
             </button>
 
           </div>
@@ -18186,78 +19583,77 @@ function openPublishingSettings() {
       `
     });
 
+
   bindSettingsDialogClose(
     dialog
   );
 
-  $("#publishingSettingsForm")
+
+  $("#publishingSettingsForm", dialog)
     ?.addEventListener(
       "submit",
-      savePublishingSettings
+      event => {
+        event.preventDefault();
+
+        STUDIO_SETTINGS.publishing = {
+          ...STUDIO_SETTINGS.publishing,
+
+          requireApproval:
+            Boolean(
+              $("#publishingRequireApproval", dialog)
+                ?.checked
+            ),
+
+          confirmBeforePublish:
+            Boolean(
+              $("#publishingConfirmBeforePublish", dialog)
+                ?.checked
+            ),
+
+          allowDirectPublish:
+            Boolean(
+              $("#publishingAllowDirectPublish", dialog)
+                ?.checked
+            ),
+
+          defaultStatus:
+            $("#publishingDefaultStatus", dialog)
+              ?.value ||
+            "draft",
+
+          defaultSchedule:
+            $("#publishingDefaultSchedule", dialog)
+              ?.value ||
+            "manual",
+
+          includeBrandName:
+            Boolean(
+              $("#publishingIncludeBrandName", dialog)
+                ?.checked
+            )
+        };
+
+
+        if (
+          saveStudioSettings()
+        ) {
+          safeDialogClose(
+            dialog
+          );
+
+          showToast(
+            "Publishing settings saved.",
+            "success"
+          );
+        }
+      }
     );
+
 
   safeDialogOpen(
     dialog
   );
 }
-
-
-function savePublishingSettings(
-  event
-) {
-  event.preventDefault();
-
-  STUDIO_SETTINGS.publishing = {
-    defaultStatus:
-      $("#publishingDefaultStatus")
-        ?.value ||
-      "draft",
-
-    defaultSchedule:
-      $("#publishingDefaultSchedule")
-        ?.value ||
-      "manual",
-
-    requireApproval:
-      Boolean(
-        $("#publishingRequireApproval")
-          ?.checked
-      ),
-
-    confirmBeforePublish:
-      Boolean(
-        $("#publishingConfirmBeforePublish")
-          ?.checked
-      ),
-
-    allowDirectPublish:
-      Boolean(
-        $("#publishingAllowDirect")
-          ?.checked
-      ),
-
-    includeBrandName:
-      Boolean(
-        $("#publishingIncludeBrandName")
-          ?.checked
-      )
-  };
-
-  if (!saveStudioSettings()) {
-    return;
-  }
-
-  safeDialogClose(
-    $("#studioSettingsDialog")
-  );
-
-  showToast(
-    "Publishing settings saved.",
-    "success"
-  );
-}
-
-
 /* =========================================================
    APP PREFERENCES
    ========================================================= */
@@ -18933,48 +20329,51 @@ function handleGlobalClick(
 
     return;
   }
+
   const renameAssetFolderButton =
-  event.target.closest(
-    "[data-rename-current-asset-folder]"
-  );
-
-if (renameAssetFolderButton) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  const folderId =
-    renameAssetFolderButton.dataset
-      .renameCurrentAssetFolder;
-
-  if (folderId) {
-    renameAssetFolder(
-      folderId
+    event.target.closest(
+      "[data-rename-current-asset-folder]"
     );
+
+  if (renameAssetFolderButton) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const folderId =
+      renameAssetFolderButton.dataset
+        .renameCurrentAssetFolder;
+
+    if (folderId) {
+      renameAssetFolder(
+        folderId
+      );
+    }
+
+    return;
   }
 
-  return;
-}
-const deleteAssetFolderButton =
-  event.target.closest(
-    "[data-delete-asset-folder]"
-  );
-
-if (deleteAssetFolderButton) {
-  event.preventDefault();
-  event.stopPropagation();
-
-  const folderId =
-    deleteAssetFolderButton.dataset
-      .deleteAssetFolder;
-
-  if (folderId) {
-    deleteAssetFolder(
-      folderId
+  const deleteAssetFolderButton =
+    event.target.closest(
+      "[data-delete-asset-folder]"
     );
+
+  if (deleteAssetFolderButton) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const folderId =
+      deleteAssetFolderButton.dataset
+        .deleteAssetFolder;
+
+    if (folderId) {
+      deleteAssetFolder(
+        folderId
+      );
+    }
+
+    return;
   }
 
-  return;
-}
   const openAssetFolder =
     event.target.closest(
       "[data-open-asset-folder]"
@@ -19077,8 +20476,6 @@ if (deleteAssetFolderButton) {
     );
   }
 }
-
-
 /* =========================================================
    BIND STATIC EVENTS
    ========================================================= */
@@ -19411,6 +20808,12 @@ async function initializeAuthentication() {
 
           APP_DATA.assets =
             [];
+
+          APP_DATA.assetFolders =
+            [];
+
+          APP_STATE.activeAssetFolderId =
+            null;
 
           showAuthDialog();
         }
