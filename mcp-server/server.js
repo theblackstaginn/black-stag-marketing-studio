@@ -36,6 +36,32 @@ function createUserClient(accessToken) {
 }
 
 const app = express();
+
+const STUDIO_ORIGIN = "https://theblackstaginn.github.io";
+
+app.use((req, res, next) => {
+  const origin = req.get("origin");
+
+  if (origin === STUDIO_ORIGIN) {
+    res.setHeader("Access-Control-Allow-Origin", STUDIO_ORIGIN);
+    res.setHeader("Vary", "Origin");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Authorization, Content-Type, X-Black-Stag-Token"
+    );
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+  }
+
+  if (req.method === "OPTIONS") {
+    if (origin !== STUDIO_ORIGIN) {
+      return res.sendStatus(403);
+    }
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 app.use(express.json({ limit: "1mb" }));
 
 function safeEqual(a = "", b = "") {
