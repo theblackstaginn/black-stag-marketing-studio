@@ -2566,20 +2566,8 @@ function ensureApprovedBrainImportButton() {
     return;
   }
 
-  const existing =
-    $("#approvedBrandBrainImportButton");
-
-  if (
-    !canImportApprovedBrandBrain(
-      brand
-    )
-  ) {
-    existing?.remove();
-    return;
-  }
-
   let button =
-    existing;
+    $("#approvedBrandBrainImportButton");
 
   if (!button) {
     button =
@@ -2620,31 +2608,63 @@ async function importApprovedBrandBrain(brandId) {
       brandId
     );
 
-  const match =
-    getApprovedBrandBrainImport(
-      brand
-    );
-
-  if (
-    !brand ||
-    !match
-  ) {
+  if (!brand) {
     showToast(
-      "No approved importer exists for this brand.",
+      "That brand could not be found.",
       "error"
     );
     return;
   }
 
+  const choices = {
+    "1": "stag-and-stone",
+    "2": "lace-and-leather-arcane",
+    "3": "black-stag-web-design"
+  };
+
+  const selection =
+    window.prompt(
+      "Choose the approved Brand Brain to load into \"" +
+      brand.name +
+      "\":\n\n" +
+      "1 — Stag & Stone Coffee and Bakehouse\n" +
+      "2 — Lace & Leather Arcane\n" +
+      "3 — Black Stag Web Design\n\n" +
+      "Enter 1, 2, or 3."
+    );
+
+  if (selection === null) {
+    return;
+  }
+
   const importKey =
-    match[0];
+    choices[
+      String(selection).trim()
+    ];
 
   const config =
-    match[1];
+    importKey
+      ? APPROVED_BRAND_BRAIN_IMPORTS[
+          importKey
+        ]
+      : null;
+
+  if (!config) {
+    showToast(
+      "Choose 1, 2, or 3.",
+      "error"
+    );
+    return;
+  }
+
+  const selectedName =
+    config.names[0];
 
   const confirmed =
     window.confirm(
-      "Load the approved Brand Brain for \"" +
+      "Load the approved \"" +
+      selectedName +
+      "\" Brand Brain into \"" +
       brand.name +
       "\"?\n\nThis adds missing approved facts, guardrails, milestones, and voice guidance. Existing records are preserved, and existing identity fields are only filled when blank."
     );
