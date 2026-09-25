@@ -1851,6 +1851,124 @@ and (storage.foldername(name))[1] = auth.uid()::text
 );
 
 
+
+-- =========================================================
+-- ASSET VAULT FOLDERS
+--
+-- Folder hierarchy used by the Asset Vault UI.
+-- Safe to run against projects that already have these
+-- additions because table/column/index creation is guarded.
+-- =========================================================
+
+create table if not exists public.asset_folders (
+id uuid primary key
+default gen_random_uuid(),
+
+brand_id uuid
+not null
+references public.brands(id)
+on delete cascade,
+
+parent_folder_id uuid
+references public.asset_folders(id)
+on delete restrict,
+
+name text
+not null,
+
+description text,
+
+created_at timestamptz
+not null
+default now(),
+
+updated_at timestamptz
+not null
+default now()
+);
+
+
+alter table public.assets
+add column if not exists folder_id uuid;
+
+
+do $
+begin
+if not exists (
+select 1
+from pg_constraint
+where conname = 'assets_folder_id_fkey'
+and conrelid = 'public.assets'::regclass
+) then
+alter table public.assets
+add constraint assets_folder_id_fkey
+foreign key (folder_id)
+references public.asset_folders(id)
+on delete set null;
+end if;
+end
+$;
+
+
+create index if not exists
+asset_folders_brand_id_idx
+on public.asset_folders(brand_id);
+
+create index if not exists
+asset_folders_parent_folder_id_idx
+on public.asset_folders(parent_folder_id);
+
+create index if not exists
+assets_folder_id_idx
+on public.assets(folder_id);
+
+
+drop trigger if exists
+asset_folders_set_updated_at
+on public.asset_folders;
+
+create trigger
+asset_folders_set_updated_at
+before update on public.asset_folders
+for each row
+execute function public.set_updated_at();
+
+
+alter table public.asset_folders
+enable row level security;
+
+
+drop policy if exists
+"Owners can manage asset folders"
+on public.asset_folders;
+
+create policy
+"Owners can manage asset folders"
+on public.asset_folders
+for all
+to authenticated
+using (
+public.owns_brand(brand_id)
+)
+with check (
+public.owns_brand(brand_id)
+);
+
+
+-- =========================================================
+-- AI RUN COMPATIBILITY COLUMNS
+--
+-- The current app writes these field names. Older ai_runs
+-- fields remain intact for backward compatibility.
+-- =========================================================
+
+alter table public.ai_runs
+add column if not exists mode text,
+add column if not exists task_type text,
+add column if not exists user_request text,
+add column if not exists prompt_text text,
+add column if not exists response_text text;
+
 -- =========================================================
 -- END
 -- =========================================================
