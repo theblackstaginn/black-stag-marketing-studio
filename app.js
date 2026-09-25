@@ -2499,11 +2499,18 @@ function getApprovedBrandBrainImport(brand) {
       ""
     ).trim().toLowerCase();
 
+  const slug =
+    String(
+      brand.slug ||
+      ""
+    ).trim().toLowerCase();
+
   return (
     Object.entries(
       APPROVED_BRAND_BRAIN_IMPORTS
     ).find(
-      ([, config]) =>
+      ([importKey, config]) =>
+        importKey === slug ||
         config.names.some(
           candidate =>
             candidate.toLowerCase() ===
