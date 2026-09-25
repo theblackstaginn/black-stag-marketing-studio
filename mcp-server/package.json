@@ -1,0 +1,19 @@
+{
+  "name": "black-stag-marketing-studio-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only MCP bridge for Black Stag Marketing Studio.",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.18.1",
+    "@supabase/supabase-js": "^2.57.4",
+    "express": "^5.1.0",
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
