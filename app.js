@@ -12176,457 +12176,767 @@ function setAssetFilter(
 
 
 /* =========================================================
-   ASSET EDITOR
-   ========================================================= */
+ASSET EDITOR
+========================================================= */
 
 function ensureAssetEditorDialog() {
-  let dialog =
-    $("#assetEditorDialog");
+let dialog =
+$("#assetEditorDialog");
 
 
-  if (dialog) {
-    return dialog;
-  }
+if (dialog) {
+return dialog;
+}
 
 
-  dialog =
-    document.createElement(
-      "dialog"
-    );
+dialog =
+document.createElement(
+"dialog"
+);
 
 
-  dialog.id =
-    "assetEditorDialog";
+dialog.id =
+"assetEditorDialog";
 
 
-  dialog.className =
-    "app-dialog";
+dialog.className =
+"app-dialog";
 
 
-  dialog.innerHTML = `
-    <div class="asset-editor-shell">
+dialog.innerHTML = `
+<div class="asset-editor-shell">
 
-      <div class="dialog-header">
+<div class="dialog-header">
 
-        <div>
-          <span class="eyebrow">
-            Asset Vault
-          </span>
+<div>
+<span class="eyebrow">
+Asset Vault
+</span>
 
-          <h2 id="assetEditorTitle">
-            Edit Asset
-          </h2>
-        </div>
+<h2 id="assetEditorTitle">
+Edit Asset
+</h2>
+</div>
 
-        <button
-          id="closeAssetEditorButton"
-          class="dialog-close"
-          type="button"
-          aria-label="Close asset editor"
-        >
-          ×
-        </button>
+<button
+id="closeAssetEditorButton"
+class="dialog-close"
+type="button"
+aria-label="Close asset editor"
+>
+×
+</button>
 
-      </div>
+</div>
 
 
-      <div class="asset-editor-body">
+<div class="asset-editor-body">
 
-        <div
-          id="assetEditorPreview"
-          class="asset-editor-preview"
-        ></div>
+<div
+id="assetEditorPreview"
+class="asset-editor-preview"
+></div>
 
 
-        <form
-          id="assetEditorForm"
-          class="create-form"
-          style="padding:0;"
-        >
+<form
+id="assetEditorForm"
+class="create-form"
+style="padding:0;"
+>
 
-          <input
-            id="assetEditorId"
-            type="hidden"
-          />
+<input
+id="assetEditorId"
+type="hidden"
+/>
 
 
-          <label class="field">
+<label class="field">
 
-            <span>
-              Name
-            </span>
+<span>
+Name
+</span>
 
-            <input
-              id="assetEditorName"
-              type="text"
-              maxlength="160"
-              required
-            />
+<input
+id="assetEditorName"
+type="text"
+maxlength="160"
+required
+/>
 
-          </label>
+</label>
 
 
-          <label class="field">
+<label class="field">
 
-            <span>
-              Type
-            </span>
+<span>
+Type
+</span>
 
-            <select
-              id="assetEditorCategory"
-            >
+<select
+id="assetEditorCategory"
+>
 
-              <option value="logo">
-                Logo
-              </option>
+<option value="logo">
+Logo
+</option>
 
-              <option value="photo">
-                Photo
-              </option>
+<option value="photo">
+Photo
+</option>
 
-              <option value="generated_artwork">
-                Generated Artwork
-              </option>
+<option value="generated_artwork">
+Generated Artwork
+</option>
 
-              <option value="brand_asset">
-                Brand Asset
-              </option>
+<option value="brand_asset">
+Brand Asset
+</option>
 
-            </select>
+</select>
 
-          </label>
+</label>
 
 
-          <label class="field">
+<label class="field">
 
-            <span>
-              Description
-            </span>
+<span>
+Folder
+</span>
 
-            <textarea
-              id="assetEditorDescription"
-              style="min-height:120px;"
-            ></textarea>
+<select
+id="assetEditorFolder"
+>
+<option value="">
+Asset Vault Root
+</option>
+</select>
 
-          </label>
+</label>
 
 
-          <label class="field">
+<label class="field">
 
-            <span>
-              Alt Text
-            </span>
+<span>
+Description
+</span>
 
-            <input
-              id="assetEditorAltText"
-              type="text"
-            />
+<textarea
+id="assetEditorDescription"
+style="min-height:120px;"
+></textarea>
 
-          </label>
+</label>
 
 
-          <label class="field">
+<label class="field">
 
-            <span>
-              Tags
-            </span>
+<span>
+Alt Text
+</span>
 
-            <input
-              id="assetEditorTags"
-              type="text"
-              placeholder="logo, coffee, social"
-            />
+<input
+id="assetEditorAltText"
+type="text"
+/>
 
-          </label>
+</label>
 
 
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:10px;
-            "
-          >
+<label class="field">
 
-            <input
-              id="assetEditorApprovedAi"
-              type="checkbox"
-            />
+<span>
+Tags
+</span>
 
-            Approved for AI
+<input
+id="assetEditorTags"
+type="text"
+placeholder="logo, coffee, social"
+/>
 
-          </label>
+</label>
 
 
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:10px;
-            "
-          >
+<label
+style="
+display:flex;
+align-items:center;
+gap:10px;
+"
+>
 
-            <input
-              id="assetEditorApprovedMarketing"
-              type="checkbox"
-            />
+<input
+id="assetEditorApprovedAi"
+type="checkbox"
+/>
 
-            Approved for Marketing
+Approved for AI
 
-          </label>
+</label>
 
 
-          <label
-            style="
-              display:flex;
-              align-items:center;
-              gap:10px;
-            "
-          >
+<label
+style="
+display:flex;
+align-items:center;
+gap:10px;
+"
+>
 
-            <input
-              id="assetEditorActive"
-              type="checkbox"
-            />
+<input
+id="assetEditorApprovedMarketing"
+type="checkbox"
+/>
 
-            Active
+Approved for Marketing
 
-          </label>
+</label>
 
 
-          <div class="asset-editor-actions">
+<label
+style="
+display:flex;
+align-items:center;
+gap:10px;
+"
+>
 
-            <button
-              id="deleteAssetEditorButton"
-              class="danger-button"
-              type="button"
-            >
-              Delete Asset
-            </button>
+<input
+id="assetEditorActive"
+type="checkbox"
+/>
 
-            <button
-              id="cancelAssetEditorButton"
-              class="secondary-button"
-              type="button"
-            >
-              Cancel
-            </button>
+Active
 
-            <button
-              id="saveAssetEditorButton"
-              class="primary-button"
-              type="submit"
-            >
-              Save Changes
-            </button>
+</label>
 
-          </div>
 
-        </form>
+<div class="asset-editor-actions">
 
-      </div>
+<button
+id="deleteAssetEditorButton"
+class="danger-button"
+type="button"
+>
+Delete Asset
+</button>
 
-    </div>
-  `;
+<button
+id="cancelAssetEditorButton"
+class="secondary-button"
+type="button"
+>
+Cancel
+</button>
 
+<button
+id="saveAssetEditorButton"
+class="primary-button"
+type="submit"
+>
+Save Changes
+</button>
 
-  document.body.appendChild(
-    dialog
-  );
+</div>
 
+</form>
 
-  $("#closeAssetEditorButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
+</div>
 
+</div>
+`;
 
-  $("#cancelAssetEditorButton")
-    ?.addEventListener(
-      "click",
-      () => {
-        safeDialogClose(
-          dialog
-        );
-      }
-    );
 
+document.body.appendChild(
+dialog
+);
 
-  $("#deleteAssetEditorButton")
-    ?.addEventListener(
-      "click",
-      deleteAssetEditor
-    );
 
+$("#closeAssetEditorButton")
+?.addEventListener(
+"click",
+() => {
+safeDialogClose(
+dialog
+);
+}
+);
 
-  $("#assetEditorForm")
-    ?.addEventListener(
-      "submit",
-      saveAssetEditor
-    );
 
+$("#cancelAssetEditorButton")
+?.addEventListener(
+"click",
+() => {
+safeDialogClose(
+dialog
+);
+}
+);
 
-  enableBackdropClose(
-    dialog
-  );
 
+$("#deleteAssetEditorButton")
+?.addEventListener(
+"click",
+deleteAssetEditor
+);
 
-  return dialog;
+
+$("#assetEditorForm")
+?.addEventListener(
+"submit",
+saveAssetEditor
+);
+
+
+enableBackdropClose(
+dialog
+);
+
+
+return dialog;
 }
 
 
 function openAssetEditor(
-  assetId
+assetId
 ) {
-  const asset =
-    APP_DATA.assets.find(
-      item =>
-        String(item.id) ===
-        String(assetId)
-    );
+const asset =
+APP_DATA.assets.find(
+item =>
+String(item.id) ===
+String(assetId)
+);
 
 
-  if (!asset) {
-    showToast(
-      "Asset could not be found.",
-      "error"
-    );
+if (!asset) {
+showToast(
+"Asset could not be found.",
+"error"
+);
 
-    return;
-  }
-
-
-  const dialog =
-    ensureAssetEditorDialog();
+return;
+}
 
 
-  $("#assetEditorId").value =
-    asset.id;
+const dialog =
+ensureAssetEditorDialog();
 
 
-  $("#assetEditorName").value =
-    asset.name || "";
+$("#assetEditorId").value =
+asset.id;
 
 
-  $("#assetEditorCategory").value =
-    asset.category ||
-    "brand_asset";
+$("#assetEditorName").value =
+asset.name || "";
 
 
-  $("#assetEditorDescription").value =
-    asset.description || "";
+$("#assetEditorCategory").value =
+asset.category ||
+"brand_asset";
 
 
-  $("#assetEditorAltText").value =
-    asset.altText || "";
+const folderSelect =
+$("#assetEditorFolder");
 
 
-  $("#assetEditorTags").value =
-    Array.isArray(
-      asset.tags
-    )
-      ? asset.tags.join(", ")
-      : "";
+if (folderSelect) {
+const brand =
+getActiveBrand();
+
+const folders =
+(
+APP_DATA.assetFolders ||
+[]
+)
+.filter(
+folder =>
+!brand ||
+String(
+folder.brandId
+) ===
+String(
+brand.id
+)
+)
+.slice()
+.sort(
+(a, b) =>
+folderName(a)
+.localeCompare(
+folderName(b)
+)
+);
 
 
-  $("#assetEditorApprovedAi").checked =
-    Boolean(
-      asset.approvedForAi
-    );
+folderSelect.innerHTML = `
+<option value="">
+Asset Vault Root
+</option>
+
+${
+folders
+.map(
+folder => `
+<option
+value="${
+escapeHtml(
+folder.id
+)
+}"
+>
+${
+escapeHtml(
+folderName(
+folder
+)
+)
+}
+</option>
+`
+)
+.join("")
+}
+`;
 
 
-  $("#assetEditorApprovedMarketing").checked =
-    Boolean(
-      asset.approvedForMarketing
-    );
+folderSelect.value =
+asset.folderId ||
+"";
+}
 
 
-  $("#assetEditorActive").checked =
-    asset.active !== false;
+$("#assetEditorDescription").value =
+asset.description || "";
 
 
-  const title =
-    $("#assetEditorTitle");
+$("#assetEditorAltText").value =
+asset.altText || "";
 
 
-  if (title) {
-    title.textContent =
-      asset.name ||
-      "Edit Asset";
-  }
+$("#assetEditorTags").value =
+Array.isArray(
+asset.tags
+)
+? asset.tags.join(", ")
+: "";
 
 
-  const preview =
-    $("#assetEditorPreview");
+$("#assetEditorApprovedAi").checked =
+Boolean(
+asset.approvedForAi
+);
 
 
-  if (preview) {
-    const imageUrl =
-      getAssetDisplayUrl(
-        asset
-      );
+$("#assetEditorApprovedMarketing").checked =
+Boolean(
+asset.approvedForMarketing
+);
 
 
-    const isImage =
-      asset.mimeType
-        ?.startsWith(
-          "image/"
-        ) ||
-      [
-        "logo",
-        "photo",
-        "generated_artwork",
-        "brand_asset"
-      ].includes(
-        asset.category
-      );
+$("#assetEditorActive").checked =
+asset.active !== false;
 
 
-    if (
-      imageUrl &&
-      isImage
-    ) {
-      preview.innerHTML = `
-        <img
-          src="${
-            escapeHtml(
-              imageUrl
-            )
-          }"
-          alt="${
-            escapeHtml(
-              asset.altText ||
-              asset.name ||
-              ""
-            )
-          }"
-        />
-      `;
-    } else {
-      preview.innerHTML = `
-        <div
-          style="
-            padding:32px 16px;
-            color:var(--muted);
-            text-align:center;
-            font-size:.8rem;
-          "
-        >
-          No image preview available.
-        </div>
-      `;
-    }
-  }
+const title =
+$("#assetEditorTitle");
 
 
-  safeDialogOpen(
-    dialog
-  );
+if (title) {
+title.textContent =
+asset.name ||
+"Edit Asset";
+}
+
+
+const preview =
+$("#assetEditorPreview");
+
+
+if (preview) {
+const imageUrl =
+getAssetDisplayUrl(
+asset
+);
+
+
+const isImage =
+asset.mimeType
+?.startsWith(
+"image/"
+) ||
+[
+"logo",
+"photo",
+"generated_artwork",
+"brand_asset"
+].includes(
+asset.category
+);
+
+
+if (
+imageUrl &&
+isImage
+) {
+preview.innerHTML = `
+<img
+src="${
+escapeHtml(
+imageUrl
+)
+}"
+alt="${
+escapeHtml(
+asset.altText ||
+asset.name ||
+""
+)
+}"
+/>
+`;
+} else {
+preview.innerHTML = `
+<div
+style="
+padding:32px 16px;
+color:var(--muted);
+text-align:center;
+font-size:.8rem;
+"
+>
+No image preview available.
+</div>
+`;
+}
+}
+
+
+safeDialogOpen(
+dialog
+);
+}
+
+
+async function saveAssetEditor(
+event
+) {
+event.preventDefault();
+
+
+const id =
+$("#assetEditorId")
+?.value;
+
+
+const name =
+String(
+$("#assetEditorName")
+?.value ||
+""
+).trim();
+
+
+const category =
+$("#assetEditorCategory")
+?.value ||
+"brand_asset";
+
+
+const folderId =
+$("#assetEditorFolder")
+?.value ||
+null;
+
+
+const description =
+nullableText(
+$("#assetEditorDescription")
+?.value
+);
+
+
+const altText =
+nullableText(
+$("#assetEditorAltText")
+?.value
+);
+
+
+const tags =
+textToArray(
+$("#assetEditorTags")
+?.value
+);
+
+
+const approvedForAi =
+Boolean(
+$("#assetEditorApprovedAi")
+?.checked
+);
+
+
+const approvedForMarketing =
+Boolean(
+$("#assetEditorApprovedMarketing")
+?.checked
+);
+
+
+const active =
+Boolean(
+$("#assetEditorActive")
+?.checked
+);
+
+
+if (!id) {
+showToast(
+"Asset ID is missing.",
+"error"
+);
+
+return;
+}
+
+
+if (!name) {
+showToast(
+"Give this asset a name.",
+"error"
+);
+
+return;
+}
+
+
+const button =
+$("#saveAssetEditorButton");
+
+
+if (button) {
+button.disabled =
+true;
+
+button.textContent =
+"Saving…";
+}
+
+
+try {
+const {
+error
+} =
+await supabaseClient
+.from("assets")
+.update({
+name,
+
+asset_type:
+category,
+
+folder_id:
+folderId,
+
+description,
+
+alt_text:
+altText,
+
+tags,
+
+approved_for_ai:
+approvedForAi,
+
+approved_for_marketing:
+approvedForMarketing,
+
+active
+})
+.eq(
+"id",
+id
+);
+
+
+if (error) {
+throw error;
+}
+
+
+const asset =
+APP_DATA.assets.find(
+item =>
+String(item.id) ===
+String(id)
+);
+
+
+if (asset) {
+asset.name =
+name;
+
+asset.category =
+category;
+
+asset.folderId =
+folderId;
+
+asset.description =
+description;
+
+asset.altText =
+altText;
+
+asset.tags =
+tags;
+
+asset.approvedForAi =
+approvedForAi;
+
+asset.approvedForMarketing =
+approvedForMarketing;
+
+asset.active =
+active;
+}
+
+
+safeDialogClose(
+$("#assetEditorDialog")
+);
+
+
+renderApp();
+
+
+showToast(
+"Asset updated.",
+"success"
+);
+
+} catch (error) {
+console.error(
+"Asset update failed:",
+error
+);
+
+
+showToast(
+error?.message ||
+"Asset could not be updated.",
+"error"
+);
+
+} finally {
+if (button) {
+button.disabled =
+false;
+
+button.textContent =
+"Save Changes";
+}
+}
 }
 
 
