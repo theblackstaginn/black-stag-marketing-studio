@@ -11048,6 +11048,461 @@ function setContentFilter(
 
 
 /* =========================================================
+   ADD CALENDAR ITEM
+   ========================================================= */
+
+function openCalendarItemDialog() {
+  const brand =
+    getActiveBrand();
+
+  if (!brand) {
+    showToast(
+      "Choose a working brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+  let dialog =
+    $("#calendarItemDialog");
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
+      );
+
+    dialog.id =
+      "calendarItemDialog";
+
+    dialog.className =
+      "app-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+  }
+
+  dialog.innerHTML = `
+    <div
+      class="dialog-shell"
+      style="
+        width:min(620px, calc(100vw - 28px));
+        max-height:min(820px, calc(100vh - 28px));
+        overflow:auto;
+      "
+    >
+      <div
+        style="
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:20px;
+          margin-bottom:22px;
+        "
+      >
+        <div>
+          <span class="eyebrow">
+            Calendar
+          </span>
+
+          <h2
+            style="
+              margin:5px 0 5px;
+              font-family:Georgia, 'Times New Roman', serif;
+              font-weight:400;
+            "
+          >
+            Add Calendar Item
+          </h2>
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.78rem;
+              line-height:1.55;
+            "
+          >
+            Add a date for
+            ${escapeHtml(
+              brand.name
+            )}.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="icon-button"
+          data-close-calendar-item
+          aria-label="Close calendar item"
+        >
+          ×
+        </button>
+      </div>
+
+      <form
+        id="calendarItemForm"
+        autocomplete="off"
+      >
+        <div class="form-grid">
+          <label
+            style="grid-column:1 / -1;"
+          >
+            <span>Title</span>
+            <input
+              id="calendarItemTitle"
+              type="text"
+              maxlength="160"
+              placeholder="Walk Through"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Type</span>
+            <select
+              id="calendarItemType"
+              required
+            >
+              <option value="event">Event</option>
+              <option value="launch">Launch</option>
+              <option value="promotion">Promotion</option>
+              <option value="milestone">Milestone</option>
+              <option value="holiday">Holiday</option>
+              <option value="deadline">Deadline</option>
+              <option value="other">Other</option>
+            </select>
+          </label>
+
+          <label>
+            <span>Starts</span>
+            <input
+              id="calendarItemStartsAt"
+              type="datetime-local"
+              required
+            />
+          </label>
+
+          <label>
+            <span>Ends (optional)</span>
+            <input
+              id="calendarItemEndsAt"
+              type="datetime-local"
+            />
+          </label>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+              align-self:end;
+            "
+          >
+            <input
+              id="calendarItemAllDay"
+              type="checkbox"
+              style="width:auto;"
+            />
+            <span>All day</span>
+          </label>
+
+          <label
+            style="grid-column:1 / -1;"
+          >
+            <span>Description (optional)</span>
+            <textarea
+              id="calendarItemDescription"
+              rows="4"
+              maxlength="1200"
+              placeholder="Notes about this date…"
+            ></textarea>
+          </label>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+            "
+          >
+            <input
+              id="calendarItemMarketingRelevant"
+              type="checkbox"
+              checked
+              style="width:auto;"
+            />
+            <span>Marketing relevant</span>
+          </label>
+        </div>
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:10px;
+            margin-top:22px;
+          "
+        >
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-calendar-item
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveCalendarItemButton"
+            type="submit"
+            class="primary-button"
+          >
+            Add to Calendar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  dialog
+    .querySelectorAll(
+      "[data-close-calendar-item]"
+    )
+    .forEach(
+      button =>
+        button.addEventListener(
+          "click",
+          () =>
+            safeDialogClose(
+              dialog
+            )
+        )
+    );
+
+  $("#calendarItemForm")
+    ?.addEventListener(
+      "submit",
+      handleCreateCalendarItem
+    );
+
+  enableBackdropClose(
+    dialog
+  );
+
+  safeDialogOpen(
+    dialog
+  );
+
+  requestAnimationFrame(
+    () => {
+      $("#calendarItemTitle")
+        ?.focus();
+    }
+  );
+}
+
+
+async function handleCreateCalendarItem(
+  event
+) {
+  event.preventDefault();
+
+  const brand =
+    getActiveBrand();
+
+  if (
+    !brand ||
+    !supabaseClient
+  ) {
+    return;
+  }
+
+  const title =
+    String(
+      $("#calendarItemTitle")
+        ?.value ||
+      ""
+    ).trim();
+
+  const startsValue =
+    $("#calendarItemStartsAt")
+      ?.value ||
+    "";
+
+  if (
+    !title ||
+    !startsValue
+  ) {
+    showToast(
+      "Add a title and start date.",
+      "error"
+    );
+
+    return;
+  }
+
+  const startsAt =
+    new Date(
+      startsValue
+    );
+
+  const endsValue =
+    $("#calendarItemEndsAt")
+      ?.value ||
+    "";
+
+  const endsAt =
+    endsValue
+      ? new Date(
+          endsValue
+        )
+      : null;
+
+  if (
+    Number.isNaN(
+      startsAt.getTime()
+    ) ||
+    (
+      endsAt &&
+      Number.isNaN(
+        endsAt.getTime()
+      )
+    )
+  ) {
+    showToast(
+      "Check the calendar date and time.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (
+    endsAt &&
+    endsAt < startsAt
+  ) {
+    showToast(
+      "End time must be after the start time.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button =
+    $("#saveCalendarItemButton");
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Adding…";
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "calendar_items"
+        )
+        .insert({
+          brand_id:
+            brand.id,
+
+          item_type:
+            $("#calendarItemType")
+              ?.value ||
+            "event",
+
+          title,
+
+          description:
+            nullableText(
+              $("#calendarItemDescription")
+                ?.value
+            ),
+
+          starts_at:
+            startsAt.toISOString(),
+
+          ends_at:
+            endsAt
+              ? endsAt.toISOString()
+              : null,
+
+          all_day:
+            Boolean(
+              $("#calendarItemAllDay")
+                ?.checked
+            ),
+
+          marketing_relevant:
+            Boolean(
+              $("#calendarItemMarketingRelevant")
+                ?.checked
+            ),
+
+          source_type:
+            "manual",
+
+          confirmed:
+            true
+        })
+        .select("*")
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    APP_DATA.calendar.push(
+      normalizeCalendarItem(
+        data
+      )
+    );
+
+    safeDialogClose(
+      $("#calendarItemDialog")
+    );
+
+    renderApp();
+
+    showToast(
+      "Calendar item added.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Calendar item creation failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Calendar item could not be added.",
+      "error"
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Add to Calendar";
+    }
+  }
+}
+
+
+/* =========================================================
    CALENDAR
    ========================================================= */
 
@@ -19435,6 +19890,12 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       handleAddAsset
+    );
+
+  $("#addCalendarItemButton")
+    ?.addEventListener(
+      "click",
+      openCalendarItemDialog
     );
 
   $("#closeQuickCreateButton")
