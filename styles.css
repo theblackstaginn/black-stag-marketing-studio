@@ -1703,8 +1703,24 @@ strong {
   color:
     var(--ink);
 
-  background:
-    rgba(12, 16, 13, .76);
+  background-color:
+    #0c100d;
+
+  background-image:
+    linear-gradient(
+      rgba(7, 10, 8, .28),
+      rgba(7, 10, 8, .28)
+    ),
+    url("assets/modal-velvet-desktop.webp");
+
+  background-position:
+    center;
+
+  background-repeat:
+    no-repeat;
+
+  background-size:
+    cover;
 
   -webkit-backdrop-filter:
     blur(var(--glass-blur-strong));
@@ -1718,6 +1734,24 @@ strong {
     100px
     rgba(0, 0, 0, .52);
 }
+
+@media (max-width: 680px) {
+  .app-dialog {
+    background-image:
+      linear-gradient(
+        rgba(7, 10, 8, .30),
+        rgba(7, 10, 8, .30)
+      ),
+      url("assets/modal-velvet-mobile.webp");
+
+    background-position:
+      center;
+
+    background-size:
+      cover;
+  }
+}
+
 
 .app-dialog::backdrop {
   background:
@@ -1869,8 +1903,6 @@ strong {
 
   overflow: hidden;
 
-  background:
-    rgba(11, 15, 12, .74);
 }
 
 #assetEditorDialog .asset-editor-shell {
