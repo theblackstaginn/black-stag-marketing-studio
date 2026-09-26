@@ -1720,7 +1720,10 @@ strong {
     no-repeat;
 
   background-size:
-    cover;
+    contain;
+
+  background-clip:
+    padding-box;
 
   -webkit-backdrop-filter:
     none;
@@ -1748,7 +1751,10 @@ strong {
       center;
 
     background-size:
-      cover;
+      contain;
+
+    background-clip:
+      padding-box;
   }
 }
 
