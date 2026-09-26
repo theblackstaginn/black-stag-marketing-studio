@@ -20705,6 +20705,218 @@ function bindEvents() {
 
 
 /* =========================================================
+   MOBILE PULL TO REFRESH
+   ========================================================= */
+
+function enablePullToRefresh() {
+  let startY = 0;
+  let pulling = false;
+  let refreshing = false;
+
+  const indicator =
+    document.createElement(
+      "div"
+    );
+
+  indicator.id =
+    "pullRefreshIndicator";
+
+  indicator.setAttribute(
+    "aria-live",
+    "polite"
+  );
+
+  indicator.style.cssText = [
+    "position:fixed",
+    "z-index:9999",
+    "top:calc(env(safe-area-inset-top, 0px) + 10px)",
+    "left:50%",
+    "transform:translate(-50%,-72px)",
+    "padding:9px 14px",
+    "border:1px solid rgba(184,143,94,.45)",
+    "border-radius:999px",
+    "background:rgba(10,13,11,.94)",
+    "box-shadow:0 10px 30px rgba(0,0,0,.35)",
+    "color:var(--ink)",
+    "font-size:.72rem",
+    "font-weight:700",
+    "letter-spacing:.03em",
+    "pointer-events:none",
+    "transition:transform .16s ease"
+  ].join(";");
+
+  indicator.textContent =
+    "Pull to refresh";
+
+  document.body.appendChild(
+    indicator
+  );
+
+  const resetIndicator =
+    () => {
+      indicator.style.transform =
+        "translate(-50%,-72px)";
+
+      indicator.textContent =
+        "Pull to refresh";
+    };
+
+  document.addEventListener(
+    "touchstart",
+    event => {
+      if (
+        refreshing ||
+        window.scrollY > 2 ||
+        event.touches.length !== 1 ||
+        document.querySelector(
+          "dialog[open]"
+        )
+      ) {
+        pulling = false;
+        return;
+      }
+
+      startY =
+        event.touches[0]
+          .clientY;
+
+      pulling = true;
+    },
+    {
+      passive: true
+    }
+  );
+
+  document.addEventListener(
+    "touchmove",
+    event => {
+      if (
+        !pulling ||
+        refreshing
+      ) {
+        return;
+      }
+
+      const distance =
+        Math.max(
+          0,
+          event.touches[0]
+            .clientY -
+          startY
+        );
+
+      if (distance < 8) {
+        return;
+      }
+
+      const visualDistance =
+        Math.min(
+          58,
+          distance * .42
+        );
+
+      indicator.style.transform =
+        `translate(-50%, ${visualDistance - 46}px)`;
+
+      indicator.textContent =
+        distance >= 92
+          ? "Release to refresh"
+          : "Pull to refresh";
+    },
+    {
+      passive: true
+    }
+  );
+
+  document.addEventListener(
+    "touchend",
+    async event => {
+      if (
+        !pulling ||
+        refreshing
+      ) {
+        return;
+      }
+
+      pulling = false;
+
+      const endY =
+        event.changedTouches[0]
+          ?.clientY ??
+        startY;
+
+      const distance =
+        endY -
+        startY;
+
+      if (distance < 92) {
+        resetIndicator();
+        return;
+      }
+
+      refreshing = true;
+
+      indicator.textContent =
+        "Refreshing…";
+
+      indicator.style.transform =
+        "translate(-50%, 0)";
+
+      try {
+        if (APP_STATE.session) {
+          await refreshWorkingData();
+          renderApp();
+        }
+
+        indicator.textContent =
+          "Checking for latest version…";
+
+        window.setTimeout(
+          () => {
+            window.location.reload();
+          },
+          180
+        );
+
+      } catch (error) {
+        console.error(
+          "Pull to refresh failed:",
+          error
+        );
+
+        refreshing = false;
+
+        indicator.textContent =
+          "Refresh failed";
+
+        window.setTimeout(
+          resetIndicator,
+          1200
+        );
+      }
+    },
+    {
+      passive: true
+    }
+  );
+
+  document.addEventListener(
+    "touchcancel",
+    () => {
+      pulling = false;
+
+      if (!refreshing) {
+        resetIndicator();
+      }
+    },
+    {
+      passive: true
+    }
+  );
+}
+
+
+/* =========================================================
    ACTIVE BRAND STORAGE
    ========================================================= */
 
@@ -20924,6 +21136,7 @@ async function initializeApp() {
     }
 
     bindEvents();
+    enablePullToRefresh();
 
     await initializeAuthentication();
 
