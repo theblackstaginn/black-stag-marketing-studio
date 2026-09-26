@@ -11531,6 +11531,595 @@ async function handleCreateCalendarItem(
 
 
 /* =========================================================
+   CALENDAR ITEM EDITOR
+   ========================================================= */
+
+function openCalendarItemEditor(
+  itemId
+) {
+  const item =
+    APP_DATA.calendar.find(
+      calendarItem =>
+        String(
+          calendarItem.id
+        ) ===
+        String(
+          itemId
+        )
+    );
+
+  if (!item) {
+    showToast(
+      "That calendar item could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+  const brand =
+    APP_DATA.brands.find(
+      brandItem =>
+        String(
+          brandItem.id
+        ) ===
+        String(
+          item.brandId
+        )
+    );
+
+  let dialog =
+    $("#calendarItemEditorDialog");
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
+      );
+
+    dialog.id =
+      "calendarItemEditorDialog";
+
+    dialog.className =
+      "app-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+  }
+
+  dialog.innerHTML = `
+    <div
+      class="dialog-shell"
+      style="
+        width:min(620px, calc(100vw - 28px));
+        max-height:min(820px, calc(100vh - 28px));
+        overflow:auto;
+      "
+    >
+      <div
+        style="
+          display:flex;
+          align-items:flex-start;
+          justify-content:space-between;
+          gap:20px;
+          margin-bottom:22px;
+        "
+      >
+        <div>
+          <span class="eyebrow">
+            Calendar
+          </span>
+
+          <h2
+            style="
+              margin:5px 0 5px;
+              font-family:Georgia, 'Times New Roman', serif;
+              font-weight:400;
+            "
+          >
+            Edit Calendar Item
+          </h2>
+
+          <p
+            style="
+              margin:0;
+              color:var(--muted);
+              font-size:.78rem;
+              line-height:1.55;
+            "
+          >
+            ${escapeHtml(
+              brand?.name ||
+              "Working Brand"
+            )}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="icon-button"
+          data-close-calendar-editor
+          aria-label="Close calendar editor"
+        >
+          ×
+        </button>
+      </div>
+
+      <form
+        id="calendarItemEditorForm"
+        autocomplete="off"
+      >
+        <input
+          id="calendarItemEditorId"
+          type="hidden"
+          value="${escapeHtml(
+            item.id
+          )}"
+        />
+
+        <div
+          class="form-grid"
+          style="
+            gap:18px 16px;
+          "
+        >
+          <label
+            style="
+              grid-column:1 / -1;
+              display:grid;
+              gap:8px;
+            "
+          >
+            <span>Title</span>
+            <input
+              id="calendarItemEditorTitle"
+              type="text"
+              maxlength="160"
+              required
+              value="${escapeHtml(
+                item.title ||
+                ""
+              )}"
+            />
+          </label>
+
+          <label
+            style="
+              display:grid;
+              gap:8px;
+            "
+          >
+            <span>Type</span>
+            <select
+              id="calendarItemEditorType"
+              required
+            >
+              ${[
+                "event",
+                "launch",
+                "promotion",
+                "milestone",
+                "holiday",
+                "deadline",
+                "other"
+              ]
+                .map(
+                  value => `
+                    <option
+                      value="${value}"
+                      ${String(
+                        item.itemType ||
+                        item.type ||
+                        "event"
+                      ) === value
+                        ? "selected"
+                        : ""}
+                    >
+                      ${escapeHtml(
+                        titleCaseStatus(
+                          value
+                        )
+                      )}
+                    </option>
+                  `
+                )
+                .join("")}
+            </select>
+          </label>
+
+          <label
+            style="
+              display:grid;
+              gap:8px;
+            "
+          >
+            <span>Starts</span>
+            <input
+              id="calendarItemEditorStartsAt"
+              type="datetime-local"
+              required
+              value="${escapeHtml(
+                toLocalDateTimeInputValue(
+                  item.startsAt
+                )
+              )}"
+            />
+          </label>
+
+          <label
+            style="
+              display:grid;
+              gap:8px;
+            "
+          >
+            <span>Ends (optional)</span>
+            <input
+              id="calendarItemEditorEndsAt"
+              type="datetime-local"
+              value="${escapeHtml(
+                toLocalDateTimeInputValue(
+                  item.endsAt
+                )
+              )}"
+            />
+          </label>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+              align-self:end;
+            "
+          >
+            <input
+              id="calendarItemEditorAllDay"
+              type="checkbox"
+              ${item.allDay
+                ? "checked"
+                : ""}
+              style="width:auto;"
+            />
+            <span>All day</span>
+          </label>
+
+          <label
+            style="
+              grid-column:1 / -1;
+              display:grid;
+              gap:8px;
+            "
+          >
+            <span>Description (optional)</span>
+            <textarea
+              id="calendarItemEditorDescription"
+              rows="4"
+              maxlength="1200"
+            >${escapeHtml(
+              item.description ||
+              ""
+            )}</textarea>
+          </label>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+            "
+          >
+            <input
+              id="calendarItemEditorMarketingRelevant"
+              type="checkbox"
+              ${item.marketingRelevant
+                ? "checked"
+                : ""}
+              style="width:auto;"
+            />
+            <span>Marketing relevant</span>
+          </label>
+
+          <label
+            style="
+              display:flex;
+              align-items:center;
+              gap:10px;
+            "
+          >
+            <input
+              id="calendarItemEditorConfirmed"
+              type="checkbox"
+              ${item.confirmed
+                ? "checked"
+                : ""}
+              style="width:auto;"
+            />
+            <span>Confirmed</span>
+          </label>
+        </div>
+
+        <div
+          style="
+            display:flex;
+            justify-content:flex-end;
+            gap:12px;
+            margin-top:28px;
+          "
+        >
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-calendar-editor
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveCalendarItemEditorButton"
+            type="submit"
+            class="primary-button"
+          >
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  dialog
+    .querySelectorAll(
+      "[data-close-calendar-editor]"
+    )
+    .forEach(
+      button =>
+        button.addEventListener(
+          "click",
+          () =>
+            safeDialogClose(
+              dialog
+            )
+        )
+    );
+
+  $("#calendarItemEditorForm")
+    ?.addEventListener(
+      "submit",
+      saveCalendarItemEditor
+    );
+
+  enableBackdropClose(
+    dialog
+  );
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+async function saveCalendarItemEditor(
+  event
+) {
+  event.preventDefault();
+
+  const id =
+    $("#calendarItemEditorId")
+      ?.value;
+
+  const title =
+    String(
+      $("#calendarItemEditorTitle")
+        ?.value ||
+      ""
+    ).trim();
+
+  const startsValue =
+    $("#calendarItemEditorStartsAt")
+      ?.value ||
+    "";
+
+  if (
+    !id ||
+    !title ||
+    !startsValue
+  ) {
+    showToast(
+      "Add a title and start date.",
+      "error"
+    );
+
+    return;
+  }
+
+  const startsAt =
+    new Date(
+      startsValue
+    );
+
+  const endsValue =
+    $("#calendarItemEditorEndsAt")
+      ?.value ||
+    "";
+
+  const endsAt =
+    endsValue
+      ? new Date(
+          endsValue
+        )
+      : null;
+
+  if (
+    Number.isNaN(
+      startsAt.getTime()
+    ) ||
+    (
+      endsAt &&
+      Number.isNaN(
+        endsAt.getTime()
+      )
+    )
+  ) {
+    showToast(
+      "Check the calendar date and time.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (
+    endsAt &&
+    endsAt < startsAt
+  ) {
+    showToast(
+      "End time must be after the start time.",
+      "error"
+    );
+
+    return;
+  }
+
+  const button =
+    $("#saveCalendarItemEditorButton");
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Saving…";
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "calendar_items"
+        )
+        .update({
+          item_type:
+            $("#calendarItemEditorType")
+              ?.value ||
+            "event",
+
+          title,
+
+          description:
+            nullableText(
+              $("#calendarItemEditorDescription")
+                ?.value
+            ),
+
+          starts_at:
+            startsAt.toISOString(),
+
+          ends_at:
+            endsAt
+              ? endsAt.toISOString()
+              : null,
+
+          all_day:
+            Boolean(
+              $("#calendarItemEditorAllDay")
+                ?.checked
+            ),
+
+          marketing_relevant:
+            Boolean(
+              $("#calendarItemEditorMarketingRelevant")
+                ?.checked
+            ),
+
+          confirmed:
+            Boolean(
+              $("#calendarItemEditorConfirmed")
+                ?.checked
+            ),
+
+          updated_at:
+            new Date()
+              .toISOString()
+        })
+        .eq(
+          "id",
+          id
+        )
+        .select("*")
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!data?.id) {
+      throw new Error(
+        "The calendar update did not return a saved item."
+      );
+    }
+
+    const normalized =
+      normalizeCalendarItem(
+        data
+      );
+
+    const index =
+      APP_DATA.calendar.findIndex(
+        item =>
+          String(
+            item.id
+          ) ===
+          String(
+            normalized.id
+          )
+      );
+
+    if (index >= 0) {
+      APP_DATA.calendar[
+        index
+      ] = normalized;
+    }
+
+    safeDialogClose(
+      $("#calendarItemEditorDialog")
+    );
+
+    renderApp();
+
+    showToast(
+      "Calendar item updated.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Calendar item update failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Calendar item could not be updated.",
+      "error",
+      5000
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Save Changes";
+    }
+  }
+}
+
+
+/* =========================================================
    CALENDAR
    ========================================================= */
 
@@ -19620,6 +20209,17 @@ function handleGlobalClick(
 
       return;
     }
+
+    if (
+      action === "calendar" &&
+      itemId
+    ) {
+      openCalendarItemEditor(
+        itemId
+      );
+
+      return;
+    }
   }
 
   const contentFilter =
@@ -19874,6 +20474,19 @@ function bindEvents() {
         event.preventDefault();
 
         openContentEditor(
+          itemId
+        );
+
+        return;
+      }
+
+      if (
+        action === "calendar" &&
+        itemId
+      ) {
+        event.preventDefault();
+
+        openCalendarItemEditor(
           itemId
         );
       }
