@@ -11870,7 +11870,57 @@ function renderAssets() {
   const foldersHtml =
     folders
       .map(
-        folder => `
+        folder => {
+          const folderCoverAsset =
+            (APP_DATA.assets || [])
+              .filter(
+                asset =>
+                  String(
+                    asset.folderId || ""
+                  ) ===
+                    String(
+                      folder.id
+                    ) &&
+                  asset.active !== false &&
+                  getAssetDisplayUrl(
+                    asset
+                  ) &&
+                  (
+                    asset.mimeType
+                      ?.startsWith(
+                        "image/"
+                      ) ||
+                    [
+                      "logo",
+                      "photo",
+                      "generated_artwork",
+                      "brand_asset"
+                    ].includes(
+                      asset.type
+                    )
+                  )
+              )
+              .sort(
+                (a, b) =>
+                  new Date(
+                    b.updatedAt ||
+                    b.createdAt ||
+                    0
+                  ) -
+                  new Date(
+                    a.updatedAt ||
+                    a.createdAt ||
+                    0
+                  )
+              )[0] ||
+            null;
+
+          const folderCoverUrl =
+            getAssetDisplayUrl(
+              folderCoverAsset
+            );
+
+          return `
           <article
             class="content-panel"
             data-open-asset-folder="${
@@ -11903,7 +11953,25 @@ function renderAssets() {
               "
               aria-hidden="true"
             >
-              ◇
+              ${
+                folderCoverUrl
+                  ? `
+                    <img
+                      src="${escapeHtml(
+                        folderCoverUrl
+                      )}"
+                      alt=""
+                      loading="lazy"
+                      style="
+                        width:100%;
+                        height:100%;
+                        object-fit:cover;
+                        border-radius:inherit;
+                      "
+                    >
+                  `
+                  : "◇"
+              }
             </div>
 
             <div
@@ -11925,7 +11993,8 @@ function renderAssets() {
             </h3>
 
           </article>
-        `
+        `;
+        }
       )
       .join("");
 
