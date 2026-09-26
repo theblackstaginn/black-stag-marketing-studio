@@ -216,6 +216,22 @@ const readOnlyToolMetadata = {
   }
 };
 
+const writeToolMetadata = {
+  securitySchemes: [
+    {
+      type: "oauth2",
+      scopes: []
+    }
+  ],
+
+  annotations: {
+    readOnlyHint: false,
+    destructiveHint: false,
+    idempotentHint: false,
+    openWorldHint: false
+  }
+};
+
 /* ========================================
    MCP SERVER
    ======================================== */
@@ -536,6 +552,118 @@ function buildServer(supabase) {
       return jsonResult(rows);
     }
   );
+
+  /* --------------------------------------
+     CREATE CONTENT
+     -------------------------------------- */
+
+  server.registerTool(
+    "create_content",
+    {
+      title:
+        "Create Content Draft",
+
+      description:
+        "Create a new draft content item for one brand in Black Stag Marketing Studio. This writes a new row but does not publish or schedule anything.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        content_type:
+          z.enum([
+            "social_post",
+            "story",
+            "reel_script",
+            "email",
+            "website_copy",
+            "promotional_graphic",
+            "campaign",
+            "other"
+          ]),
+
+        title:
+          z.string().trim().min(1).optional(),
+
+        body:
+          z.string().trim().min(1),
+
+        platform:
+          z.string().trim().min(1).optional(),
+
+        goal:
+          z.string().trim().min(1).optional(),
+
+        original_request:
+          z.string().trim().min(1).optional(),
+
+        ai_brief:
+          z.string().trim().min(1).optional(),
+
+        campaign_id:
+          z.string().uuid().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      brand_id,
+      content_type,
+      title,
+      body,
+      platform,
+      goal,
+      original_request,
+      ai_brief,
+      campaign_id
+    }) => {
+      const payload = {
+        brand_id,
+        content_type,
+        status:
+          "draft",
+        title:
+          title || null,
+        body,
+        platform:
+          platform || null,
+        goal:
+          goal || null,
+        original_request:
+          original_request || null,
+        ai_mode:
+          "chatgpt-mcp",
+        ai_brief:
+          ai_brief || null,
+        campaign_id:
+          campaign_id || null
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from(
+            "content_items"
+          )
+          .insert(
+            payload
+          )
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `content_items: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
 
   /* --------------------------------------
      LIST CALENDAR
@@ -892,8 +1020,8 @@ app.get(
 
     <p>
       Sign in to approve ChatGPT's
-      read-only access to your Black
-      Stag Marketing Studio data.
+      access to your Black Stag
+      Marketing Studio data.
     </p>
 
     <section
@@ -1310,7 +1438,7 @@ app.get(
   (_req, res) => {
     res.json({
       ok: true,
-      mode: "read-only"
+      mode: "read-write"
     });
   }
 );
@@ -1448,7 +1576,7 @@ app.listen(
   port,
   () => {
     console.log(
-      `Black Stag MCP listening on port ${port} (read-only)`
+      `Black Stag MCP listening on port ${port} (read-write)`
     );
   }
 );
