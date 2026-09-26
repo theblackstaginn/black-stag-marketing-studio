@@ -9218,23 +9218,59 @@ function renderDashboard() {
 
 
   const upcomingContent =
-    brandContent
+    [
+      ...(
+        APP_DATA.calendar ||
+        []
+      )
+        .filter(
+          item =>
+            item.brandId ===
+              brand.id &&
+            item.startsAt
+        )
+        .map(
+          item => ({
+            ...item,
+            dashboardType:
+              item.type ||
+              "Calendar",
+            dashboardTitle:
+              item.title ||
+              "Calendar Item",
+            dashboardDate:
+              item.startsAt
+          })
+        ),
+
+      ...brandContent
+        .filter(
+          item =>
+            item.status ===
+              "scheduled" &&
+            item.scheduledFor
+        )
+        .map(
+          item => ({
+            ...item,
+            dashboardType:
+              getContentTypeLabel(
+                item.type
+              ),
+            dashboardTitle:
+              item.title ||
+              "Untitled Content",
+            dashboardDate:
+              item.scheduledFor
+          })
+        )
+    ]
       .filter(
         item => {
-          if (
-            item.status !==
-              "scheduled" ||
-            !item.scheduledFor
-          ) {
-            return false;
-          }
-
-
           const scheduled =
             new Date(
-              item.scheduledFor
+              item.dashboardDate
             );
-
 
           return (
             !Number.isNaN(
@@ -9247,10 +9283,10 @@ function renderDashboard() {
       .sort(
         (a, b) =>
           new Date(
-            a.scheduledFor
+            a.dashboardDate
           ) -
           new Date(
-            b.scheduledFor
+            b.dashboardDate
           )
       );
 
@@ -9379,6 +9415,7 @@ function renderDashboardUpcoming(
                 <span class="eyebrow">
                   ${
                     escapeHtml(
+                      item.dashboardType ||
                       getContentTypeLabel(
                         item.type
                       )
@@ -9400,6 +9437,7 @@ function renderDashboardUpcoming(
                 >
                   ${
                     escapeHtml(
+                      item.dashboardTitle ||
                       item.title ||
                       "Untitled Content"
                     )
@@ -9419,6 +9457,7 @@ function renderDashboardUpcoming(
                 ${
                   escapeHtml(
                     formatDateTime(
+                      item.dashboardDate ||
                       item.scheduledFor
                     )
                   )
