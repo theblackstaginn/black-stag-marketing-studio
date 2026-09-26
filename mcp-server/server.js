@@ -783,6 +783,1116 @@ function buildServer(supabase) {
     }
   );
 
+
+  /* --------------------------------------
+     UPDATE CONTENT
+     -------------------------------------- */
+
+  server.registerTool(
+    "update_content",
+    {
+      title:
+        "Update Content",
+
+      description:
+        "Update an existing Black Stag Marketing Studio content item. Only fields provided are changed.",
+
+      inputSchema: {
+        content_id:
+          z.string().uuid(),
+
+        title:
+          z.string().trim().min(1).nullable().optional(),
+
+        body:
+          z.string().nullable().optional(),
+
+        content_type:
+          z.enum([
+            "social_post",
+            "story",
+            "reel_script",
+            "email",
+            "website_copy",
+            "promotional_graphic",
+            "campaign",
+            "other"
+          ]).optional(),
+
+        status:
+          z.enum([
+            "idea",
+            "draft",
+            "review",
+            "approved",
+            "scheduled",
+            "published",
+            "rejected"
+          ]).optional(),
+
+        platform:
+          z.string().trim().min(1).nullable().optional(),
+
+        goal:
+          z.string().trim().min(1).nullable().optional(),
+
+        alternate_copy:
+          z.string().nullable().optional(),
+
+        visual_direction:
+          z.string().nullable().optional(),
+
+        cta:
+          z.string().nullable().optional(),
+
+        hashtags:
+          z.array(
+            z.string().trim().min(1)
+          ).optional(),
+
+        campaign_id:
+          z.string().uuid().nullable().optional(),
+
+        scheduled_for:
+          z.string().datetime().nullable().optional(),
+
+        rejection_reason:
+          z.string().nullable().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      content_id,
+      ...changes
+    }) => {
+      const payload = {
+        ...changes,
+        updated_at:
+          new Date().toISOString()
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("content_items")
+          .update(payload)
+          .eq(
+            "id",
+            content_id
+          )
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `content_items: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     CREATE CAMPAIGN
+     -------------------------------------- */
+
+  server.registerTool(
+    "create_campaign",
+    {
+      title:
+        "Create Campaign",
+
+      description:
+        "Create a new campaign for one brand. Campaigns are created as drafts unless another valid status is supplied.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        name:
+          z.string().trim().min(1),
+
+        description:
+          z.string().nullable().optional(),
+
+        objective:
+          z.string().nullable().optional(),
+
+        status:
+          z.enum([
+            "draft",
+            "active",
+            "completed",
+            "archived"
+          ]).optional(),
+
+        audience_notes:
+          z.string().nullable().optional(),
+
+        offer_text:
+          z.string().nullable().optional(),
+
+        budget_notes:
+          z.string().nullable().optional(),
+
+        channels:
+          z.array(
+            z.string().trim().min(1)
+          ).optional(),
+
+        voice_notes:
+          z.string().nullable().optional(),
+
+        cta:
+          z.string().nullable().optional(),
+
+        starts_on:
+          z.string().date().nullable().optional(),
+
+        ends_on:
+          z.string().date().nullable().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      brand_id,
+      name,
+      description,
+      objective,
+      status,
+      audience_notes,
+      offer_text,
+      budget_notes,
+      channels,
+      voice_notes,
+      cta,
+      starts_on,
+      ends_on
+    }) => {
+      const payload = {
+        brand_id,
+        name,
+        description:
+          description ?? null,
+        objective:
+          objective ?? null,
+        status:
+          status || "draft",
+        audience_notes:
+          audience_notes ?? null,
+        offer_text:
+          offer_text ?? null,
+        budget_notes:
+          budget_notes ?? null,
+        channels:
+          channels || [],
+        voice_notes:
+          voice_notes ?? null,
+        cta:
+          cta ?? null,
+        starts_on:
+          starts_on ?? null,
+        ends_on:
+          ends_on ?? null
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("campaigns")
+          .insert(payload)
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `campaigns: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     UPDATE CAMPAIGN
+     -------------------------------------- */
+
+  server.registerTool(
+    "update_campaign",
+    {
+      title:
+        "Update Campaign",
+
+      description:
+        "Update an existing Black Stag Marketing Studio campaign. Only supplied fields are changed.",
+
+      inputSchema: {
+        campaign_id:
+          z.string().uuid(),
+
+        name:
+          z.string().trim().min(1).optional(),
+
+        description:
+          z.string().nullable().optional(),
+
+        objective:
+          z.string().nullable().optional(),
+
+        status:
+          z.enum([
+            "draft",
+            "active",
+            "completed",
+            "archived"
+          ]).optional(),
+
+        audience_notes:
+          z.string().nullable().optional(),
+
+        offer_text:
+          z.string().nullable().optional(),
+
+        budget_notes:
+          z.string().nullable().optional(),
+
+        channels:
+          z.array(
+            z.string().trim().min(1)
+          ).optional(),
+
+        voice_notes:
+          z.string().nullable().optional(),
+
+        cta:
+          z.string().nullable().optional(),
+
+        starts_on:
+          z.string().date().nullable().optional(),
+
+        ends_on:
+          z.string().date().nullable().optional(),
+
+        results:
+          z.string().nullable().optional(),
+
+        lessons:
+          z.string().nullable().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      campaign_id,
+      ...changes
+    }) => {
+      const payload = {
+        ...changes,
+        updated_at:
+          new Date().toISOString()
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("campaigns")
+          .update(payload)
+          .eq(
+            "id",
+            campaign_id
+          )
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `campaigns: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     CREATE CALENDAR ITEM
+     -------------------------------------- */
+
+  server.registerTool(
+    "create_calendar_item",
+    {
+      title:
+        "Create Calendar Item",
+
+      description:
+        "Create a calendar item for one brand. This writes to the Studio calendar but does not publish external content.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        item_type:
+          z.string().trim().min(1).optional(),
+
+        title:
+          z.string().trim().min(1),
+
+        description:
+          z.string().nullable().optional(),
+
+        starts_at:
+          z.string().datetime().nullable().optional(),
+
+        ends_at:
+          z.string().datetime().nullable().optional(),
+
+        all_day:
+          z.boolean().optional(),
+
+        recurring:
+          z.boolean().optional(),
+
+        recurrence_rule:
+          z.string().nullable().optional(),
+
+        marketing_relevant:
+          z.boolean().optional(),
+
+        source_type:
+          z.string().nullable().optional(),
+
+        confirmed:
+          z.boolean().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      brand_id,
+      item_type,
+      title,
+      description,
+      starts_at,
+      ends_at,
+      all_day,
+      recurring,
+      recurrence_rule,
+      marketing_relevant,
+      source_type,
+      confirmed
+    }) => {
+      const payload = {
+        brand_id,
+        item_type:
+          item_type || "event",
+        title,
+        description:
+          description ?? null,
+        starts_at:
+          starts_at ?? null,
+        ends_at:
+          ends_at ?? null,
+        all_day:
+          all_day ?? false,
+        recurring:
+          recurring ?? false,
+        recurrence_rule:
+          recurrence_rule ?? null,
+        marketing_relevant:
+          marketing_relevant ?? true,
+        source_type:
+          source_type || "chatgpt-mcp",
+        confirmed:
+          confirmed ?? true
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("calendar_items")
+          .insert(payload)
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `calendar_items: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     UPDATE CALENDAR ITEM
+     -------------------------------------- */
+
+  server.registerTool(
+    "update_calendar_item",
+    {
+      title:
+        "Update Calendar Item",
+
+      description:
+        "Update an existing Black Stag Marketing Studio calendar item. Only supplied fields are changed.",
+
+      inputSchema: {
+        calendar_item_id:
+          z.string().uuid(),
+
+        item_type:
+          z.string().trim().min(1).optional(),
+
+        title:
+          z.string().trim().min(1).optional(),
+
+        description:
+          z.string().nullable().optional(),
+
+        starts_at:
+          z.string().datetime().nullable().optional(),
+
+        ends_at:
+          z.string().datetime().nullable().optional(),
+
+        all_day:
+          z.boolean().optional(),
+
+        recurring:
+          z.boolean().optional(),
+
+        recurrence_rule:
+          z.string().nullable().optional(),
+
+        marketing_relevant:
+          z.boolean().optional(),
+
+        source_type:
+          z.string().nullable().optional(),
+
+        confirmed:
+          z.boolean().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      calendar_item_id,
+      ...changes
+    }) => {
+      const payload = {
+        ...changes,
+        updated_at:
+          new Date().toISOString()
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("calendar_items")
+          .update(payload)
+          .eq(
+            "id",
+            calendar_item_id
+          )
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `calendar_items: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     CREATE ASSET FOLDER
+     -------------------------------------- */
+
+  server.registerTool(
+    "create_asset_folder",
+    {
+      title:
+        "Create Asset Folder",
+
+      description:
+        "Create an Asset Vault folder for one brand. Supports nested folders through parent_folder_id.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        name:
+          z.string().trim().min(1),
+
+        description:
+          z.string().optional(),
+
+        parent_folder_id:
+          z.string().uuid().nullable().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      brand_id,
+      name,
+      description,
+      parent_folder_id
+    }) => {
+      const payload = {
+        brand_id,
+        name,
+        description:
+          description || "",
+        parent_folder_id:
+          parent_folder_id ?? null
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("asset_folders")
+          .insert(payload)
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `asset_folders: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     CREATE ASSET METADATA
+     -------------------------------------- */
+
+  server.registerTool(
+    "create_asset",
+    {
+      title:
+        "Create Asset Record",
+
+      description:
+        "Create Asset Vault metadata for a file or external asset. This records the asset in the Studio but does not upload binary file bytes.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        asset_type:
+          z.enum([
+            "logo",
+            "photo",
+            "generated_artwork",
+            "brand_asset",
+            "document",
+            "other"
+          ]),
+
+        name:
+          z.string().trim().min(1),
+
+        description:
+          z.string().nullable().optional(),
+
+        folder_id:
+          z.string().uuid().nullable().optional(),
+
+        external_url:
+          z.string().url().nullable().optional(),
+
+        storage_bucket:
+          z.string().trim().min(1).nullable().optional(),
+
+        storage_path:
+          z.string().trim().min(1).nullable().optional(),
+
+        mime_type:
+          z.string().trim().min(1).nullable().optional(),
+
+        width:
+          z.number().int().positive().nullable().optional(),
+
+        height:
+          z.number().int().positive().nullable().optional(),
+
+        alt_text:
+          z.string().nullable().optional(),
+
+        tags:
+          z.array(
+            z.string().trim().min(1)
+          ).optional(),
+
+        approved_for_ai:
+          z.boolean().optional(),
+
+        approved_for_marketing:
+          z.boolean().optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      brand_id,
+      asset_type,
+      name,
+      description,
+      folder_id,
+      external_url,
+      storage_bucket,
+      storage_path,
+      mime_type,
+      width,
+      height,
+      alt_text,
+      tags,
+      approved_for_ai,
+      approved_for_marketing
+    }) => {
+      const payload = {
+        brand_id,
+        asset_type,
+        name,
+        description:
+          description ?? null,
+        folder_id:
+          folder_id ?? null,
+        external_url:
+          external_url ?? null,
+        storage_bucket:
+          storage_bucket ?? null,
+        storage_path:
+          storage_path ?? null,
+        mime_type:
+          mime_type ?? null,
+        width:
+          width ?? null,
+        height:
+          height ?? null,
+        alt_text:
+          alt_text ?? null,
+        tags:
+          tags || [],
+        approved_for_ai:
+          approved_for_ai ?? true,
+        approved_for_marketing:
+          approved_for_marketing ?? true,
+        active:
+          true
+      };
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("assets")
+          .insert(payload)
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `assets: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+
+  /* --------------------------------------
+     CREATE MARKETING PLAN
+     -------------------------------------- */
+
+  server.registerTool(
+    "create_marketing_plan",
+    {
+      title:
+        "Create Marketing Plan",
+
+      description:
+        "Create a coordinated draft marketing plan inside Black Stag Marketing Studio: one campaign plus optional content drafts, calendar items, and an Asset Vault folder. This does not publish anything externally.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        campaign: z.object({
+          name:
+            z.string().trim().min(1),
+
+          description:
+            z.string().nullable().optional(),
+
+          objective:
+            z.string().nullable().optional(),
+
+          audience_notes:
+            z.string().nullable().optional(),
+
+          offer_text:
+            z.string().nullable().optional(),
+
+          budget_notes:
+            z.string().nullable().optional(),
+
+          channels:
+            z.array(
+              z.string().trim().min(1)
+            ).optional(),
+
+          voice_notes:
+            z.string().nullable().optional(),
+
+          cta:
+            z.string().nullable().optional(),
+
+          starts_on:
+            z.string().date().nullable().optional(),
+
+          ends_on:
+            z.string().date().nullable().optional()
+        }),
+
+        content_items:
+          z.array(
+            z.object({
+              content_type:
+                z.enum([
+                  "social_post",
+                  "story",
+                  "reel_script",
+                  "email",
+                  "website_copy",
+                  "promotional_graphic",
+                  "campaign",
+                  "other"
+                ]),
+
+              title:
+                z.string().trim().min(1).optional(),
+
+              body:
+                z.string().trim().min(1),
+
+              platform:
+                z.string().trim().min(1).optional(),
+
+              goal:
+                z.string().trim().min(1).optional(),
+
+              cta:
+                z.string().optional(),
+
+              hashtags:
+                z.array(
+                  z.string().trim().min(1)
+                ).optional(),
+
+              visual_direction:
+                z.string().optional(),
+
+              scheduled_for:
+                z.string().datetime().nullable().optional()
+            })
+          ).optional(),
+
+        calendar_items:
+          z.array(
+            z.object({
+              item_type:
+                z.string().trim().min(1).optional(),
+
+              title:
+                z.string().trim().min(1),
+
+              description:
+                z.string().nullable().optional(),
+
+              starts_at:
+                z.string().datetime().nullable().optional(),
+
+              ends_at:
+                z.string().datetime().nullable().optional(),
+
+              all_day:
+                z.boolean().optional(),
+
+              marketing_relevant:
+                z.boolean().optional(),
+
+              confirmed:
+                z.boolean().optional()
+            })
+          ).optional(),
+
+        asset_folder:
+          z.object({
+            name:
+              z.string().trim().min(1),
+
+            description:
+              z.string().optional(),
+
+            parent_folder_id:
+              z.string().uuid().nullable().optional()
+          }).optional()
+      },
+
+      ...writeToolMetadata
+    },
+
+    async ({
+      brand_id,
+      campaign,
+      content_items,
+      calendar_items,
+      asset_folder
+    }) => {
+      const created = {
+        campaign: null,
+        content_items: [],
+        calendar_items: [],
+        asset_folder: null
+      };
+
+      const {
+        data: createdCampaign,
+        error: campaignError
+      } =
+        await supabase
+          .from("campaigns")
+          .insert({
+            brand_id,
+            name:
+              campaign.name,
+            description:
+              campaign.description ?? null,
+            objective:
+              campaign.objective ?? null,
+            status:
+              "draft",
+            audience_notes:
+              campaign.audience_notes ?? null,
+            offer_text:
+              campaign.offer_text ?? null,
+            budget_notes:
+              campaign.budget_notes ?? null,
+            channels:
+              campaign.channels || [],
+            voice_notes:
+              campaign.voice_notes ?? null,
+            cta:
+              campaign.cta ?? null,
+            starts_on:
+              campaign.starts_on ?? null,
+            ends_on:
+              campaign.ends_on ?? null
+          })
+          .select()
+          .single();
+
+      if (campaignError) {
+        throw new Error(
+          `campaigns: ${campaignError.message}`
+        );
+      }
+
+      created.campaign =
+        createdCampaign;
+
+      if (
+        Array.isArray(
+          content_items
+        ) &&
+        content_items.length
+      ) {
+        const rows =
+          content_items.map(
+            item => ({
+              brand_id,
+              campaign_id:
+                createdCampaign.id,
+              content_type:
+                item.content_type,
+              status:
+                item.scheduled_for
+                  ? "scheduled"
+                  : "draft",
+              title:
+                item.title || null,
+              body:
+                item.body,
+              platform:
+                item.platform || null,
+              goal:
+                item.goal || null,
+              cta:
+                item.cta || null,
+              hashtags:
+                item.hashtags || [],
+              visual_direction:
+                item.visual_direction || null,
+              scheduled_for:
+                item.scheduled_for ?? null,
+              ai_mode:
+                "chatgpt-mcp"
+            })
+          );
+
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from("content_items")
+            .insert(rows)
+            .select();
+
+        if (error) {
+          throw new Error(
+            `content_items: ${error.message}`
+          );
+        }
+
+        created.content_items =
+          data || [];
+      }
+
+      if (
+        Array.isArray(
+          calendar_items
+        ) &&
+        calendar_items.length
+      ) {
+        const rows =
+          calendar_items.map(
+            item => ({
+              brand_id,
+              item_type:
+                item.item_type ||
+                "event",
+              title:
+                item.title,
+              description:
+                item.description ?? null,
+              starts_at:
+                item.starts_at ?? null,
+              ends_at:
+                item.ends_at ?? null,
+              all_day:
+                item.all_day ?? false,
+              recurring:
+                false,
+              recurrence_rule:
+                null,
+              marketing_relevant:
+                item.marketing_relevant ?? true,
+              source_type:
+                "chatgpt-mcp",
+              confirmed:
+                item.confirmed ?? true
+            })
+          );
+
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from("calendar_items")
+            .insert(rows)
+            .select();
+
+        if (error) {
+          throw new Error(
+            `calendar_items: ${error.message}`
+          );
+        }
+
+        created.calendar_items =
+          data || [];
+      }
+
+      if (asset_folder) {
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from("asset_folders")
+            .insert({
+              brand_id,
+              parent_folder_id:
+                asset_folder
+                  .parent_folder_id ??
+                null,
+              name:
+                asset_folder.name,
+              description:
+                asset_folder
+                  .description ||
+                ""
+            })
+            .select()
+            .single();
+
+        if (error) {
+          throw new Error(
+            `asset_folders: ${error.message}`
+          );
+        }
+
+        created.asset_folder =
+          data;
+      }
+
+      return jsonResult(created);
+    }
+  );
+
+
   return server;
 }
 
