@@ -4540,3 +4540,45 @@ strong {
     min-height: 48px;
   }
 }
+
+
+/* Calendar editor mobile containment */
+@media (max-width: 680px) {
+  .calendar-editor-dialog {
+    width: calc(100% - 28px);
+    max-width: calc(100% - 28px);
+    max-height: calc(100dvh - 28px);
+    margin: auto;
+  }
+
+  .calendar-editor-shell {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(100dvh - 28px);
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .calendar-editor-header,
+  .calendar-editor-form,
+  .calendar-editor-grid,
+  .calendar-editor-actions {
+    box-sizing: border-box;
+    max-width: 100%;
+  }
+
+  .calendar-editor-grid > *,
+  .calendar-editor-form label,
+  .calendar-editor-form input,
+  .calendar-editor-form select,
+  .calendar-editor-form textarea {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .calendar-editor-actions {
+    width: auto;
+  }
+}
