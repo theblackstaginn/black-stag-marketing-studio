@@ -4691,3 +4691,122 @@ strong {
     padding: 13px 18px calc(13px + env(safe-area-inset-bottom)) !important;
   }
 }
+
+
+/* =========================================================
+   BLACK STAG DRAGON LEATHER — NON-MODAL CARDS
+   ========================================================= */
+
+:root {
+  --card-dragon-leather:
+    linear-gradient(
+      rgba(7, 9, 8, .42),
+      rgba(7, 9, 8, .42)
+    ),
+    url("assets/black-stag-dragon-leather-card.webp");
+}
+
+.content-panel,
+.calendar-shell,
+.stat-card,
+.quick-create-card,
+.studio-tool-card,
+.settings-card,
+.brand-switcher,
+.calendar-item-card,
+.brand-picker-option {
+  background-color: #0b0d0c;
+  background-image: var(--card-dragon-leather);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* Keep cards crisp while preserving the existing Black Stag borders/shadows. */
+.content-panel,
+.calendar-shell,
+.stat-card,
+.quick-create-card,
+.studio-tool-card,
+.settings-card,
+.brand-switcher,
+.calendar-item-card,
+.brand-picker-option {
+  isolation: isolate;
+}
+
+/* Modals stay velvet; dragon leather is deliberately non-modal only. */
+.app-dialog .content-panel,
+.app-dialog .calendar-shell,
+.app-dialog .stat-card,
+.app-dialog .quick-create-card,
+.app-dialog .studio-tool-card,
+.app-dialog .settings-card,
+.app-dialog .brand-switcher,
+.app-dialog .calendar-item-card,
+.app-dialog .brand-picker-option {
+  background-image: none;
+}
+
+/* Mobile: use the same landscape asset rotated behind the card so the
+   leather grain reads vertically without needing a second image file. */
+@media (max-width: 680px) {
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option {
+    position: relative;
+    overflow: hidden;
+    background-image: none;
+    background-color: #0b0d0c;
+  }
+
+  .content-panel::before,
+  .calendar-shell::before,
+  .stat-card::before,
+  .quick-create-card::before,
+  .studio-tool-card::before,
+  .settings-card::before,
+  .brand-switcher::before,
+  .calendar-item-card::before,
+  .brand-picker-option::before {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    left: 50%;
+    width: max(100%, 100vh);
+    height: max(100%, 100vw);
+    background-image:
+      linear-gradient(
+        rgba(7, 9, 8, .42),
+        rgba(7, 9, 8, .42)
+      ),
+      url("assets/black-stag-dragon-leather-card.webp");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    transform: translate(-50%, -50%) rotate(90deg);
+    transform-origin: center;
+    pointer-events: none;
+  }
+
+  .app-dialog .content-panel::before,
+  .app-dialog .calendar-shell::before,
+  .app-dialog .stat-card::before,
+  .app-dialog .quick-create-card::before,
+  .app-dialog .studio-tool-card::before,
+  .app-dialog .settings-card::before,
+  .app-dialog .brand-switcher::before,
+  .app-dialog .calendar-item-card::before,
+  .app-dialog .brand-picker-option::before {
+    content: none;
+  }
+}
