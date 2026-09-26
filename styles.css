@@ -1723,10 +1723,10 @@ strong {
     cover;
 
   -webkit-backdrop-filter:
-    blur(var(--glass-blur-strong));
+    none;
 
   backdrop-filter:
-    blur(var(--glass-blur-strong));
+    none;
 
   box-shadow:
     0
