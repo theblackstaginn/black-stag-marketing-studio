@@ -11146,9 +11146,18 @@ function openCalendarItemDialog() {
         id="calendarItemForm"
         autocomplete="off"
       >
-        <div class="form-grid">
+        <div
+          class="form-grid"
+          style="
+            gap:18px 16px;
+          "
+        >
           <label
-            style="grid-column:1 / -1;"
+            style="
+              grid-column:1 / -1;
+              display:grid;
+              gap:8px;
+            "
           >
             <span>Title</span>
             <input
@@ -11160,7 +11169,12 @@ function openCalendarItemDialog() {
             />
           </label>
 
-          <label>
+          <label
+            style="
+              display:grid;
+              gap:8px;
+            "
+          >
             <span>Type</span>
             <select
               id="calendarItemType"
@@ -11176,7 +11190,12 @@ function openCalendarItemDialog() {
             </select>
           </label>
 
-          <label>
+          <label
+            style="
+              display:grid;
+              gap:8px;
+            "
+          >
             <span>Starts</span>
             <input
               id="calendarItemStartsAt"
@@ -11185,7 +11204,12 @@ function openCalendarItemDialog() {
             />
           </label>
 
-          <label>
+          <label
+            style="
+              display:grid;
+              gap:8px;
+            "
+          >
             <span>Ends (optional)</span>
             <input
               id="calendarItemEndsAt"
@@ -11210,7 +11234,11 @@ function openCalendarItemDialog() {
           </label>
 
           <label
-            style="grid-column:1 / -1;"
+            style="
+              grid-column:1 / -1;
+              display:grid;
+              gap:8px;
+            "
           >
             <span>Description (optional)</span>
             <textarea
@@ -11242,8 +11270,8 @@ function openCalendarItemDialog() {
           style="
             display:flex;
             justify-content:flex-end;
-            gap:10px;
-            margin-top:22px;
+            gap:12px;
+            margin-top:28px;
           "
         >
           <button
