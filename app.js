@@ -17374,8 +17374,7 @@ const MANUAL_AI_STATE = {
   type: null,
   request: "",
   goal: "",
-  brief: "",
-  platform: ""
+  brief: ""
 };
 
 
@@ -17442,77 +17441,6 @@ function ensureManualAiDialog() {
         "
       >
 
-        <section
-          style="
-            padding:16px;
-            border:1px solid var(--line);
-            border-radius:14px;
-            background:rgba(255,255,255,.02);
-          "
-        >
-          <div
-            style="
-              display:flex;
-              justify-content:space-between;
-              align-items:flex-start;
-              gap:12px;
-              flex-wrap:wrap;
-            "
-          >
-            <div>
-              <span class="eyebrow">
-                Integrated AI
-              </span>
-
-              <h3
-                style="
-                  margin:4px 0 6px;
-                  font-family:
-                    Georgia,
-                    'Times New Roman',
-                    serif;
-                  font-size:1rem;
-                  font-weight:400;
-                "
-              >
-                Generate inside Marketing Studio
-              </h3>
-
-              <p
-                style="
-                  margin:0;
-                  color:var(--muted);
-                  font-size:.76rem;
-                  line-height:1.55;
-                "
-              >
-                The Studio will send the current Brand Brain,
-                platform guidance, and request to the secure AI backend.
-              </p>
-            </div>
-
-            <button
-              id="generateStudioAiButton"
-              class="primary-button"
-              type="button"
-            >
-              ✦ Generate with AI
-            </button>
-          </div>
-
-          <div
-            id="studioAiStatus"
-            style="
-              margin-top:12px;
-              color:var(--muted);
-              font-size:.74rem;
-              line-height:1.5;
-            "
-          >
-            Ready for secure backend connection.
-          </div>
-        </section>
-
         <section>
 
           <div
@@ -17528,7 +17456,7 @@ function ensureManualAiDialog() {
 
             <div>
               <span class="eyebrow">
-                Manual Fallback
+                Step One
               </span>
 
               <h3
@@ -17542,7 +17470,7 @@ function ensureManualAiDialog() {
                   font-weight:400;
                 "
               >
-                Copy the AI brief if needed
+                Copy the AI brief
               </h3>
             </div>
 
@@ -17581,8 +17509,10 @@ function ensureManualAiDialog() {
               line-height:1.55;
             "
           >
-            This fallback stays available until the secure
-            OpenAI connection is enabled.
+            Paste this into ChatGPT. The brief already
+            contains the current Brand Brain, verified
+            facts, voice rules, milestones, and AI
+            guardrails.
           </p>
 
         </section>
@@ -17600,7 +17530,7 @@ function ensureManualAiDialog() {
             "
           >
             <span class="eyebrow">
-              AI Result
+              Step Two
             </span>
 
             <h3
@@ -17614,7 +17544,7 @@ function ensureManualAiDialog() {
                 font-weight:400;
               "
             >
-              Review or edit the result
+              Paste the finished result
             </h3>
           </div>
 
@@ -17623,7 +17553,7 @@ function ensureManualAiDialog() {
             style="
               min-height:240px;
             "
-            placeholder="Generated content will appear here. You can edit it before saving."
+            placeholder="Paste ChatGPT's finished content here."
           ></textarea>
 
         </section>
@@ -17686,14 +17616,6 @@ function ensureManualAiDialog() {
           </button>
 
           <button
-            id="regenerateStudioAiButton"
-            class="secondary-button"
-            type="button"
-          >
-            Regenerate
-          </button>
-
-          <button
             id="saveManualAiDraftButton"
             class="primary-button"
             type="button"
@@ -17737,18 +17659,6 @@ function ensureManualAiDialog() {
       copyManualAiBrief
     );
 
-  $("#generateStudioAiButton")
-    ?.addEventListener(
-      "click",
-      generateStudioAiContent
-    );
-
-  $("#regenerateStudioAiButton")
-    ?.addEventListener(
-      "click",
-      generateStudioAiContent
-    );
-
   $("#saveManualAiDraftButton")
     ?.addEventListener(
       "click",
@@ -17772,8 +17682,7 @@ function showManualAiDialog({
   type,
   request,
   goal,
-  brief,
-  platform = ""
+  brief
 }) {
   const dialog =
     ensureManualAiDialog();
@@ -17792,9 +17701,6 @@ function showManualAiDialog({
 
   MANUAL_AI_STATE.brief =
     brief;
-
-  MANUAL_AI_STATE.platform =
-    platform;
 
   const definition =
     CREATE_TYPES[type];
@@ -17842,7 +17748,6 @@ function showManualAiDialog({
 
   if (platform) {
     platform.value =
-      MANUAL_AI_STATE.platform ||
       getDefaultPlatformForType(
         type
       );
@@ -17934,201 +17839,6 @@ function getDefaultPlatformForType(
 
     default:
       return "";
-  }
-}
-
-
-/* =========================================================
-   GENERATE WITH INTEGRATED AI
-   ========================================================= */
-
-async function generateStudioAiContent() {
-  const provider =
-    CONFIG.ai
-      ?.providers
-      ?.openAI ||
-    {};
-
-  const endpoint =
-    String(
-      provider.endpoint ||
-      ""
-    ).trim();
-
-  const status =
-    $("#studioAiStatus");
-
-  const resultField =
-    $("#manualAiResult");
-
-  const generateButton =
-    $("#generateStudioAiButton");
-
-  const regenerateButton =
-    $("#regenerateStudioAiButton");
-
-  if (
-    !provider.enabled ||
-    !endpoint
-  ) {
-    if (status) {
-      status.textContent =
-        "Secure AI backend is not connected yet. The interface is ready; use the manual fallback for now.";
-    }
-
-    showToast(
-      "AI backend connection is the only remaining setup step.",
-      "success",
-      4200
-    );
-
-    return;
-  }
-
-  if (
-    !MANUAL_AI_STATE.brief
-  ) {
-    showToast(
-      "The AI brief is missing.",
-      "error"
-    );
-
-    return;
-  }
-
-  if (generateButton) {
-    generateButton.disabled =
-      true;
-
-    generateButton.textContent =
-      "Generating…";
-  }
-
-  if (regenerateButton) {
-    regenerateButton.disabled =
-      true;
-  }
-
-  if (status) {
-    status.textContent =
-      "Generating with the current Brand Brain and platform rules…";
-  }
-
-  try {
-    const session =
-      APP_STATE.session;
-
-    const response =
-      await fetch(
-        endpoint,
-        {
-          method:
-            "POST",
-
-          headers: {
-            "Content-Type":
-              "application/json",
-
-            ...(session?.access_token
-              ? {
-                  Authorization:
-                    `Bearer ${session.access_token}`
-                }
-              : {})
-          },
-
-          body:
-            JSON.stringify({
-              brand_id:
-                MANUAL_AI_STATE.brandId,
-
-              type:
-                MANUAL_AI_STATE.type,
-
-              platform:
-                MANUAL_AI_STATE.platform,
-
-              request:
-                MANUAL_AI_STATE.request,
-
-              goal:
-                MANUAL_AI_STATE.goal,
-
-              brief:
-                MANUAL_AI_STATE.brief
-            })
-        }
-      );
-
-    const payload =
-      await response.json();
-
-    if (!response.ok) {
-      throw new Error(
-        payload?.error ||
-        payload?.message ||
-        "AI generation failed."
-      );
-    }
-
-    const result =
-      payload?.content ||
-      payload?.output_text ||
-      payload?.result ||
-      "";
-
-    if (!result) {
-      throw new Error(
-        "The AI backend returned no content."
-      );
-    }
-
-    if (resultField) {
-      resultField.value =
-        String(
-          result
-        );
-    }
-
-    if (status) {
-      status.textContent =
-        "Generated. Review or edit the result, then save it as a draft.";
-    }
-
-    resultField?.focus();
-
-  } catch (error) {
-    console.error(
-      "Integrated AI generation failed:",
-      error
-    );
-
-    if (status) {
-      status.textContent =
-        error?.message ||
-        "AI generation failed.";
-    }
-
-    showToast(
-      error?.message ||
-      "AI generation failed.",
-      "error",
-      5000
-    );
-
-  } finally {
-    if (generateButton) {
-      generateButton.disabled =
-        false;
-
-      generateButton.textContent =
-        "✦ Generate with AI";
-    }
-
-    if (regenerateButton) {
-      regenerateButton.disabled =
-        false;
-    }
   }
 }
 
@@ -18611,9 +18321,6 @@ function clearManualAiState() {
     "";
 
   MANUAL_AI_STATE.brief =
-    "";
-
-  MANUAL_AI_STATE.platform =
     "";
 }
 
