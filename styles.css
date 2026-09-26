@@ -4638,3 +4638,56 @@ strong {
     padding-inline: 15px;
   }
 }
+
+
+/* Calendar editor — definitive mobile inset */
+@media (max-width: 680px) {
+  dialog.app-dialog.calendar-editor-dialog {
+    box-sizing: border-box !important;
+    width: calc(100vw - 56px) !important;
+    max-width: calc(100vw - 56px) !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+    margin: auto !important;
+    overflow: hidden !important;
+  }
+
+  .calendar-editor-dialog .calendar-editor-shell {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 18px 18px !important;
+    overflow-x: hidden !important;
+  }
+
+  .calendar-editor-dialog .calendar-editor-header {
+    width: auto !important;
+    max-width: none !important;
+    margin: 0 -18px 18px !important;
+    padding: 17px 18px 15px !important;
+  }
+
+  .calendar-editor-dialog .calendar-editor-form,
+  .calendar-editor-dialog .calendar-editor-grid,
+  .calendar-editor-dialog .calendar-editor-grid > label {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .calendar-editor-dialog .calendar-editor-form input:not([type="checkbox"]):not([type="radio"]),
+  .calendar-editor-dialog .calendar-editor-form select,
+  .calendar-editor-dialog .calendar-editor-form textarea {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  .calendar-editor-dialog .calendar-editor-actions {
+    width: auto !important;
+    max-width: none !important;
+    margin: 20px -18px -18px !important;
+    padding: 13px 18px calc(13px + env(safe-area-inset-bottom)) !important;
+  }
+}
