@@ -578,6 +578,57 @@ const CREATE_TYPES = {
 };
 
 
+const SOCIAL_PLATFORM_GUIDANCE = {
+  Facebook: {
+    description:
+      "Aim for roughly 80–250 characters when the message can stay concise; longer copy is fine when the story genuinely needs it.",
+    hashtags:
+      "Use 2–5 highly relevant hashtags. Avoid hashtag stuffing."
+  },
+
+  Instagram: {
+    description:
+      "Aim for roughly 125–500 characters for a typical feed caption, with the hook and key message first.",
+    hashtags:
+      "Use 3–5 highly relevant hashtags as the default. Favor specificity over volume."
+  },
+
+  TikTok: {
+    description:
+      "Aim for roughly 80–300 characters for a concise caption, front-loading the hook and searchable keywords.",
+    hashtags:
+      "Use 3–5 relevant hashtags, mixing topic or niche terms with a campaign or brand tag when useful."
+  },
+
+  Etsy: {
+    description:
+      "Treat this as marketplace listing copy rather than a social caption. Write a clear, keyword-aware description for the buyer; do not force a social-style character target.",
+    hashtags:
+      "Do not use social hashtags. Instead provide up to 13 Etsy search tags, each no more than 20 characters."
+  },
+
+  Pinterest: {
+    description:
+      "Write a keyword-rich Pin description up to 800 characters, with the most useful context early.",
+    hashtags:
+      "Hashtags are optional. Prefer natural keywords and relevant topic language; if hashtags add value, keep them minimal."
+  }
+};
+
+
+function getSocialPlatformGuidance(
+  platform
+) {
+  return (
+    SOCIAL_PLATFORM_GUIDANCE[
+      platform
+    ] ||
+    SOCIAL_PLATFORM_GUIDANCE
+      .Facebook
+  );
+}
+
+
 const DB_TYPE_TO_APP_TYPE = {
   social_post:
     "social-post",
@@ -16504,7 +16555,8 @@ async function handleQuickCreateSubmit(
       type,
       request:
         platformRequest,
-      goal
+      goal,
+      platform
     });
 
   safeDialogClose(
@@ -17163,7 +17215,8 @@ function buildAiBrief({
   brand,
   type,
   request,
-  goal
+  goal,
+  platform = ""
 }) {
   const definition =
     CREATE_TYPES[type];
@@ -17198,10 +17251,21 @@ IMPORTANT:
 - Preserve the brand's established voice without exaggerating it.`
   );
 
+  const platformGuidance =
+    type ===
+      "social-post" &&
+    platform
+      ? getSocialPlatformGuidance(
+          platform
+        )
+      : null;
+
   sections.push(
 `CONTENT REQUEST
 
-Type: ${contentLabel}
+Type: ${contentLabel}${platform
+  ? `\nPlatform: ${platform}`
+  : ""}
 
 Goal: ${
   goal ||
@@ -17211,6 +17275,20 @@ Goal: ${
 Owner request:
 ${request}`
   );
+
+  if (platformGuidance) {
+    sections.push(
+`PLATFORM GUIDANCE
+
+Description / caption:
+${platformGuidance.description}
+
+Hashtags / search tags:
+${platformGuidance.hashtags}
+
+Adapt the structure, hook, CTA, keywords, and formatting to ${platform}. These are practical writing targets, not claims that the platform requires an exact caption length or hashtag count.`
+    );
+  }
 
   sections.push(
 `OUTPUT INSTRUCTIONS
