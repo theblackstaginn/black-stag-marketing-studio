@@ -11139,7 +11139,7 @@ function openCalendarItemDialog() {
       "calendarItemDialog";
 
     dialog.className =
-      "app-dialog";
+      "app-dialog calendar-editor-dialog";
 
     document.body.appendChild(
       dialog
@@ -11148,22 +11148,9 @@ function openCalendarItemDialog() {
 
   dialog.innerHTML = `
     <div
-      class="dialog-shell"
-      style="
-        width:min(620px, calc(100vw - 28px));
-        max-height:min(820px, calc(100vh - 28px));
-        overflow:auto;
-      "
+      class="dialog-shell calendar-editor-shell"
     >
-      <div
-        style="
-          display:flex;
-          align-items:flex-start;
-          justify-content:space-between;
-          gap:20px;
-          margin-bottom:22px;
-        "
-      >
+      <div class="calendar-editor-header">
         <div>
           <span class="eyebrow">
             Calendar
@@ -11209,10 +11196,7 @@ function openCalendarItemDialog() {
         autocomplete="off"
       >
         <div
-          class="form-grid"
-          style="
-            gap:18px 16px;
-          "
+          class="form-grid calendar-editor-grid"
         >
           <label
             style="
@@ -11328,14 +11312,7 @@ function openCalendarItemDialog() {
           </label>
         </div>
 
-        <div
-          style="
-            display:flex;
-            justify-content:flex-end;
-            gap:12px;
-            margin-top:28px;
-          "
-        >
+        <div class="calendar-editor-actions">
           <button
             type="button"
             class="secondary-button"
@@ -11700,7 +11677,7 @@ function openCalendarItemEditor(
 
         <button
           type="button"
-          class="icon-button"
+          class="dialog-close calendar-editor-close"
           data-close-calendar-editor
           aria-label="Close calendar editor"
         >
@@ -11710,6 +11687,7 @@ function openCalendarItemEditor(
 
       <form
         id="calendarItemEditorForm"
+        class="calendar-editor-form"
         autocomplete="off"
       >
         <input
