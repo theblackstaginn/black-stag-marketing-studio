@@ -4810,3 +4810,81 @@ strong {
     content: none;
   }
 }
+
+
+/* =========================================================
+   DRAGON LEATHER — DEPTH + SMALL CARD RESTRAINT
+   ========================================================= */
+
+/* Large feature surfaces keep the full dragon leather, but darker/tinted. */
+.content-panel,
+.calendar-shell {
+  background-image:
+    linear-gradient(
+      rgba(6, 8, 7, .64),
+      rgba(13, 7, 7, .68)
+    ),
+    url("assets/black-stag-dragon-leather-card.webp");
+}
+
+/* Smaller utility cards get a quieter charcoal/oxblood leather treatment. */
+.stat-card,
+.quick-create-card,
+.studio-tool-card,
+.settings-card,
+.brand-switcher,
+.calendar-item-card,
+.brand-picker-option {
+  background-color: #0b0d0c;
+  background-image:
+    linear-gradient(
+      145deg,
+      rgba(8, 11, 9, .78),
+      rgba(24, 10, 11, .82)
+    ),
+    url("assets/black-stag-dragon-leather-card.webp");
+  background-size: 180%;
+  background-position: center;
+  filter: saturate(.72);
+}
+
+/* Mobile keeps the same hierarchy: bold leather on large panels,
+   subdued tinted grain on the smaller cards. */
+@media (max-width: 680px) {
+  .content-panel::before,
+  .calendar-shell::before {
+    background-image:
+      linear-gradient(
+        rgba(6, 8, 7, .64),
+        rgba(13, 7, 7, .68)
+      ),
+      url("assets/black-stag-dragon-leather-card.webp");
+  }
+
+  .stat-card::before,
+  .quick-create-card::before,
+  .studio-tool-card::before,
+  .settings-card::before,
+  .brand-switcher::before,
+  .calendar-item-card::before,
+  .brand-picker-option::before {
+    background-image:
+      linear-gradient(
+        145deg,
+        rgba(8, 11, 9, .78),
+        rgba(24, 10, 11, .82)
+      ),
+      url("assets/black-stag-dragon-leather-card.webp");
+    background-size: 180%;
+  }
+
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option {
+    filter: saturate(.72);
+  }
+}
