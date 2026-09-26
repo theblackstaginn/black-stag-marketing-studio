@@ -133,8 +133,19 @@ function formatDate(value) {
     return "";
   }
 
+  const text =
+    String(value);
+
   const date =
-    new Date(`${value}T12:00:00`);
+    /^\d{4}-\d{2}-\d{2}$/.test(
+      text
+    )
+      ? new Date(
+          `${text}T12:00:00`
+        )
+      : new Date(
+          text
+        );
 
   if (
     Number.isNaN(
