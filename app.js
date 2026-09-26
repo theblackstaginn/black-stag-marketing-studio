@@ -16302,6 +16302,28 @@ function openQuickCreate(
 
   const promptField =
     $("#createPrompt");
+
+  const platformField =
+    $("#createPlatformField");
+
+  const platformSelect =
+    $("#createPlatform");
+
+  if (platformField) {
+    platformField.hidden =
+      normalizedType !==
+      "social-post";
+  }
+
+  if (
+    normalizedType ===
+      "social-post" &&
+    platformSelect
+  ) {
+    platformSelect.value =
+      "Facebook";
+  }
+
       if (typeField) {
     typeField.value =
       normalizedType;
@@ -16416,6 +16438,16 @@ async function handleQuickCreateSubmit(
       ?.value ||
     "";
 
+  const platform =
+    type ===
+      "social-post"
+      ? (
+          $("#createPlatform")
+            ?.value ||
+          "Facebook"
+        )
+      : "";
+
   if (!brandId) {
     showToast(
       "Choose a brand.",
@@ -16461,11 +16493,17 @@ async function handleQuickCreateSubmit(
     }
   );
 
+  const platformRequest =
+    platform
+      ? `Platform: ${platform}.\n\n${request}`
+      : request;
+
   const brief =
     buildAiBrief({
       brand,
       type,
-      request,
+      request:
+        platformRequest,
       goal
     });
 
@@ -16476,9 +16514,11 @@ async function handleQuickCreateSubmit(
   showManualAiDialog({
     brand,
     type,
-    request,
+    request:
+      platformRequest,
     goal,
-    brief
+    brief,
+    platform
   });
 }
 
