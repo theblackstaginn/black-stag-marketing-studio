@@ -4155,3 +4155,195 @@ strong {
   }
 
 }
+
+/* =========================================================
+   BLACK STAG CALENDAR EDITOR
+   ========================================================= */
+
+.calendar-editor-dialog {
+  border-color: rgba(185, 139, 91, .42);
+  box-shadow:
+    0 34px 100px rgba(0, 0, 0, .64),
+    inset 0 0 0 1px rgba(225, 190, 143, .04);
+}
+
+.calendar-editor-shell {
+  width: min(620px, calc(100vw - 28px));
+  max-height: min(820px, calc(100dvh - 28px));
+  overflow: auto;
+  padding: 0 22px 24px;
+}
+
+.calendar-editor-header {
+  position: sticky;
+  z-index: 10;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 -22px 24px;
+  padding: 22px 22px 18px;
+  border-bottom: 1px solid rgba(185, 139, 91, .28);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(8, 12, 9, .97),
+      rgba(8, 12, 9, .88)
+    );
+}
+
+.calendar-editor-header .eyebrow {
+  color: var(--bronze-light);
+  letter-spacing: .2em;
+}
+
+.calendar-editor-header h2 {
+  margin: 6px 0 6px !important;
+  color: #f2ede3;
+  font-size: clamp(1.65rem, 7vw, 2.25rem);
+  line-height: 1;
+}
+
+.calendar-editor-header p {
+  color: rgba(226, 216, 200, .72) !important;
+}
+
+.calendar-editor-close {
+  border-color: rgba(185, 139, 91, .38);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(41, 33, 29, .94),
+      rgba(15, 18, 16, .94)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .05),
+    0 8px 24px rgba(0, 0, 0, .28);
+}
+
+.calendar-editor-form {
+  position: relative;
+}
+
+.calendar-editor-grid {
+  gap: 20px 16px !important;
+}
+
+.calendar-editor-form label > span {
+  color: #eee7db;
+  font-size: .76rem;
+  font-weight: 750;
+  letter-spacing: .055em;
+}
+
+.calendar-editor-form input[type="text"],
+.calendar-editor-form input[type="datetime-local"],
+.calendar-editor-form select,
+.calendar-editor-form textarea {
+  width: 100%;
+  border: 1px solid rgba(188, 143, 94, .30);
+  border-radius: 12px;
+  color: #f2eee7;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(7, 10, 8, .92),
+      rgba(15, 18, 15, .88)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .025),
+    0 8px 24px rgba(0, 0, 0, .12);
+}
+
+.calendar-editor-form input[type="text"]:focus,
+.calendar-editor-form input[type="datetime-local"]:focus,
+.calendar-editor-form select:focus,
+.calendar-editor-form textarea:focus {
+  border-color: rgba(205, 158, 105, .72);
+  box-shadow:
+    0 0 0 3px rgba(167, 123, 82, .12),
+    inset 0 1px 0 rgba(255, 255, 255, .03);
+  outline: none;
+}
+
+.calendar-editor-form input[type="checkbox"] {
+  width: 19px !important;
+  height: 19px;
+  accent-color: #9a704c;
+}
+
+.calendar-editor-form label:has(input[type="checkbox"]) {
+  min-height: 42px;
+  padding: 9px 12px;
+  border: 1px solid rgba(188, 143, 94, .16);
+  border-radius: 11px;
+  background: rgba(7, 10, 8, .48);
+}
+
+.calendar-editor-actions {
+  position: sticky;
+  z-index: 8;
+  bottom: -1px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin: 28px -22px -24px;
+  padding: 16px 22px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(185, 139, 91, .24);
+  background:
+    linear-gradient(
+      0deg,
+      rgba(8, 12, 9, .98),
+      rgba(8, 12, 9, .88)
+    );
+}
+
+.calendar-editor-actions .primary-button {
+  border-color: rgba(150, 178, 151, .34);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(55, 88, 68, .96),
+      rgba(31, 55, 41, .96)
+    );
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, .24),
+    inset 0 1px 0 rgba(255, 255, 255, .07);
+}
+
+.calendar-editor-actions .secondary-button {
+  border-color: rgba(185, 139, 91, .30);
+  background: rgba(7, 10, 8, .74);
+}
+
+@media (max-width: 680px) {
+  .calendar-editor-dialog {
+    width: calc(100% - 24px);
+    max-height: calc(100dvh - 24px);
+  }
+
+  .calendar-editor-shell {
+    width: 100%;
+    max-height: calc(100dvh - 24px);
+    padding-inline: 16px;
+  }
+
+  .calendar-editor-header {
+    margin-inline: -16px;
+    padding: 20px 16px 17px;
+  }
+
+  .calendar-editor-header h2 {
+    font-size: 1.85rem;
+  }
+
+  .calendar-editor-actions {
+    margin-inline: -16px;
+    padding-inline: 16px;
+  }
+
+  .calendar-editor-actions button {
+    min-height: 48px;
+  }
+}
