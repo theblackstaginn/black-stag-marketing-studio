@@ -1636,3 +1636,78 @@
   white-space:normal!important;
   line-height:1.15!important;
 }
+
+
+/* QUICK CREATE — source-art geometry, no code tint, centered content */
+#view-dashboard .quick-create-card{
+  position:relative!important;
+  aspect-ratio:1 / 1!important;
+  min-height:0!important;
+  padding:clamp(24px,5vw,34px)!important;
+
+  background-color:transparent!important;
+  background-image:url("assets/studio-card.webp?v=20260927-0126")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:100% 100%!important;
+  background-blend-mode:normal!important;
+
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:clamp(10px,2.2vw,16px)!important;
+  text-align:center!important;
+}
+
+/* Remove legacy generated leather/tint/stitch overlays. */
+#view-dashboard .quick-create-card::before,
+#view-dashboard .quick-create-card::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+
+/* Treat each leather square as a centered card. */
+#view-dashboard .quick-create-card > *{
+  position:relative!important;
+  z-index:2!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+#view-dashboard .quick-create-card > span:last-child{
+  width:82%!important;
+  max-width:82%!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:5px!important;
+  text-align:center!important;
+}
+#view-dashboard .quick-create-card strong,
+#view-dashboard .quick-create-card small{
+  width:100%!important;
+  margin:0!important;
+  text-align:center!important;
+}
+#view-dashboard .quick-create-icon{
+  margin:0 auto!important;
+}
+
+/* Remove the translucent fill from the emblem box too. */
+#view-dashboard .quick-create-icon{
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:none!important;
+}
