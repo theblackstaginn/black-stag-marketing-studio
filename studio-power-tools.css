@@ -1058,3 +1058,204 @@
 #view-calendar #calendarShell{
   --leather-card-mask:url("assets/calendar-card.webp");
 }
+
+
+/* =========================================================
+   CLEAN LEATHER ASSETS — NO CODE TINT + CENTERED SAFE AREAS
+   The WebP artwork owns all leather color, wear, stitching and shading.
+   ========================================================= */
+
+/* Never tint, gradient, blur or shade the real leather artwork in code. */
+#view-dashboard .stat-card,
+#view-dashboard .brand-switcher,
+#view-dashboard #dashboardUpcoming,
+#view-brands [data-brand-card],
+#view-studio .studio-tool-card,
+#view-studio #contentLibrary,
+#view-campaigns #campaignList,
+#view-calendar #calendarShell,
+.app-dialog{
+  background-color:transparent!important;
+  background-blend-mode:normal!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+/* Remove legacy generated leather/tint layers from asset-backed surfaces. */
+#view-dashboard .stat-card::before,
+#view-dashboard .stat-card::after,
+#view-dashboard .brand-switcher::before,
+#view-dashboard .brand-switcher::after,
+#view-dashboard #dashboardUpcoming::before,
+#view-dashboard #dashboardUpcoming::after,
+#view-brands [data-brand-card]::before,
+#view-brands [data-brand-card]::after,
+#view-studio .studio-tool-card::before,
+#view-studio .studio-tool-card::after,
+#view-studio #contentLibrary::before,
+#view-studio #contentLibrary::after,
+#view-campaigns #campaignList::before,
+#view-campaigns #campaignList::after,
+#view-calendar #calendarShell::before,
+#view-calendar #calendarShell::after,
+.app-dialog::before,
+.app-dialog::after{
+  content:none!important;
+}
+
+/* Center card copy/emblems and keep it well inside the sewn perimeter. */
+#view-dashboard .stat-card,
+#view-dashboard .brand-switcher,
+#view-brands [data-brand-card],
+#view-studio .studio-tool-card{
+  text-align:center!important;
+  align-items:center!important;
+  justify-items:center!important;
+  justify-content:center!important;
+}
+
+#view-dashboard .stat-card{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  padding:clamp(26px,6vw,42px)!important;
+}
+#view-dashboard .stat-card > *,
+#view-dashboard .brand-switcher > *,
+#view-brands [data-brand-card] > *,
+#view-studio .studio-tool-card > *{
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+  justify-self:center!important;
+  max-width:82%!important;
+}
+
+/* The new dashboard calendar artwork contains its own two sewn panels.
+   Keep rendered event copy centered in their safe area without tinting it. */
+#view-dashboard #dashboardUpcoming{
+  text-align:center!important;
+}
+#view-dashboard #dashboardUpcoming > *{
+  position:relative;
+  z-index:2;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  max-width:84%!important;
+  text-align:center!important;
+}
+#view-dashboard #dashboardUpcoming .content-panel,
+#view-dashboard #dashboardUpcoming article,
+#view-dashboard #dashboardUpcoming li{
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  text-align:center!important;
+}
+
+/* Campaign/content containers: no translucent code layer over the artwork. */
+#view-studio #contentLibrary > .content-panel,
+#view-campaigns #campaignList > .content-panel,
+#view-calendar .calendar-item-card{
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+/* Center calendar/event content inside the sewn safe areas. */
+#view-calendar #calendarShell,
+#view-calendar .calendar-item-card,
+#view-studio #contentLibrary,
+#view-campaigns #campaignList,
+#view-campaigns #campaignList > .content-panel{
+  text-align:center!important;
+}
+#view-calendar .calendar-item-card > *,
+#view-studio #contentLibrary > *,
+#view-campaigns #campaignList > *{
+  margin-left:auto!important;
+  margin-right:auto!important;
+  max-width:84%!important;
+  text-align:center!important;
+}
+
+/* Modal artwork must remain visually untouched by translucent header/footer tints. */
+.app-dialog .dialog-header,
+.app-dialog .dialog-actions,
+.app-dialog .calendar-editor-actions,
+.app-dialog .create-form,
+.app-dialog .asset-editor-body,
+.app-dialog .studio-search-shell,
+.app-dialog .studio-inbox-body,
+.app-dialog .campaign-detail-body{
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+/* Center modal headings, emblems, copy and actions inside the stitched safe area.
+   Form controls retain normal left-aligned entry text for usability. */
+.app-dialog{
+  text-align:center!important;
+}
+.app-dialog .dialog-header,
+.app-dialog .dialog-actions,
+.app-dialog .calendar-editor-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  gap:12px!important;
+}
+.app-dialog .dialog-header > *,
+.app-dialog .create-form > *,
+.app-dialog .asset-editor-body > *,
+.app-dialog .studio-search-shell > *,
+.app-dialog .studio-inbox-body > *,
+.app-dialog .campaign-detail-body > *{
+  margin-left:auto!important;
+  margin-right:auto!important;
+  max-width:90%!important;
+}
+.app-dialog h1,
+.app-dialog h2,
+.app-dialog h3,
+.app-dialog p,
+.app-dialog .eyebrow,
+.app-dialog .dialog-title,
+.app-dialog .studio-action-icon,
+.app-dialog .quick-create-icon{
+  text-align:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+.app-dialog .field,
+.app-dialog .checkbox-row,
+.app-dialog .radio-row{
+  text-align:left!important;
+}
+.app-dialog .field input,
+.app-dialog .field select,
+.app-dialog .field textarea{
+  text-align:left!important;
+}
+
+@media(max-width:680px){
+  #view-dashboard .stat-card,
+  #view-dashboard .brand-switcher,
+  #view-brands [data-brand-card],
+  #view-studio .studio-tool-card{
+    padding-left:clamp(26px,8vw,40px)!important;
+    padding-right:clamp(26px,8vw,40px)!important;
+  }
+  .app-dialog{
+    padding:clamp(34px,9vw,48px)!important;
+  }
+}
