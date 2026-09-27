@@ -912,3 +912,53 @@
   background-color:rgba(0,0,0,.86)!important;
   background-blend-mode:multiply!important;
 }
+
+
+/* BLACK LEATHER DARKENING — real overlay, not background blending.
+   Previous blend pass was being defeated/neutralized by later background rules. */
+:where(
+  #view-dashboard .stat-card,
+  #view-dashboard .quick-create-card,
+  #view-dashboard .brand-switcher,
+  #view-brands [data-brand-card],
+  #view-studio .studio-tool-card,
+  #view-studio #contentLibrary,
+  #view-campaigns #campaignList,
+  #view-calendar #calendarShell
+){
+  position:relative!important;
+  isolation:isolate!important;
+}
+
+:where(
+  #view-dashboard .stat-card,
+  #view-dashboard .quick-create-card,
+  #view-dashboard .brand-switcher,
+  #view-brands [data-brand-card],
+  #view-studio .studio-tool-card,
+  #view-studio #contentLibrary,
+  #view-campaigns #campaignList,
+  #view-calendar #calendarShell
+)::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background:rgba(0,0,0,.58)!important;
+  border-radius:inherit!important;
+}
+
+:where(
+  #view-dashboard .stat-card,
+  #view-dashboard .quick-create-card,
+  #view-dashboard .brand-switcher,
+  #view-brands [data-brand-card],
+  #view-studio .studio-tool-card,
+  #view-studio #contentLibrary,
+  #view-campaigns #campaignList,
+  #view-calendar #calendarShell
+) > *{
+  position:relative!important;
+  z-index:2!important;
+}
