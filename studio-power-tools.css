@@ -2472,3 +2472,22 @@
   .calendar-editor-actions,
   .app-dialog .dialog-actions{padding:15px 18px 18px!important}
 }
+
+
+/* BACKGROUND TINT — darken plaster without changing the source image */
+@media(max-width:959px){
+  .app-shell::before{
+    background-image:
+      linear-gradient(rgba(4,6,5,.40),rgba(4,6,5,.40)),
+      url("./bsms-assets/mobile-bg-charcoal.webp")!important;
+    background-blend-mode:multiply,normal!important;
+  }
+}
+@media(min-width:960px){
+  .app-main::before{
+    background-image:
+      linear-gradient(rgba(4,6,5,.40),rgba(4,6,5,.40)),
+      url("./bsms-assets/web-bg-charcoal.webp")!important;
+    background-blend-mode:multiply,normal!important;
+  }
+}
