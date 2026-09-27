@@ -1855,3 +1855,59 @@
   transform:none!important;
   text-align:center!important;
 }
+
+
+/* ASSET VAULT FOLDERS — use the clean calendar-panel leather card */
+#view-vault #assetGrid > article[data-open-asset-folder]{
+  position:relative!important;
+  aspect-ratio:1159 / 1356!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:clamp(24px,4.8vw,34px)!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:10px!important;
+  text-align:center!important;
+  background:transparent url("assets/calendar-panel.webp?v=20260927-0203") center/100% 100% no-repeat!important;
+  background-color:transparent!important;
+  background-blend-mode:normal!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#view-vault #assetGrid > article[data-open-asset-folder]::before,
+#view-vault #assetGrid > article[data-open-asset-folder]::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+#view-vault #assetGrid > article[data-open-asset-folder] > div:first-child{
+  width:78%!important;
+  aspect-ratio:4 / 3!important;
+  flex:0 0 auto!important;
+  margin:0 auto 4px!important;
+  border:0!important;
+  border-radius:12px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+}
+#view-vault #assetGrid > article[data-open-asset-folder] > .eyebrow,
+#view-vault #assetGrid > article[data-open-asset-folder] > h3{
+  width:82%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+#view-vault #assetGrid > article[data-open-asset-folder] > h3{
+  margin-top:2px!important;
+  margin-bottom:0!important;
+}
