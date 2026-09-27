@@ -541,3 +541,59 @@
   #view-calendar #calendarShell{padding:52px 38px 46px!important}
   #view-calendar .calendar-item-card{padding:28px 24px!important;min-height:300px;margin-bottom:30px!important}
 }
+
+
+/* SCREENSHOT CORRECTIONS — restore modal velvet and stop leather over-scaling */
+.app-dialog{
+  background:transparent url("assets/modal-velvet-mobile.webp") center/cover no-repeat!important;
+  padding:0!important;
+  border:1px solid rgba(185,139,91,.22)!important;
+  border-radius:18px!important;
+}
+.app-dialog .dialog-header{
+  margin:0!important;
+  padding:20px 22px 16px!important;
+  background:rgba(7,10,8,.70)!important;
+}
+.app-dialog .create-form,
+.app-dialog .asset-editor-body,
+.app-dialog .studio-search-shell,
+.app-dialog .studio-inbox-body,
+.app-dialog .campaign-detail-body{
+  padding:18px 22px 22px!important;
+}
+.app-dialog .dialog-actions,
+.app-dialog .calendar-editor-actions{
+  padding:16px 22px calc(16px + env(safe-area-inset-bottom))!important;
+  background:rgba(7,10,8,.70)!important;
+}
+
+/* Studio cards: closer to the compact reference size, with copy safely inset. */
+#view-studio .studio-tool-card{
+  min-height:0!important;
+  aspect-ratio:1.16 / 1!important;
+  padding:24px 25px!important;
+  gap:7px!important;
+}
+
+/* Calendar artwork already includes the outer frame and both sewn-on panels.
+   Remove the legacy card surfaces so they do not cover the artwork. */
+#view-calendar #calendarShell{
+  min-height:0!important;
+  padding:50px 44px 44px!important;
+}
+#view-calendar .calendar-item-card{
+  min-height:0!important;
+  margin:0 0 26px!important;
+  padding:24px 16px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#view-calendar .calendar-item-card::before,
+#view-calendar .calendar-item-card::after{content:none!important}
+
+@media(min-width:681px){
+  .app-dialog{background-image:url("assets/modal-velvet-desktop.webp")!important}
+}
