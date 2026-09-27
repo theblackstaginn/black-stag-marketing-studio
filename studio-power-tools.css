@@ -677,3 +677,62 @@
 #view-dashboard .quick-create-card::after{
   content:none!important;
 }
+
+
+/* CALENDAR INNER PANELS — transparent UI overlay only.
+   The leather and stitching live in calendar-card.webp. */
+#view-calendar .calendar-item-card{
+  background:transparent!important;
+  background-image:none!important;
+  border:0!important;
+  box-shadow:none!important;
+  -webkit-backdrop-filter:none!important;
+  backdrop-filter:none!important;
+  filter:none!important;
+  border-radius:0!important;
+
+  /* Keep text/details comfortably inside the sewn-on leather panel. */
+  padding:
+    clamp(34px,5vw,46px)
+    clamp(30px,4.5vw,42px)!important;
+
+  min-height:0!important;
+  margin:
+    0
+    0
+    clamp(34px,5vw,46px)!important;
+}
+
+#view-calendar .calendar-item-card::before,
+#view-calendar .calendar-item-card::after{
+  content:none!important;
+}
+
+/* Keep the two-column header/date row from pressing against either stitch line. */
+#view-calendar .calendar-item-card > div{
+  width:100%!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  gap:18px!important;
+}
+
+/* Give the item copy its own breathing room. */
+#view-calendar .calendar-item-card h3{
+  margin-top:14px!important;
+  margin-bottom:14px!important;
+}
+
+#view-calendar .calendar-item-card p{
+  max-width:28rem!important;
+}
+
+@media(max-width:680px){
+  #view-calendar .calendar-item-card{
+    padding:34px 26px!important;
+    margin-bottom:34px!important;
+  }
+
+  #view-calendar .calendar-item-card > div{
+    gap:16px!important;
+  }
+}
