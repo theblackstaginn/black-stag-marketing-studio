@@ -2358,3 +2358,117 @@
   .app-dialog .campaign-detail-body,
   .app-dialog .asset-editor-body{padding:18px!important}
 }
+
+
+/* STAG RESET HOTFIX — remove remaining artwork hooks and modal geometry */
+#view-dashboard .quick-create-card,
+#view-dashboard .stat-card,
+#view-dashboard .brand-switcher,
+#view-dashboard #dashboardUpcoming,
+#view-brands [data-brand-card],
+#view-studio .studio-tool-card,
+#view-studio #contentLibrary,
+#view-campaigns #campaignList,
+#view-calendar #calendarShell,
+#view-calendar .calendar-item-card,
+#view-vault #assetGrid > article[data-open-asset-folder],
+#view-vault #assetGrid > article[data-open-asset]{
+  --leather-card-mask:none!important;
+  -webkit-mask-image:none!important;
+  mask-image:none!important;
+  background-image:none!important;
+}
+
+/* Dashboard cards must return to normal layout rather than old leather positioning. */
+#view-dashboard .quick-create-card{
+  aspect-ratio:auto!important;
+  min-height:132px!important;
+  padding:18px!important;
+  border-radius:16px!important;
+}
+#view-dashboard .stat-card{
+  display:block!important;
+  min-height:0!important;
+  text-align:left!important;
+}
+#view-dashboard .stat-card > *,
+#view-dashboard .brand-switcher > *{
+  margin-left:0!important;
+  margin-right:0!important;
+  text-align:left!important;
+}
+#view-dashboard .stat-label{
+  justify-self:auto!important;
+  text-align:left!important;
+}
+
+/* All modal variants inherit the same comfortable Stag shell. */
+.app-dialog,
+.calendar-editor-dialog,
+.studio-action-dialog,
+.campaign-detail-dialog{
+  width:min(calc(100% - 28px),680px)!important;
+  height:auto!important;
+  max-height:calc(100dvh - 32px)!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:linear-gradient(155deg,rgba(30,29,25,.985),rgba(10,12,10,.99))!important;
+  background-image:none!important;
+  border:1px solid var(--stag-border-strong)!important;
+  border-radius:18px!important;
+  box-shadow:0 28px 80px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+.calendar-editor-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  height:auto!important;
+  max-height:calc(100dvh - 32px)!important;
+  overflow:hidden!important;
+}
+.calendar-editor-header{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:20px 22px!important;
+  background:rgba(255,255,255,.018)!important;
+  border-bottom:1px solid rgba(190,145,96,.16)!important;
+  border-radius:0!important;
+}
+.calendar-editor-form{
+  display:flex!important;
+  flex-direction:column!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  padding:0!important;
+}
+.calendar-editor-form .form-grid{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  padding:20px 22px!important;
+}
+.calendar-editor-actions,
+.app-dialog .dialog-actions{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:16px 22px 20px!important;
+  background:rgba(0,0,0,.10)!important;
+  border-top:1px solid rgba(190,145,96,.12)!important;
+  border-radius:0!important;
+}
+
+@media(max-width:680px){
+  .app-dialog,
+  .calendar-editor-dialog,
+  .studio-action-dialog,
+  .campaign-detail-dialog{
+    width:min(calc(100% - 24px),680px)!important;
+    height:auto!important;
+    max-height:calc(100dvh - 24px)!important;
+    padding:0!important;
+  }
+  .calendar-editor-shell{max-height:calc(100dvh - 24px)!important}
+  .calendar-editor-header,
+  .calendar-editor-form .form-grid{padding:18px!important}
+  .calendar-editor-actions,
+  .app-dialog .dialog-actions{padding:15px 18px 18px!important}
+}
