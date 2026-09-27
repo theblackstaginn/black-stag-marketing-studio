@@ -597,3 +597,59 @@
 @media(min-width:681px){
   .app-dialog{background-image:url("assets/modal-velvet-desktop.webp")!important}
 }
+
+
+/* MODAL LEATHER SAFE AREA — keep every control inside the sewn perimeter */
+.app-dialog{
+  background:transparent url("assets/modal-card.webp") center/100% 100% no-repeat!important;
+  border:0!important;
+  border-radius:0!important;
+  padding:clamp(30px,5vw,44px)!important;
+}
+.app-dialog .dialog-header{
+  margin:0!important;
+  padding:12px 10px 18px!important;
+  background:rgba(7,10,8,.72)!important;
+  border-radius:14px 14px 0 0;
+}
+.app-dialog .create-form,
+.app-dialog .asset-editor-body,
+.app-dialog .studio-search-shell,
+.app-dialog .studio-inbox-body,
+.app-dialog .campaign-detail-body{
+  padding:18px 12px!important;
+}
+.app-dialog .dialog-actions,
+.app-dialog .calendar-editor-actions{
+  margin:0!important;
+  padding:18px 10px 12px!important;
+  background:rgba(7,10,8,.72)!important;
+}
+.app-dialog .field,
+.app-dialog .field input,
+.app-dialog .field select,
+.app-dialog .field textarea,
+.app-dialog .checkbox-row,
+.app-dialog .radio-row{
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+.app-dialog .field input,
+.app-dialog .field select,
+.app-dialog .field textarea{
+  width:100%!important;
+}
+@media(max-width:680px){
+  .app-dialog{
+    width:min(calc(100% - 28px),680px)!important;
+    padding:34px 32px 36px!important;
+  }
+  .app-dialog .dialog-header{padding:10px 8px 16px!important}
+  .app-dialog .create-form,
+  .app-dialog .asset-editor-body,
+  .app-dialog .studio-search-shell,
+  .app-dialog .studio-inbox-body,
+  .app-dialog .campaign-detail-body{padding:16px 8px!important}
+  .app-dialog .dialog-actions,
+  .app-dialog .calendar-editor-actions{padding:16px 8px 10px!important}
+}
