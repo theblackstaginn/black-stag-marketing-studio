@@ -894,3 +894,21 @@
 .app-dialog{
   background-blend-mode:normal!important;
 }
+
+
+/* APP-WIDE BLACK LEATHER TINT — stronger pass */
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card
+){
+  background-color:rgba(3,3,4,.58)!important;
+  background-blend-mode:multiply!important;
+}
