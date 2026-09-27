@@ -1711,3 +1711,147 @@
   -webkit-backdrop-filter:none!important;
   box-shadow:none!important;
 }
+
+
+/* SCROLLING CALENDAR PANELS — clean single-panel artwork, unlimited events.
+   calendar-card.webp uses the tall clean card; calendar-panel.webp uses the shorter clean card.
+   Event content scrolls inside the leather safe area with the scrollbar hidden. */
+
+/* Full Calendar */
+#view-calendar #calendarShell{
+  position:relative!important;
+  aspect-ratio:2 / 3!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:hidden!important;
+  padding:0!important;
+  background:transparent url("assets/calendar-card.webp?v=20260927-0135") center/100% 100% no-repeat!important;
+}
+#view-calendar #calendarShell > section{
+  position:absolute!important;
+  inset:5.5% 7.5% 6.5%!important;
+  width:auto!important;
+  height:auto!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  overflow:hidden!important;
+}
+#view-calendar #calendarShell > section > div:first-child{
+  position:static!important;
+  width:100%!important;
+  min-height:0!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+#view-calendar #calendarShell > section > div:last-child{
+  position:static!important;
+  inset:auto!important;
+  min-height:0!important;
+  flex:1 1 auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:14px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+  overscroll-behavior:contain!important;
+  padding:6px 2px 18px!important;
+}
+#view-calendar #calendarShell > section > div:last-child::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+#view-calendar .calendar-item-card,
+#view-calendar .calendar-item-card:nth-child(1),
+#view-calendar .calendar-item-card:nth-child(2){
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:auto!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:14px 10px!important;
+  transform:none!important;
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+#view-calendar .calendar-item-card::before,
+#view-calendar .calendar-item-card::after{
+  content:none!important;
+  display:none!important;
+}
+#view-calendar .calendar-item-card > div,
+#view-calendar .calendar-item-card:nth-child(2) > div{
+  width:88%!important;
+  max-width:88%!important;
+  margin:auto!important;
+  transform:none!important;
+}
+
+/* Dashboard Upcoming */
+#view-dashboard #dashboardUpcoming{
+  position:relative!important;
+  aspect-ratio:1159 / 1356!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:7.5% 8% 8%!important;
+  box-sizing:border-box!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+  overscroll-behavior:contain!important;
+  background:transparent url("assets/calendar-panel.webp?v=20260927-0135") center/100% 100% no-repeat!important;
+}
+#view-dashboard #dashboardUpcoming::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+#view-dashboard #dashboardUpcoming > article,
+#view-dashboard #dashboardUpcoming > article:nth-child(1),
+#view-dashboard #dashboardUpcoming > article:nth-child(2){
+  position:static!important;
+  left:auto!important;
+  top:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:auto!important;
+  margin:0 0 16px!important;
+  padding:14px 8px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  transform:none!important;
+  overflow:visible!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+#view-dashboard #dashboardUpcoming > article:last-child{
+  margin-bottom:0!important;
+}
+#view-dashboard #dashboardUpcoming > article::before,
+#view-dashboard #dashboardUpcoming > article::after{
+  content:none!important;
+  display:none!important;
+}
+#view-dashboard #dashboardUpcoming > article > div{
+  width:88%!important;
+  max-width:88%!important;
+  margin:auto!important;
+  transform:none!important;
+  text-align:center!important;
+}
