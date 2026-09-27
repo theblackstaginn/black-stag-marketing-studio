@@ -1548,3 +1548,91 @@
   max-width:82%!important;
   margin:auto!important;
 }
+
+
+/* DASHBOARD UPCOMING — lock live content regions to the two sewn panels.
+   Geometry referenced from the deployed calendar-panel artwork:
+   outer panel = 613 x 792 rendered units
+   upper inset = x 41..573, y 84..384
+   lower inset = x 42..572, y 408..704
+*/
+#view-dashboard #dashboardUpcoming{
+  position:relative!important;
+  aspect-ratio:613 / 792!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:transparent url("assets/calendar-panel.webp?v=20260927-0122") center/100% 100% no-repeat!important;
+}
+
+/* Kill every legacy/generated stitch layer on the responsive cards. */
+#view-dashboard #dashboardUpcoming .content-panel::before,
+#view-dashboard #dashboardUpcoming .content-panel::after,
+#view-dashboard #dashboardUpcoming article::before,
+#view-dashboard #dashboardUpcoming article::after{
+  content:none!important;
+  display:none!important;
+  border:0!important;
+  background:none!important;
+  box-shadow:none!important;
+}
+
+/* The responsive rectangles now occupy the actual sewn rectangles. */
+#view-dashboard #dashboardUpcoming > article{
+  position:absolute!important;
+  left:6.69%!important;
+  width:86.79%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  overflow:hidden!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+#view-dashboard #dashboardUpcoming > article:nth-child(1){
+  top:10.61%!important;
+  height:37.88%!important;
+}
+#view-dashboard #dashboardUpcoming > article:nth-child(2){
+  top:51.52%!important;
+  height:37.37%!important;
+}
+#view-dashboard #dashboardUpcoming > article > div{
+  width:82%!important;
+  max-width:82%!important;
+  margin:auto!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  text-align:center!important;
+}
+#view-dashboard #dashboardUpcoming > article > div > div{
+  width:100%!important;
+  text-align:center!important;
+}
+#view-dashboard #dashboardUpcoming > article .eyebrow,
+#view-dashboard #dashboardUpcoming > article h3,
+#view-dashboard #dashboardUpcoming > article span{
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+#view-dashboard #dashboardUpcoming > article h3{
+  margin-top:6px!important;
+  margin-bottom:4px!important;
+  line-height:1.12!important;
+}
+#view-dashboard #dashboardUpcoming > article > div > span:last-child{
+  white-space:normal!important;
+  line-height:1.15!important;
+}
