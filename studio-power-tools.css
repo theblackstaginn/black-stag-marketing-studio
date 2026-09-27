@@ -2095,3 +2095,22 @@
   justify-content:center!important;
   text-align:center!important;
 }
+
+
+/* CALENDAR — center bronze month headings */
+#view-calendar #calendarShell > section > div:first-child{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  width:100%!important;
+  text-align:center!important;
+}
+#view-calendar #calendarShell > section > div:first-child > .eyebrow{
+  width:100%!important;
+  margin:0 auto!important;
+  text-align:center!important;
+}
+#view-calendar #calendarShell > section > div:first-child > div{
+  display:none!important;
+}
