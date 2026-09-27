@@ -1488,13 +1488,63 @@
 }
 
 
-/* CALENDAR STEP 4 — visually center the lower inset content */
-#view-calendar .calendar-item-card:nth-child(2) > div{
-  transform:translateY(-34px)!important;
+
+
+
+/* CALENDAR STEP 5 — lock responsive event rectangles to the actual sewn panels.
+   Reference geometry from calendar-card.webp (975 x 1475):
+   inner panel X = 89..887
+   top panel Y = 146..713
+   lower panel Y = 803..1357
+*/
+#view-calendar #calendarShell{
+  position:relative!important;
+  background-image:url("assets/calendar-card.webp?v=20260927-0115")!important;
+}
+#view-calendar #calendarShell > section{
+  position:absolute!important;
+  inset:0!important;
+  margin:0!important;
+  display:block!important;
+  height:100%!important;
+}
+#view-calendar #calendarShell > section > div:first-child{
+  position:absolute!important;
+  left:10.5%!important;
+  top:2.4%!important;
+  width:79%!important;
+  margin:0!important;
+  z-index:3!important;
+}
+#view-calendar #calendarShell > section > div:last-child{
+  position:absolute!important;
+  inset:0!important;
+  display:block!important;
 }
 
-@media(max-width:680px){
-  #view-calendar .calendar-item-card:nth-child(2) > div{
-    transform:translateY(-30px)!important;
-  }
+/* Match the clickable/content rectangles to the leather art itself. */
+#view-calendar .calendar-item-card{
+  position:absolute!important;
+  left:9.15%!important;
+  width:81.75%!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+#view-calendar .calendar-item-card:nth-child(1){
+  top:9.90%!important;
+  height:38.45%!important;
+}
+#view-calendar .calendar-item-card:nth-child(2){
+  top:54.44%!important;
+  height:37.63%!important;
+}
+#view-calendar .calendar-item-card > div{
+  transform:none!important;
+  width:82%!important;
+  max-width:82%!important;
+  margin:auto!important;
 }
