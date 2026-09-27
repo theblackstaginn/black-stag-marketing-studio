@@ -653,3 +653,27 @@
   .app-dialog .dialog-actions,
   .app-dialog .calendar-editor-actions{padding:16px 8px 10px!important}
 }
+
+
+/* HOME/STUDIO QUICK-CREATE CARDS — use the actual WebP sticker.
+   Never stretch the artwork: contain preserves its native proportions. */
+#view-dashboard .quick-create-card{
+  position:relative!important;
+  border:0!important;
+  border-radius:0!important;
+  background-color:transparent!important;
+  background-image:url("assets/studio-card.webp")!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:contain!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  aspect-ratio:1.16 / 1!important;
+  min-height:0!important;
+  padding:26px 28px!important;
+}
+#view-dashboard .quick-create-card::before,
+#view-dashboard .quick-create-card::after{
+  content:none!important;
+}
