@@ -1259,3 +1259,63 @@
     padding:clamp(34px,9vw,48px)!important;
   }
 }
+
+
+/* CALENDAR STEP 1 — preserve artwork ratio and tighten event copy */
+#view-calendar #calendarShell{
+  aspect-ratio:975 / 1475!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  background-size:100% 100%!important;
+  background-position:center top!important;
+  background-repeat:no-repeat!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  padding:clamp(44px,6.4vw,62px) clamp(48px,7.2vw,68px) clamp(48px,6.8vw,66px)!important;
+}
+
+/* Two event blocks must fit the two sewn inner panels instead of driving
+   the outer leather taller. */
+#view-calendar .calendar-item-card{
+  min-height:0!important;
+  height:auto!important;
+  margin:0 0 clamp(18px,3.2vw,28px)!important;
+  padding:clamp(18px,3vw,28px) clamp(18px,3.2vw,30px)!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  line-height:1.18!important;
+  gap:clamp(4px,1vw,8px)!important;
+}
+#view-calendar .calendar-item-card:last-child{
+  margin-bottom:0!important;
+}
+#view-calendar .calendar-item-card > *{
+  max-width:100%!important;
+  margin-top:0!important;
+  margin-bottom:clamp(4px,1vw,8px)!important;
+  line-height:1.18!important;
+}
+#view-calendar .calendar-item-card h1,
+#view-calendar .calendar-item-card h2,
+#view-calendar .calendar-item-card h3,
+#view-calendar .calendar-item-card p{
+  margin-top:0!important;
+  margin-bottom:clamp(5px,1.1vw,9px)!important;
+  line-height:1.18!important;
+}
+
+@media(max-width:680px){
+  #view-calendar #calendarShell{
+    padding:38px 42px 42px!important;
+  }
+  #view-calendar .calendar-item-card{
+    margin-bottom:18px!important;
+    padding:16px 14px!important;
+    gap:4px!important;
+  }
+  #view-calendar .calendar-item-card > *{
+    margin-bottom:4px!important;
+  }
+}
