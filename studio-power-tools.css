@@ -1911,3 +1911,104 @@
   margin-top:2px!important;
   margin-bottom:0!important;
 }
+
+
+/* CALENDAR SCROLLER FIX — one continuous scroll viewport for all months */
+#view-calendar #calendarShell{
+  position:relative!important;
+  aspect-ratio:2 / 3!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-width:none!important;
+  overscroll-behavior:contain!important;
+  box-sizing:border-box!important;
+  padding:8.5% 7.5% 8%!important;
+  background:transparent url("assets/calendar-card.webp?v=20260927-0208") center/100% 100% no-repeat!important;
+}
+#view-calendar #calendarShell::-webkit-scrollbar{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+}
+#view-calendar #calendarShell > section{
+  position:static!important;
+  inset:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0 0 20px!important;
+  display:block!important;
+  overflow:visible!important;
+}
+#view-calendar #calendarShell > section:last-child{
+  margin-bottom:0!important;
+}
+#view-calendar #calendarShell > section > div:first-child{
+  position:static!important;
+  width:100%!important;
+  margin:0 0 10px!important;
+}
+#view-calendar #calendarShell > section > div:last-child{
+  position:static!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  display:block!important;
+  overflow:visible!important;
+  padding:0!important;
+}
+#view-calendar .calendar-item-card,
+#view-calendar .calendar-item-card:nth-child(1),
+#view-calendar .calendar-item-card:nth-child(2){
+  position:static!important;
+  inset:auto!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0 0 16px!important;
+  padding:10px 4px!important;
+  transform:none!important;
+  overflow:visible!important;
+}
+#view-calendar .calendar-item-card > div,
+#view-calendar .calendar-item-card:nth-child(2) > div{
+  width:100%!important;
+  max-width:100%!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  text-align:center!important;
+  transform:none!important;
+}
+#view-calendar .calendar-item-card > div > div:first-child{
+  width:100%!important;
+  flex:none!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  text-align:center!important;
+}
+#view-calendar .calendar-item-card > div > div:first-child > div:first-child{
+  justify-content:center!important;
+  margin-bottom:4px!important;
+}
+#view-calendar .calendar-item-card > div > div:last-child{
+  width:100%!important;
+  order:-1!important;
+  text-align:center!important;
+  line-height:1.25!important;
+}
+#view-calendar .calendar-item-card h3,
+#view-calendar .calendar-item-card p{
+  width:100%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
