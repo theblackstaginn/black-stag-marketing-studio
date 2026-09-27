@@ -2012,3 +2012,34 @@
   margin-right:auto!important;
   text-align:center!important;
 }
+
+
+/* ASSET VAULT ITEMS — tall calendar-card leather */
+#view-vault #assetGrid > article[data-open-asset]{
+  position:relative!important;
+  aspect-ratio:975 / 1475!important;
+  min-width:0!important;
+  min-height:0!important;
+  padding:clamp(24px,4.5vw,34px)!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:center!important;
+  background:transparent url("assets/calendar-card.webp?v=20260927-0210") center/100% 100% no-repeat!important;
+  background-color:transparent!important;
+  background-blend-mode:normal!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+#view-vault #assetGrid > article[data-open-asset]::before,
+#view-vault #assetGrid > article[data-open-asset]::after{
+  content:none!important;
+  display:none!important;
+  background:none!important;
+  border:0!important;
+  box-shadow:none!important;
+}
