@@ -325,3 +325,145 @@
   border-color: rgba(201, 154, 100, .36);
   background: linear-gradient(145deg, rgba(38,10,11,.34), rgba(12,7,7,.48));
 }
+
+
+/* =========================================================
+   BLACK LEATHER CARDS — RED STITCHING
+   Non-modal card surfaces only.
+   ========================================================= */
+
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card
+) {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-color: rgba(28, 8, 9, .96) !important;
+  background:
+    radial-gradient(circle at 17% 21%, rgba(255,255,255,.035) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 73% 64%, rgba(255,255,255,.025) 0 1px, transparent 1.8px),
+    repeating-linear-gradient(118deg, rgba(255,255,255,.012) 0 1px, rgba(0,0,0,.055) 1px 3px, transparent 3px 7px),
+    linear-gradient(145deg, #151515 0%, #0c0c0d 48%, #050506 100%) !important;
+  box-shadow:
+    0 10px 24px rgba(0,0,0,.32),
+    inset 0 1px 0 rgba(255,255,255,.045),
+    inset 0 0 24px rgba(0,0,0,.42) !important;
+}
+
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card
+)::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 7px;
+  border: 2px dashed rgba(181, 22, 30, .82);
+  border-radius: max(8px, calc(var(--radius, 14px) - 5px));
+  pointer-events: none;
+  filter:
+    drop-shadow(0 1px 0 rgba(0,0,0,.95))
+    drop-shadow(0 -1px 0 rgba(120,0,7,.18));
+}
+
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card
+)::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: 3px;
+  border: 1px solid rgba(101, 12, 17, .42);
+  border-radius: inherit;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 10px rgba(0,0,0,.7),
+    0 0 0 1px rgba(0,0,0,.55);
+}
+
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card
+) > * {
+  position: relative;
+  z-index: 2;
+}
+
+/* Modal remains red leather with black stitching.
+   Cards inside modals follow the black-leather card treatment. */
+.app-dialog :where(
+  .campaign-detail-related,
+  .studio-action-card
+) {
+  background:
+    radial-gradient(circle at 17% 21%, rgba(255,255,255,.035) 0 1px, transparent 1.7px),
+    repeating-linear-gradient(118deg, rgba(255,255,255,.012) 0 1px, rgba(0,0,0,.055) 1px 3px, transparent 3px 7px),
+    linear-gradient(145deg, #151515 0%, #0c0c0d 48%, #050506 100%) !important;
+}
+
+/* Small utility cards get tighter stitching so the edge remains refined. */
+:where(
+  .stat-card,
+  .brand-switcher,
+  .brand-picker-option,
+  .calendar-item-card
+)::before {
+  inset: 5px;
+  border-width: 1.5px;
+}
+
+@media (max-width: 680px) {
+  :where(
+    .content-panel,
+    .calendar-shell,
+    .stat-card,
+    .quick-create-card,
+    .studio-tool-card,
+    .settings-card,
+    .brand-switcher,
+    .calendar-item-card,
+    .brand-picker-option,
+    .campaign-detail-related,
+    .studio-action-card
+  )::before {
+    inset: 6px;
+  }
+}
