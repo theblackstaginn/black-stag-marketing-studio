@@ -2596,3 +2596,29 @@
 #view-brands .brand-grid > *{
   padding:22px!important;
 }
+
+
+/* GLASS CARD TARGETS v20 — exact rendered sections from the supplied screens */
+#view-studio .studio-tool-grid > .studio-tool-card,
+#view-vault #assetGrid > article.content-panel,
+#view-vault #assetGrid > article[data-open-asset],
+#view-vault #assetGrid > article[data-open-asset-folder]{
+  position:relative!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  background-color:rgba(13,16,14,.68)!important;
+  background-image:linear-gradient(145deg,rgba(255,255,255,.075),rgba(255,255,255,.018) 42%,rgba(0,0,0,.08))!important;
+  border:1px solid rgba(218,190,153,.24)!important;
+  border-radius:16px!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.075)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(115%)!important;
+  backdrop-filter:blur(18px) saturate(115%)!important;
+}
+#view-studio .studio-tool-grid > .studio-tool-card{
+  padding:18px!important;
+}
+#view-vault #assetGrid > article.content-panel,
+#view-vault #assetGrid > article[data-open-asset],
+#view-vault #assetGrid > article[data-open-asset-folder]{
+  padding:18px!important;
+}
