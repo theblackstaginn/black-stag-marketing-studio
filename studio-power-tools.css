@@ -843,3 +843,29 @@
   backdrop-filter:none!important;
   -webkit-backdrop-filter:none!important;
 }
+
+
+/* CALENDAR EDITOR — settle header and close control inside top stitching */
+.calendar-editor-dialog .calendar-editor-header{
+  position:relative!important;
+  padding:20px 74px 14px 16px!important;
+  margin:0!important;
+}
+
+.calendar-editor-dialog .calendar-editor-close{
+  position:absolute!important;
+  top:16px!important;
+  right:14px!important;
+  margin:0!important;
+}
+
+@media(max-width:680px){
+  .calendar-editor-dialog .calendar-editor-header{
+    padding:20px 70px 14px 14px!important;
+  }
+
+  .calendar-editor-dialog .calendar-editor-close{
+    top:15px!important;
+    right:12px!important;
+  }
+}
