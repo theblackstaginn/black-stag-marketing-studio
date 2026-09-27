@@ -869,3 +869,28 @@
     right:12px!important;
   }
 }
+
+
+/* APP-WIDE BLACK LEATHER TINT
+   Tone down the bright crimson stitching and glossy highlights
+   without tinting text/content or altering the leather assets themselves. */
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card
+){
+  background-color:rgba(7,7,8,.34)!important;
+  background-blend-mode:multiply!important;
+}
+
+/* Keep red leather modals untouched by the black-card tint. */
+.app-dialog{
+  background-blend-mode:normal!important;
+}
