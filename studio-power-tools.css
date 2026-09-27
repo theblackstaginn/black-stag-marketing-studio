@@ -467,3 +467,77 @@
     inset: 6px;
   }
 }
+
+
+/* REAL LEATHER WEBP ASSETS — stitched safe areas */
+.app-dialog{
+  border:0!important;background:transparent url("assets/modal-card.webp") center/100% 100% no-repeat!important;
+  padding:clamp(30px,5vw,44px)!important;box-shadow:0 26px 74px rgba(0,0,0,.64)!important;
+}
+.app-dialog::before,.app-dialog::after{content:none!important}
+.app-dialog>*{position:relative;z-index:2}
+.app-dialog .dialog-header{background:transparent!important;padding-left:0!important;padding-right:0!important}
+.app-dialog .create-form,.app-dialog .studio-search-shell,.app-dialog .studio-inbox-body,.app-dialog .campaign-detail-body{padding-left:0!important;padding-right:0!important}
+
+#view-dashboard .stat-card,#view-dashboard .brand-switcher,
+#view-brands [data-brand-card],#view-studio .studio-tool-card,
+#view-studio #contentLibrary,#view-campaigns #campaignList,
+#view-calendar #calendarShell{
+  border:0!important;background-color:transparent!important;background-repeat:no-repeat!important;
+  background-position:center!important;background-size:100% 100%!important;
+  box-shadow:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+#view-dashboard .stat-card::before,#view-dashboard .stat-card::after,
+#view-dashboard .brand-switcher::before,#view-dashboard .brand-switcher::after,
+#view-brands [data-brand-card]::before,#view-brands [data-brand-card]::after,
+#view-studio .studio-tool-card::before,#view-studio .studio-tool-card::after,
+#view-studio #contentLibrary::before,#view-studio #contentLibrary::after,
+#view-campaigns #campaignList::before,#view-campaigns #campaignList::after,
+#view-calendar #calendarShell::before,#view-calendar #calendarShell::after,
+#view-calendar .calendar-item-card::before,#view-calendar .calendar-item-card::after{content:none!important}
+
+#view-dashboard .stat-card,#view-dashboard .brand-switcher{
+  background-image:url("assets/todays-work-card.webp")!important;padding:24px 32px!important;min-height:104px;
+}
+#view-dashboard .stat-card{display:grid;grid-template-columns:minmax(76px,auto) 1fr;align-items:center;gap:20px}
+#view-dashboard .stat-label{justify-self:end;text-align:right}
+
+#view-brands [data-brand-card]{
+  background-image:url("assets/brands-card.webp")!important;padding:38px!important;min-height:330px;
+}
+
+#view-studio .studio-tool-card{
+  background-image:url("assets/studio-card.webp")!important;padding:32px 30px!important;min-height:250px;
+}
+#view-studio #contentLibrary{
+  background-image:url("assets/campaign-card.webp")!important;padding:38px!important;
+}
+
+#view-campaigns #campaignList{
+  background-image:url("assets/campaign-card.webp")!important;padding:40px!important;min-height:350px;
+}
+#view-campaigns #campaignList>.content-panel{
+  border:0!important;background:transparent!important;box-shadow:none!important;padding:18px 8px!important;
+}
+#view-campaigns #campaignList>.content-panel::before,#view-campaigns #campaignList>.content-panel::after{content:none!important}
+
+#view-calendar #calendarShell{
+  background-image:url("assets/calendar-card.webp")!important;
+  padding:clamp(54px,8vw,76px) clamp(42px,7vw,64px) clamp(48px,7vw,68px)!important;
+  min-height:860px;
+}
+#view-calendar .calendar-item-card{
+  border:0!important;background:transparent!important;box-shadow:none!important;
+  padding:clamp(28px,5vw,42px) clamp(24px,4vw,36px)!important;
+  min-height:320px;margin-bottom:clamp(34px,6vw,50px)!important;
+}
+
+@media(max-width:680px){
+  .app-dialog{width:min(calc(100% - 20px),680px);max-height:calc(100dvh - 24px);padding:36px 28px!important}
+  #view-dashboard .stat-card,#view-dashboard .brand-switcher{padding:22px 28px!important}
+  #view-brands [data-brand-card]{padding:32px 28px!important}
+  #view-studio .studio-tool-card{padding:28px 27px!important}
+  #view-studio #contentLibrary,#view-campaigns #campaignList{padding:32px 28px!important}
+  #view-calendar #calendarShell{padding:52px 38px 46px!important}
+  #view-calendar .calendar-item-card{padding:28px 24px!important;min-height:300px;margin-bottom:30px!important}
+}
