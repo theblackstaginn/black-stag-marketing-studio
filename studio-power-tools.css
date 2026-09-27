@@ -2491,3 +2491,74 @@
     background-blend-mode:multiply,normal!important;
   }
 }
+
+
+/* GLASS LAYER — give cards/panels depth without bringing back leather assets */
+:where(
+  .content-panel,
+  .calendar-shell,
+  .stat-card,
+  .quick-create-card,
+  .studio-tool-card,
+  .settings-card,
+  .brand-switcher,
+  .calendar-item-card,
+  .brand-picker-option,
+  .campaign-detail-related,
+  .studio-action-card,
+  #view-brands [data-brand-card],
+  #view-vault #assetGrid > article[data-open-asset-folder],
+  #view-vault #assetGrid > article[data-open-asset]
+){
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.035),rgba(255,255,255,.008)),
+    rgba(10,13,11,.54)!important;
+  border:1px solid rgba(223,205,178,.14)!important;
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.045),
+    inset 0 -1px 0 rgba(0,0,0,.22)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(108%)!important;
+  backdrop-filter:blur(14px) saturate(108%)!important;
+}
+
+/* Slightly richer glass for large containers. */
+#view-dashboard #dashboardUpcoming,
+#view-studio #contentLibrary,
+#view-campaigns #campaignList,
+#view-calendar #calendarShell{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.006)),
+    rgba(8,11,9,.48)!important;
+  border-color:rgba(223,205,178,.16)!important;
+}
+
+/* Keep nested calendar/upcoming items lighter than their parent panel. */
+#view-dashboard #dashboardUpcoming > article,
+#view-calendar .calendar-item-card{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.004)),
+    rgba(8,11,9,.34)!important;
+  border:1px solid rgba(223,205,178,.11)!important;
+  box-shadow:
+    0 8px 18px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.03)!important;
+  -webkit-backdrop-filter:blur(10px) saturate(104%)!important;
+  backdrop-filter:blur(10px) saturate(104%)!important;
+}
+
+/* Modals get a denser glass treatment for readability. */
+.app-dialog,
+.calendar-editor-dialog,
+.studio-action-dialog,
+.campaign-detail-dialog{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.006)),
+    rgba(10,12,10,.88)!important;
+  border:1px solid rgba(223,205,178,.18)!important;
+  box-shadow:
+    0 28px 80px rgba(0,0,0,.50),
+    inset 0 1px 0 rgba(255,255,255,.05)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(110%)!important;
+  backdrop-filter:blur(20px) saturate(110%)!important;
+}
