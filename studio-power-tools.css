@@ -2562,3 +2562,37 @@
   -webkit-backdrop-filter:blur(20px) saturate(110%)!important;
   backdrop-filter:blur(20px) saturate(110%)!important;
 }
+
+
+/* GLASS VISIBILITY FIX — selectors that match the live card markup */
+#view-dashboard .stat-grid > *,
+#view-dashboard .quick-create-grid > *,
+#view-brands .brand-grid > *,
+#view-studio .studio-grid > *,
+#view-studio .tool-grid > *,
+#view-campaigns .campaign-grid > *,
+#view-vault #assetGrid > *,
+#view-calendar .calendar-item-card{
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.012)),
+    rgba(12,14,12,.58)!important;
+  border:1px solid rgba(218,190,153,.20)!important;
+  border-radius:16px!important;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.06)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(112%)!important;
+  backdrop-filter:blur(16px) saturate(112%)!important;
+}
+
+/* The live quick-create/studio cards need their own padding after the leather reset. */
+#view-dashboard .quick-create-grid > *,
+#view-studio .studio-grid > *,
+#view-studio .tool-grid > *{
+  padding:18px!important;
+}
+
+/* Brand cards need a visible glass body around their existing centered content. */
+#view-brands .brand-grid > *{
+  padding:22px!important;
+}
