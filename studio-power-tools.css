@@ -909,6 +909,6 @@
   .campaign-detail-related,
   .studio-action-card
 ){
-  background-color:rgba(3,3,4,.58)!important;
+  background-color:rgba(0,0,0,.86)!important;
   background-blend-mode:multiply!important;
 }
