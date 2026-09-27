@@ -499,6 +499,17 @@
 #view-dashboard .stat-card,#view-dashboard .brand-switcher{
   background-image:url("assets/todays-work-card.webp")!important;padding:24px 32px!important;min-height:104px;
 }
+
+#view-dashboard #dashboardUpcoming{
+  background:transparent url("assets/calendar-panel.webp") center/100% 100% no-repeat!important;
+  border:0!important;
+  box-shadow:none!important;
+  padding:clamp(44px,7vw,64px) clamp(34px,6vw,54px)!important;
+  min-height:520px;
+}
+#view-dashboard #dashboardUpcoming::before,
+#view-dashboard #dashboardUpcoming::after{content:none!important}
+
 #view-dashboard .stat-card{display:grid;grid-template-columns:minmax(76px,auto) 1fr;align-items:center;gap:20px}
 #view-dashboard .stat-label{justify-self:end;text-align:right}
 
