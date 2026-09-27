@@ -962,3 +962,48 @@
   position:relative!important;
   z-index:2!important;
 }
+
+
+/* BLACK LEATHER DARKENING — specificity fix.
+   Earlier ID selectors were forcing ::after { content:none!important },
+   so the overlay never rendered. Explicit ID selectors override that. */
+#view-dashboard .stat-card::after,
+#view-dashboard .quick-create-card::after,
+#view-dashboard .brand-switcher::after,
+#view-brands [data-brand-card]::after,
+#view-studio .studio-tool-card::after,
+#view-studio #contentLibrary::after,
+#view-campaigns #campaignList::after,
+#view-calendar #calendarShell::after{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  z-index:1!important;
+  pointer-events:none!important;
+  background:rgba(0,0,0,.62)!important;
+  border-radius:inherit!important;
+}
+
+#view-dashboard .stat-card,
+#view-dashboard .quick-create-card,
+#view-dashboard .brand-switcher,
+#view-brands [data-brand-card],
+#view-studio .studio-tool-card,
+#view-studio #contentLibrary,
+#view-campaigns #campaignList,
+#view-calendar #calendarShell{
+  position:relative!important;
+  isolation:isolate!important;
+}
+
+#view-dashboard .stat-card > *,
+#view-dashboard .quick-create-card > *,
+#view-dashboard .brand-switcher > *,
+#view-brands [data-brand-card] > *,
+#view-studio .studio-tool-card > *,
+#view-studio #contentLibrary > *,
+#view-campaigns #campaignList > *,
+#view-calendar #calendarShell > *{
+  position:relative!important;
+  z-index:2!important;
+}
