@@ -1486,3 +1486,15 @@
     gap:4px!important;
   }
 }
+
+
+/* CALENDAR STEP 4 — visually center the lower inset content */
+#view-calendar .calendar-item-card:nth-child(2) > div{
+  transform:translateY(-34px)!important;
+}
+
+@media(max-width:680px){
+  #view-calendar .calendar-item-card:nth-child(2) > div{
+    transform:translateY(-30px)!important;
+  }
+}
