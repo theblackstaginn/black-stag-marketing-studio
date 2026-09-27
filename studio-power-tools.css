@@ -2043,3 +2043,17 @@
   border:0!important;
   box-shadow:none!important;
 }
+
+
+/* CALENDAR — center event dates */
+#view-calendar .calendar-item-card > div > div:last-child{
+  width:100%!important;
+  align-self:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+#view-calendar .calendar-item-card > div > div:last-child > div{
+  width:100%!important;
+  text-align:center!important;
+}
