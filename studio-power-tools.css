@@ -1007,3 +1007,43 @@
   position:relative!important;
   z-index:2!important;
 }
+
+
+/* LEATHER TINT — clip overlay to the actual card artwork instead of its box */
+#view-dashboard .stat-card::after,
+#view-dashboard .quick-create-card::after,
+#view-dashboard .brand-switcher::after,
+#view-brands [data-brand-card]::after,
+#view-studio .studio-tool-card::after,
+#view-studio #contentLibrary::after,
+#view-campaigns #campaignList::after,
+#view-calendar #calendarShell::after{
+  background:rgba(0,0,0,.62)!important;
+  -webkit-mask-image:var(--leather-card-mask)!important;
+  mask-image:var(--leather-card-mask)!important;
+  -webkit-mask-repeat:no-repeat!important;
+  mask-repeat:no-repeat!important;
+  -webkit-mask-position:center!important;
+  mask-position:center!important;
+  -webkit-mask-size:contain!important;
+  mask-size:contain!important;
+}
+
+#view-dashboard .stat-card,
+#view-dashboard .brand-switcher{
+  --leather-card-mask:url("assets/todays-work-card.webp");
+}
+#view-dashboard .quick-create-card,
+#view-studio .studio-tool-card{
+  --leather-card-mask:url("assets/studio-card.webp");
+}
+#view-brands [data-brand-card]{
+  --leather-card-mask:url("assets/brands-card.webp");
+}
+#view-studio #contentLibrary,
+#view-campaigns #campaignList{
+  --leather-card-mask:url("assets/campaign-card.webp");
+}
+#view-calendar #calendarShell{
+  --leather-card-mask:url("assets/calendar-card.webp");
+}
