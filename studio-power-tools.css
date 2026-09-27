@@ -1319,3 +1319,58 @@
     margin-bottom:4px!important;
   }
 }
+
+
+/* CALENDAR STEP 2 — compact the copy inside each sewn panel */
+#view-calendar .calendar-item-card{
+  padding:12px 14px!important;
+  gap:2px!important;
+}
+#view-calendar .calendar-item-card > div{
+  gap:6px!important;
+  margin:0!important;
+  min-width:0!important;
+}
+#view-calendar .calendar-item-card > *{
+  width:100%!important;
+  max-width:100%!important;
+  margin-top:0!important;
+  margin-bottom:3px!important;
+}
+#view-calendar .calendar-item-card h3{
+  width:100%!important;
+  max-width:22rem!important;
+  margin:5px auto 6px!important;
+  line-height:1.08!important;
+  font-size:clamp(1.2rem,4.2vw,1.65rem)!important;
+}
+#view-calendar .calendar-item-card p{
+  width:100%!important;
+  max-width:24rem!important;
+  margin:2px auto!important;
+  line-height:1.12!important;
+}
+#view-calendar .calendar-item-card .eyebrow,
+#view-calendar .calendar-item-card small,
+#view-calendar .calendar-item-card .meta,
+#view-calendar .calendar-item-card .tag,
+#view-calendar .calendar-item-card .badge{
+  line-height:1.05!important;
+  margin:1px 0!important;
+}
+
+@media(max-width:680px){
+  #view-calendar .calendar-item-card{
+    padding:10px 12px!important;
+  }
+  #view-calendar .calendar-item-card > div{
+    gap:4px!important;
+  }
+  #view-calendar .calendar-item-card h3{
+    margin:4px auto 5px!important;
+    font-size:1.22rem!important;
+  }
+  #view-calendar .calendar-item-card p{
+    margin:1px auto!important;
+  }
+}
