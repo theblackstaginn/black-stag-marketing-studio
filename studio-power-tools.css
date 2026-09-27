@@ -2057,3 +2057,41 @@
   width:100%!important;
   text-align:center!important;
 }
+
+
+/* ASSET VAULT — center folder + asset card copy */
+#view-vault #assetGrid > article[data-open-asset-folder]{
+  text-align:center!important;
+}
+#view-vault #assetGrid > article[data-open-asset-folder] > .eyebrow,
+#view-vault #assetGrid > article[data-open-asset-folder] > h3{
+  width:88%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+
+/* Individual asset cards: center all copy/actions inside calendar-card leather. */
+#view-vault #assetGrid > article[data-open-asset]{
+  align-items:center!important;
+  text-align:center!important;
+}
+#view-vault #assetGrid > article[data-open-asset] > .eyebrow,
+#view-vault #assetGrid > article[data-open-asset] > h3,
+#view-vault #assetGrid > article[data-open-asset] > p{
+  width:88%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+#view-vault #assetGrid > article[data-open-asset] > div:last-child{
+  width:88%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  justify-content:center!important;
+  text-align:center!important;
+}
+#view-vault #assetGrid > article[data-open-asset] > div:last-child > span{
+  justify-content:center!important;
+  text-align:center!important;
+}
