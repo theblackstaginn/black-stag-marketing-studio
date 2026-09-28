@@ -2684,6 +2684,7 @@ const port =
 
 app.listen(
   port,
+  "0.0.0.0",
   () => {
     console.log(
       `Black Stag MCP listening on port ${port} (read-write)`
