@@ -16433,7 +16433,29 @@ async function requestEmberContent({
       );
 
   if (error) {
-    throw error;
+    let message =
+      error?.message ||
+      "Unable to reach Ember.";
+
+    if (
+      error?.context &&
+      typeof error.context.json ===
+        "function"
+    ) {
+      try {
+        const payload =
+          await error.context.json();
+
+        message =
+          payload?.message ||
+          payload?.error ||
+          message;
+      } catch {}
+    }
+
+    throw new Error(
+      message
+    );
   }
 
   if (!data?.run_id) {
@@ -17488,7 +17510,7 @@ function ensureManualAiDialog() {
           </span>
 
           <h2 id="manualAiDialogTitle">
-            Create with ChatGPT
+            Create with Ember
           </h2>
         </div>
 
@@ -17525,7 +17547,7 @@ function ensureManualAiDialog() {
 
             <div>
               <span class="eyebrow">
-                Step One
+                Ember Brief
               </span>
 
               <h3
@@ -17539,7 +17561,7 @@ function ensureManualAiDialog() {
                   font-weight:400;
                 "
               >
-                Copy the AI brief
+                Review the content brief
               </h3>
             </div>
 
@@ -17578,10 +17600,11 @@ function ensureManualAiDialog() {
               line-height:1.55;
             "
           >
-            Paste this into ChatGPT. The brief already
-            contains the current Brand Brain, verified
+            Ember receives this brief automatically.
+            It contains the current Brand Brain, verified
             facts, voice rules, milestones, and AI
-            guardrails.
+            guardrails. Copy Brief is available as a
+            manual fallback.
           </p>
 
         </section>
@@ -17599,7 +17622,7 @@ function ensureManualAiDialog() {
             "
           >
             <span class="eyebrow">
-              Step Two
+              Ember Draft
             </span>
 
             <h3
@@ -17613,7 +17636,7 @@ function ensureManualAiDialog() {
                 font-weight:400;
               "
             >
-              Paste the finished result
+              Review Ember's finished result
             </h3>
           </div>
 
@@ -17622,7 +17645,7 @@ function ensureManualAiDialog() {
             style="
               min-height:240px;
             "
-            placeholder="Paste ChatGPT's finished content here."
+            placeholder="Ember's finished draft will appear here."
           ></textarea>
 
         </section>
@@ -17751,7 +17774,8 @@ function showManualAiDialog({
   type,
   request,
   goal,
-  brief
+  brief,
+  platform = ""
 }) {
   const dialog =
     ensureManualAiDialog();
@@ -17770,6 +17794,9 @@ function showManualAiDialog({
 
   MANUAL_AI_STATE.brief =
     brief;
+
+  MANUAL_AI_STATE.aiMode =
+    "manual-chatgpt";
 
   const definition =
     CREATE_TYPES[type];
@@ -17812,11 +17839,12 @@ function showManualAiDialog({
       );
   }
 
-  const platform =
+  const platformField =
     $("#manualAiPlatform");
 
-  if (platform) {
-    platform.value =
+  if (platformField) {
+    platformField.value =
+      platform ||
       getDefaultPlatformForType(
         type
       );
@@ -17960,7 +17988,7 @@ async function copyManualAiBrief() {
     }
 
     showToast(
-      "AI brief copied. Paste it into ChatGPT.",
+      "AI brief copied. Use it as a manual fallback if needed.",
       "success"
     );
 
@@ -18025,7 +18053,7 @@ async function saveManualAiDraft() {
 
   if (!result) {
     showToast(
-      "Paste the finished ChatGPT result before saving.",
+      "Wait for Ember's draft or add a finished result before saving.",
       "error"
     );
 
