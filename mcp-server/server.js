@@ -1893,6 +1893,924 @@ function buildServer(supabase) {
   );
 
 
+  /* --------------------------------------
+     EMBER WORK QUEUE
+     -------------------------------------- */
+
+  server.registerTool(
+    "list_work_items",
+    {
+      title: "List Work Items",
+      description:
+        "List persistent Ember/owner/shared work items for one brand. Read-only.",
+      inputSchema: {
+        brand_id: z.string().uuid(),
+        status: z.enum([
+          "open",
+          "in_progress",
+          "blocked",
+          "waiting",
+          "done",
+          "cancelled"
+        ]).optional(),
+        owner_type: z.enum([
+          "owner",
+          "ember",
+          "shared"
+        ]).optional()
+      },
+      ...readOnlyToolMetadata
+    },
+    async ({
+      brand_id,
+      status,
+      owner_type
+    }) => {
+      let query =
+        supabase
+          .from("work_items")
+          .select("*")
+          .eq("brand_id", brand_id)
+          .order("due_at", {
+            ascending: true,
+            nullsFirst: false
+          })
+          .order("created_at", {
+            ascending: false
+          });
+
+      if (status) {
+        query =
+          query.eq(
+            "status",
+            status
+          );
+      }
+
+      if (owner_type) {
+        query =
+          query.eq(
+            "owner_type",
+            owner_type
+          );
+      }
+
+      const rows =
+        await select(
+          "work_items",
+          query
+        );
+
+      return jsonResult(rows);
+    }
+  );
+
+  server.registerTool(
+    "create_work_item",
+    {
+      title: "Create Work Item",
+      description:
+        "Create a persistent work item in Marketing Studio for the owner, Ember, or both. Does not publish anything externally.",
+      inputSchema: {
+        brand_id: z.string().uuid(),
+        title: z.string().trim().min(1),
+        description: z.string().nullable().optional(),
+        work_type: z.enum([
+          "task",
+          "content",
+          "campaign",
+          "asset",
+          "research",
+          "follow_up",
+          "admin",
+          "other"
+        ]).optional(),
+        priority: z.enum([
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ]).optional(),
+        owner_type: z.enum([
+          "owner",
+          "ember",
+          "shared"
+        ]).optional(),
+        due_at: z.string().datetime().nullable().optional(),
+        related_type: z.string().trim().min(1).nullable().optional(),
+        related_id: z.string().uuid().nullable().optional(),
+        notes: z.string().nullable().optional()
+      },
+      ...writeToolMetadata
+    },
+    async ({
+      brand_id,
+      title,
+      description,
+      work_type,
+      priority,
+      owner_type,
+      due_at,
+      related_type,
+      related_id,
+      notes
+    }) => {
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("work_items")
+          .insert({
+            brand_id,
+            title,
+            description:
+              description ?? null,
+            work_type:
+              work_type || "task",
+            priority:
+              priority || "normal",
+            owner_type:
+              owner_type || "shared",
+            due_at:
+              due_at ?? null,
+            related_type:
+              related_type ?? null,
+            related_id:
+              related_id ?? null,
+            notes:
+              notes ?? null
+          })
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `work_items: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+  server.registerTool(
+    "update_work_item",
+    {
+      title: "Update Work Item",
+      description:
+        "Update a persistent Marketing Studio work item. Only supplied fields are changed.",
+      inputSchema: {
+        work_item_id: z.string().uuid(),
+        title: z.string().trim().min(1).optional(),
+        description: z.string().nullable().optional(),
+        work_type: z.enum([
+          "task",
+          "content",
+          "campaign",
+          "asset",
+          "research",
+          "follow_up",
+          "admin",
+          "other"
+        ]).optional(),
+        status: z.enum([
+          "open",
+          "in_progress",
+          "blocked",
+          "waiting",
+          "done",
+          "cancelled"
+        ]).optional(),
+        priority: z.enum([
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ]).optional(),
+        owner_type: z.enum([
+          "owner",
+          "ember",
+          "shared"
+        ]).optional(),
+        due_at: z.string().datetime().nullable().optional(),
+        related_type: z.string().trim().min(1).nullable().optional(),
+        related_id: z.string().uuid().nullable().optional(),
+        blocked_reason: z.string().nullable().optional(),
+        notes: z.string().nullable().optional()
+      },
+      ...writeToolMetadata
+    },
+    async ({
+      work_item_id,
+      ...changes
+    }) => {
+      const payload = {
+        ...changes
+      };
+
+      if (
+        changes.status === "done"
+      ) {
+        payload.completed_at =
+          new Date().toISOString();
+      }
+
+      if (
+        changes.status &&
+        changes.status !== "done"
+      ) {
+        payload.completed_at =
+          null;
+      }
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("work_items")
+          .update(payload)
+          .eq("id", work_item_id)
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `work_items: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+  /* --------------------------------------
+     EMBER DECISION QUEUE
+     -------------------------------------- */
+
+  server.registerTool(
+    "list_decision_requests",
+    {
+      title: "List Decision Requests",
+      description:
+        "List decisions waiting for the owner or previously answered/deferred for one brand. Read-only.",
+      inputSchema: {
+        brand_id: z.string().uuid(),
+        status: z.enum([
+          "pending",
+          "answered",
+          "deferred",
+          "dismissed"
+        ]).optional()
+      },
+      ...readOnlyToolMetadata
+    },
+    async ({
+      brand_id,
+      status
+    }) => {
+      let query =
+        supabase
+          .from(
+            "decision_requests"
+          )
+          .select("*")
+          .eq("brand_id", brand_id)
+          .order("due_at", {
+            ascending: true,
+            nullsFirst: false
+          })
+          .order("created_at", {
+            ascending: false
+          });
+
+      if (status) {
+        query =
+          query.eq(
+            "status",
+            status
+          );
+      }
+
+      const rows =
+        await select(
+          "decision_requests",
+          query
+        );
+
+      return jsonResult(rows);
+    }
+  );
+
+  server.registerTool(
+    "create_decision_request",
+    {
+      title: "Create Decision Request",
+      description:
+        "Create a decision for the owner to review in Marketing Studio. May include options and an Ember recommendation, but never decides on the owner's behalf.",
+      inputSchema: {
+        brand_id: z.string().uuid(),
+        title: z.string().trim().min(1),
+        context: z.string().nullable().optional(),
+        question: z.string().trim().min(1),
+        options: z.array(
+          z.object({
+            label: z.string().trim().min(1),
+            description: z.string().optional()
+          })
+        ).optional(),
+        ember_recommendation: z.string().nullable().optional(),
+        priority: z.enum([
+          "low",
+          "normal",
+          "high",
+          "urgent"
+        ]).optional(),
+        due_at: z.string().datetime().nullable().optional(),
+        related_type: z.string().trim().min(1).nullable().optional(),
+        related_id: z.string().uuid().nullable().optional()
+      },
+      ...writeToolMetadata
+    },
+    async ({
+      brand_id,
+      title,
+      context,
+      question,
+      options,
+      ember_recommendation,
+      priority,
+      due_at,
+      related_type,
+      related_id
+    }) => {
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from(
+            "decision_requests"
+          )
+          .insert({
+            brand_id,
+            title,
+            context:
+              context ?? null,
+            question,
+            options:
+              options || [],
+            ember_recommendation:
+              ember_recommendation ??
+              null,
+            priority:
+              priority || "normal",
+            due_at:
+              due_at ?? null,
+            related_type:
+              related_type ?? null,
+            related_id:
+              related_id ?? null
+          })
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `decision_requests: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+  server.registerTool(
+    "answer_decision_request",
+    {
+      title: "Answer Decision Request",
+      description:
+        "Record the owner's answer, defer, or dismiss a Marketing Studio decision request.",
+      inputSchema: {
+        decision_request_id:
+          z.string().uuid(),
+        status:
+          z.enum([
+            "answered",
+            "deferred",
+            "dismissed"
+          ]),
+        answer:
+          z.string().nullable().optional()
+      },
+      ...writeToolMetadata
+    },
+    async ({
+      decision_request_id,
+      status,
+      answer
+    }) => {
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from(
+            "decision_requests"
+          )
+          .update({
+            status,
+            answer:
+              answer ?? null,
+            answered_at:
+              status === "answered"
+                ? new Date().toISOString()
+                : null
+          })
+          .eq(
+            "id",
+            decision_request_id
+          )
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `decision_requests: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+  /* --------------------------------------
+     MARKETING FEEDBACK / LEARNING
+     -------------------------------------- */
+
+  server.registerTool(
+    "list_marketing_feedback",
+    {
+      title: "List Marketing Feedback",
+      description:
+        "List active owner feedback and learned marketing rules for one brand. Read-only.",
+      inputSchema: {
+        brand_id: z.string().uuid()
+      },
+      ...readOnlyToolMetadata
+    },
+    async ({ brand_id }) => {
+      const rows =
+        await select(
+          "marketing_feedback",
+          supabase
+            .from(
+              "marketing_feedback"
+            )
+            .select("*")
+            .eq(
+              "brand_id",
+              brand_id
+            )
+            .eq(
+              "active",
+              true
+            )
+            .order(
+              "created_at",
+              {
+                ascending: false
+              }
+            )
+        );
+
+      return jsonResult(rows);
+    }
+  );
+
+  server.registerTool(
+    "record_marketing_feedback",
+    {
+      title: "Record Marketing Feedback",
+      description:
+        "Record owner feedback about Marketing Studio output and optionally a learned rule to apply in future work.",
+      inputSchema: {
+        brand_id: z.string().uuid(),
+        content_id: z.string().uuid().nullable().optional(),
+        feedback_type: z.string().trim().min(1).optional(),
+        feedback_text: z.string().trim().min(1),
+        learned_rule: z.string().nullable().optional(),
+        apply_to_future: z.boolean().optional()
+      },
+      ...writeToolMetadata
+    },
+    async ({
+      brand_id,
+      content_id,
+      feedback_type,
+      feedback_text,
+      learned_rule,
+      apply_to_future
+    }) => {
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from(
+            "marketing_feedback"
+          )
+          .insert({
+            brand_id,
+            content_id:
+              content_id ?? null,
+            feedback_type:
+              feedback_type ||
+              "general",
+            feedback_text,
+            learned_rule:
+              learned_rule ?? null,
+            apply_to_future:
+              apply_to_future ??
+              true
+          })
+          .select()
+          .single();
+
+      if (error) {
+        throw new Error(
+          `marketing_feedback: ${error.message}`
+        );
+      }
+
+      return jsonResult(data);
+    }
+  );
+
+  /* --------------------------------------
+     LIVE DAILY BRIEF
+     -------------------------------------- */
+
+  server.registerTool(
+    "get_daily_brief",
+    {
+      title: "Get Daily Brief",
+      description:
+        "Build a live operating brief from Marketing Studio: brand status, open work, pending decisions, active campaigns, content workflow, upcoming calendar items, and milestones. Read-only.",
+      inputSchema: {
+        brand_id:
+          z.string().uuid().optional(),
+        horizon_days:
+          z.number().int().min(1).max(30).optional()
+      },
+      ...readOnlyToolMetadata
+    },
+    async ({
+      brand_id,
+      horizon_days
+    }) => {
+      const horizonDays =
+        horizon_days || 7;
+      const now =
+        new Date();
+      const horizon =
+        new Date(
+          now.getTime() +
+          horizonDays *
+          24 *
+          60 *
+          60 *
+          1000
+        );
+
+      let brandsQuery =
+        supabase
+          .from("brands")
+          .select(
+            [
+              "id",
+              "official_name",
+              "short_name",
+              "business_stage",
+              "stage_label",
+              "primary_marketing_goal",
+              "campaign_phase",
+              "opening_date",
+              "opening_date_confirmed"
+            ].join(",")
+          )
+          .eq("active", true)
+          .order("created_at", {
+            ascending: true
+          });
+
+      if (brand_id) {
+        brandsQuery =
+          brandsQuery.eq(
+            "id",
+            brand_id
+          );
+      }
+
+      const brands =
+        await select(
+          "brands",
+          brandsQuery
+        );
+
+      const brief = [];
+
+      for (const brand of brands) {
+        const [
+          workItems,
+          decisions,
+          campaigns,
+          contentItems,
+          calendarItems,
+          milestones
+        ] =
+          await Promise.all([
+            select(
+              "work_items",
+              supabase
+                .from("work_items")
+                .select(
+                  [
+                    "id",
+                    "title",
+                    "description",
+                    "work_type",
+                    "status",
+                    "priority",
+                    "owner_type",
+                    "due_at",
+                    "blocked_reason",
+                    "related_type",
+                    "related_id"
+                  ].join(",")
+                )
+                .eq(
+                  "brand_id",
+                  brand.id
+                )
+                .not(
+                  "status",
+                  "in",
+                  '("done","cancelled")'
+                )
+                .order(
+                  "due_at",
+                  {
+                    ascending: true,
+                    nullsFirst: false
+                  }
+                )
+                .limit(12)
+            ),
+
+            select(
+              "decision_requests",
+              supabase
+                .from(
+                  "decision_requests"
+                )
+                .select(
+                  [
+                    "id",
+                    "title",
+                    "context",
+                    "question",
+                    "options",
+                    "ember_recommendation",
+                    "status",
+                    "priority",
+                    "due_at"
+                  ].join(",")
+                )
+                .eq(
+                  "brand_id",
+                  brand.id
+                )
+                .in(
+                  "status",
+                  [
+                    "pending",
+                    "deferred"
+                  ]
+                )
+                .order(
+                  "due_at",
+                  {
+                    ascending: true,
+                    nullsFirst: false
+                  }
+                )
+                .limit(8)
+            ),
+
+            select(
+              "campaigns",
+              supabase
+                .from("campaigns")
+                .select(
+                  [
+                    "id",
+                    "name",
+                    "status",
+                    "objective",
+                    "channels",
+                    "starts_on",
+                    "ends_on"
+                  ].join(",")
+                )
+                .eq(
+                  "brand_id",
+                  brand.id
+                )
+                .in(
+                  "status",
+                  [
+                    "draft",
+                    "active"
+                  ]
+                )
+                .order(
+                  "created_at",
+                  {
+                    ascending: false
+                  }
+                )
+                .limit(8)
+            ),
+
+            select(
+              "content_items",
+              supabase
+                .from(
+                  "content_items"
+                )
+                .select(
+                  [
+                    "id",
+                    "title",
+                    "content_type",
+                    "status",
+                    "platform",
+                    "scheduled_for",
+                    "campaign_id"
+                  ].join(",")
+                )
+                .eq(
+                  "brand_id",
+                  brand.id
+                )
+                .order(
+                  "updated_at",
+                  {
+                    ascending: false
+                  }
+                )
+                .limit(100)
+            ),
+
+            select(
+              "calendar_items",
+              supabase
+                .from(
+                  "calendar_items"
+                )
+                .select(
+                  [
+                    "id",
+                    "title",
+                    "item_type",
+                    "starts_at",
+                    "ends_at",
+                    "all_day",
+                    "marketing_relevant",
+                    "confirmed"
+                  ].join(",")
+                )
+                .eq(
+                  "brand_id",
+                  brand.id
+                )
+                .gte(
+                  "starts_at",
+                  now.toISOString()
+                )
+                .lte(
+                  "starts_at",
+                  horizon.toISOString()
+                )
+                .order(
+                  "starts_at",
+                  {
+                    ascending: true
+                  }
+                )
+                .limit(20)
+            ),
+
+            select(
+              "milestones",
+              supabase
+                .from("milestones")
+                .select(
+                  [
+                    "id",
+                    "title",
+                    "description",
+                    "status",
+                    "milestone_date",
+                    "marketing_worthy",
+                    "content_created"
+                  ].join(",")
+                )
+                .eq(
+                  "brand_id",
+                  brand.id
+                )
+                .in(
+                  "status",
+                  [
+                    "planned",
+                    "in_progress"
+                  ]
+                )
+                .order(
+                  "milestone_date",
+                  {
+                    ascending: true,
+                    nullsFirst: false
+                  }
+                )
+                .limit(12)
+            )
+          ]);
+
+        const contentByStatus =
+          contentItems.reduce(
+            (acc, item) => {
+              acc[item.status] =
+                (acc[item.status] || 0) +
+                1;
+              return acc;
+            },
+            {}
+          );
+
+        const scheduledSoon =
+          contentItems.filter(
+            (item) => {
+              if (!item.scheduled_for) {
+                return false;
+              }
+
+              const when =
+                new Date(
+                  item.scheduled_for
+                );
+
+              return (
+                when >= now &&
+                when <= horizon
+              );
+            }
+          );
+
+        brief.push({
+          brand,
+          work_items: workItems,
+          decisions,
+          campaigns,
+          content: {
+            counts_by_status:
+              contentByStatus,
+            scheduled_next:
+              horizonDays,
+            scheduled_items:
+              scheduledSoon
+          },
+          calendar:
+            calendarItems,
+          milestones
+        });
+      }
+
+      return jsonResult({
+        generated_at:
+          now.toISOString(),
+        horizon_days:
+          horizonDays,
+        brands:
+          brief
+      });
+    }
+  );
+
+
   return server;
 }
 
