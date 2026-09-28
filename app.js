@@ -19204,6 +19204,10 @@ function handleSettingsSection(
       openPublishingSettings();
       break;
 
+    case "reminders":
+      openReminderSettings();
+      break;
+
     case "preferences":
       openPreferenceSettings();
       break;
@@ -19991,6 +19995,804 @@ function savePublishingSettings(
     "Publishing settings saved.",
     "success"
   );
+}
+
+
+/* =========================================================
+   REMINDERS
+   ========================================================= */
+
+let studioServiceWorkerPromise =
+  null;
+
+
+function isStudioPushSupported() {
+  return (
+    "serviceWorker" in navigator &&
+    "PushManager" in window &&
+    "Notification" in window
+  );
+}
+
+
+function isAppleMobileDevice() {
+  return (
+    /iPad|iPhone|iPod/.test(
+      navigator.userAgent
+    ) ||
+    (
+      navigator.platform ===
+        "MacIntel" &&
+      navigator.maxTouchPoints >
+        1
+    )
+  );
+}
+
+
+function isStandaloneStudio() {
+  return (
+    window.matchMedia?.(
+      "(display-mode: standalone)"
+    )?.matches ||
+    navigator.standalone ===
+      true
+  );
+}
+
+
+function studioTimeZone() {
+  return (
+    Intl.DateTimeFormat()
+      .resolvedOptions()
+      .timeZone ||
+    "UTC"
+  );
+}
+
+
+function urlBase64ToUint8Array(
+  base64String
+) {
+  const padding =
+    "=".repeat(
+      (
+        4 -
+        base64String.length %
+          4
+      ) %
+        4
+    );
+
+  const base64 =
+    (
+      base64String +
+      padding
+    )
+      .replace(
+        /-/g,
+        "+"
+      )
+      .replace(
+        /_/g,
+        "/"
+      );
+
+  const rawData =
+    window.atob(
+      base64
+    );
+
+  return Uint8Array.from(
+    rawData,
+    character =>
+      character.charCodeAt(
+        0
+      )
+  );
+}
+
+
+async function registerStudioServiceWorker() {
+  if (
+    !(
+      "serviceWorker" in
+      navigator
+    )
+  ) {
+    return null;
+  }
+
+  if (
+    !studioServiceWorkerPromise
+  ) {
+    studioServiceWorkerPromise =
+      navigator.serviceWorker
+        .register(
+          "./service-worker.js",
+          {
+            scope:
+              "./"
+          }
+        )
+        .then(
+          () =>
+            navigator
+              .serviceWorker
+              .ready
+        )
+        .catch(
+          error => {
+            studioServiceWorkerPromise =
+              null;
+
+            throw error;
+          }
+        );
+  }
+
+  return studioServiceWorkerPromise;
+}
+
+
+async function getStudioVapidPublicKey() {
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .functions
+      .invoke(
+        "studio-reminders",
+        {
+          body: {
+            action:
+              "public_key"
+          }
+        }
+      );
+
+  if (error) {
+    throw error;
+  }
+
+  if (
+    !data?.public_key
+  ) {
+    throw new Error(
+      "The reminder service did not return a push key."
+    );
+  }
+
+  return data.public_key;
+}
+
+
+async function getReminderPreference() {
+  if (
+    !APP_STATE.user ||
+    !supabaseClient
+  ) {
+    return null;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "notification_preferences"
+      )
+      .select(
+        "*"
+      )
+      .eq(
+        "owner_id",
+        APP_STATE.user.id
+      )
+      .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data ||
+    null;
+}
+
+
+async function saveStudioPushSubscription(
+  subscription
+) {
+  const json =
+    subscription?.toJSON?.();
+
+  if (
+    !APP_STATE.user ||
+    !json?.endpoint ||
+    !json?.keys?.p256dh ||
+    !json?.keys?.auth
+  ) {
+    throw new Error(
+      "The browser did not provide a complete push subscription."
+    );
+  }
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "push_subscriptions"
+      )
+      .upsert(
+        {
+          owner_id:
+            APP_STATE.user.id,
+
+          endpoint:
+            json.endpoint,
+
+          p256dh:
+            json.keys.p256dh,
+
+          auth:
+            json.keys.auth,
+
+          timezone:
+            studioTimeZone(),
+
+          user_agent:
+            navigator.userAgent,
+
+          active:
+            true,
+
+          last_seen_at:
+            new Date()
+              .toISOString()
+        },
+        {
+          onConflict:
+            "owner_id,endpoint"
+        }
+      );
+
+  if (error) {
+    throw error;
+  }
+}
+
+
+async function enableStudioReminders(
+  dayBeforeTime =
+    "09:00"
+) {
+  if (
+    !APP_STATE.user
+  ) {
+    throw new Error(
+      "Sign in before enabling reminders."
+    );
+  }
+
+  if (
+    isAppleMobileDevice() &&
+    !isStandaloneStudio()
+  ) {
+    throw new Error(
+      "On iPhone or iPad, add Marketing Studio to your Home Screen first, then open the installed app and enable reminders there."
+    );
+  }
+
+  if (
+    !isStudioPushSupported()
+  ) {
+    throw new Error(
+      "Push notifications are not supported in this browser."
+    );
+  }
+
+  const permission =
+    Notification.permission ===
+      "granted"
+      ? "granted"
+      : await Notification
+          .requestPermission();
+
+  if (
+    permission !==
+      "granted"
+  ) {
+    throw new Error(
+      "Notification permission was not granted."
+    );
+  }
+
+  const registration =
+    await registerStudioServiceWorker();
+
+  if (
+    !registration
+  ) {
+    throw new Error(
+      "The reminder service worker could not be registered."
+    );
+  }
+
+  let subscription =
+    await registration
+      .pushManager
+      .getSubscription();
+
+  if (
+    !subscription
+  ) {
+    const publicKey =
+      await getStudioVapidPublicKey();
+
+    subscription =
+      await registration
+        .pushManager
+        .subscribe(
+          {
+            userVisibleOnly:
+              true,
+
+            applicationServerKey:
+              urlBase64ToUint8Array(
+                publicKey
+              )
+          }
+        );
+  }
+
+  await saveStudioPushSubscription(
+    subscription
+  );
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "notification_preferences"
+      )
+      .upsert(
+        {
+          owner_id:
+            APP_STATE.user.id,
+
+          enabled:
+            true,
+
+          day_before_time:
+            dayBeforeTime,
+
+          timezone:
+            studioTimeZone()
+        },
+        {
+          onConflict:
+            "owner_id"
+        }
+      );
+
+  if (error) {
+    throw error;
+  }
+}
+
+
+async function disableStudioReminders() {
+  if (
+    !APP_STATE.user
+  ) {
+    return;
+  }
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "notification_preferences"
+      )
+      .upsert(
+        {
+          owner_id:
+            APP_STATE.user.id,
+
+          enabled:
+            false,
+
+          timezone:
+            studioTimeZone()
+        },
+        {
+          onConflict:
+            "owner_id"
+        }
+      );
+
+  if (error) {
+    throw error;
+  }
+}
+
+
+async function syncExistingPushSubscription() {
+  if (
+    !APP_STATE.user ||
+    !isStudioPushSupported() ||
+    Notification.permission !==
+      "granted"
+  ) {
+    return;
+  }
+
+  const registration =
+    await registerStudioServiceWorker();
+
+  const subscription =
+    await registration
+      ?.pushManager
+      ?.getSubscription();
+
+  if (
+    !subscription
+  ) {
+    return;
+  }
+
+  await saveStudioPushSubscription(
+    subscription
+  );
+
+  const preference =
+    await getReminderPreference();
+
+  if (
+    !preference
+  ) {
+    return;
+  }
+
+  const {
+    error
+  } =
+    await supabaseClient
+      .from(
+        "notification_preferences"
+      )
+      .update(
+        {
+          timezone:
+            studioTimeZone()
+        }
+      )
+      .eq(
+        "owner_id",
+        APP_STATE.user.id
+      );
+
+  if (error) {
+    throw error;
+  }
+}
+
+
+async function openReminderSettings() {
+  const dialog =
+    getSettingsDialog();
+
+  dialog.innerHTML =
+    settingsDialogShell({
+      title:
+        "Reminders",
+
+      description:
+        "Marketing Studio can send a push notification the day before anything scheduled across your brands.",
+
+      content:
+        "<div class='create-form'><p class='muted-copy'>Loading reminder settings...</p></div>"
+    });
+
+  bindSettingsDialogClose(
+    dialog
+  );
+
+  safeDialogOpen(
+    dialog
+  );
+
+  try {
+    const preference =
+      await getReminderPreference();
+
+    const enabled =
+      Boolean(
+        preference?.enabled
+      );
+
+    const reminderTime =
+      String(
+        preference
+          ?.day_before_time ||
+        "09:00"
+      ).slice(
+        0,
+        5
+      );
+
+    const permission =
+      "Notification" in
+        window
+        ? Notification
+            .permission
+        : "unsupported";
+
+    const appleInstallNote =
+      isAppleMobileDevice() &&
+      !isStandaloneStudio()
+        ? "<p class='muted-copy' style='margin:0 0 16px;'>On iPhone or iPad, first use Safari's Add to Home Screen, then open Marketing Studio from the Home Screen. Apple enables Web Push for installed Home Screen web apps.</p>"
+        : "";
+
+    dialog.innerHTML =
+      settingsDialogShell({
+        title:
+          "Reminders",
+
+        description:
+          "Automatically remind me the day before anything scheduled.",
+
+        content: `
+          <form
+            id="reminderSettingsForm"
+            class="create-form"
+          >
+            ${appleInstallNote}
+
+            <div
+              class="content-panel"
+              style="
+                padding:18px;
+                margin-bottom:16px;
+              "
+            >
+              <span class="eyebrow">
+                Status
+              </span>
+
+              <h3
+                style="
+                  margin:4px 0 8px;
+                  font-size:1rem;
+                "
+              >
+                ${enabled
+                  ? "Day-before reminders are on"
+                  : "Day-before reminders are off"}
+              </h3>
+
+              <p
+                class="muted-copy"
+                style="margin:0;"
+              >
+                Browser permission:
+                ${escapeHtml(
+                  permission
+                )}.
+              </p>
+            </div>
+
+            <label class="field">
+              <span>
+                Reminder time
+              </span>
+
+              <input
+                id="reminderDayBeforeTime"
+                type="time"
+                value="${escapeHtml(
+                  reminderTime
+                )}"
+                required
+              />
+
+              <small>
+                This uses your device time zone. The reminder is sent one day before the scheduled date.
+              </small>
+            </label>
+
+            <p
+              class="muted-copy"
+              style="
+                margin:0;
+                line-height:1.6;
+              "
+            >
+              Included automatically: calendar events, scheduled content, work-item due dates, decision due dates, campaign start and end dates, milestones, and confirmed opening dates.
+            </p>
+
+            <div class="form-actions">
+              ${enabled
+                ? `
+                  <button
+                    id="disableStudioRemindersButton"
+                    type="button"
+                    class="secondary-button"
+                  >
+                    Turn Off Reminders
+                  </button>
+                `
+                : `
+                  <button
+                    type="button"
+                    class="secondary-button"
+                    data-close-settings-dialog
+                  >
+                    Cancel
+                  </button>
+                `
+              }
+
+              <button
+                type="submit"
+                class="primary-button"
+              >
+                ${enabled
+                  ? "Save Reminder Time"
+                  : "Enable Reminders"}
+              </button>
+            </div>
+          </form>
+        `
+      });
+
+    bindSettingsDialogClose(
+      dialog
+    );
+
+    $("#reminderSettingsForm")
+      ?.addEventListener(
+        "submit",
+        async event => {
+          event.preventDefault();
+
+          const submitButton =
+            event.currentTarget
+              .querySelector(
+                'button[type="submit"]'
+              );
+
+          if (
+            submitButton
+          ) {
+            submitButton.disabled =
+              true;
+
+            submitButton.textContent =
+              "Saving...";
+          }
+
+          try {
+            const time =
+              $("#reminderDayBeforeTime")
+                ?.value ||
+              "09:00";
+
+            await enableStudioReminders(
+              time
+            );
+
+            showToast(
+              "Day-before reminders are enabled.",
+              "success",
+              4200
+            );
+
+            await openReminderSettings();
+
+          } catch (error) {
+            console.error(
+              "Unable to enable reminders:",
+              error
+            );
+
+            showToast(
+              error?.message ||
+              "Reminders could not be enabled.",
+              "error",
+              7000
+            );
+
+            if (
+              submitButton
+            ) {
+              submitButton.disabled =
+                false;
+
+              submitButton.textContent =
+                enabled
+                  ? "Save Reminder Time"
+                  : "Enable Reminders";
+            }
+          }
+        }
+      );
+
+    $("#disableStudioRemindersButton")
+      ?.addEventListener(
+        "click",
+        async event => {
+          event.currentTarget
+            .setAttribute(
+              "disabled",
+              ""
+            );
+
+          try {
+            await disableStudioReminders();
+
+            showToast(
+              "Day-before reminders are off.",
+              "success"
+            );
+
+            await openReminderSettings();
+
+          } catch (error) {
+            console.error(
+              "Unable to disable reminders:",
+              error
+            );
+
+            showToast(
+              error?.message ||
+              "Reminders could not be disabled.",
+              "error",
+              6000
+            );
+
+            event.currentTarget
+              .removeAttribute(
+                "disabled"
+              );
+          }
+        }
+      );
+
+  } catch (error) {
+    console.error(
+      "Unable to load reminder settings:",
+      error
+    );
+
+    dialog.innerHTML =
+      settingsDialogShell({
+        title:
+          "Reminders",
+
+        description:
+          "Automatic day-before push notifications.",
+
+        content:
+          "<div class='create-form'><p class='muted-copy'>Reminder settings could not be loaded.</p><div class='form-actions'><button type='button' class='secondary-button' data-close-settings-dialog>Close</button></div></div>"
+      });
+
+    bindSettingsDialogClose(
+      dialog
+    );
+
+    showToast(
+      error?.message ||
+      "Reminder settings could not be loaded.",
+      "error",
+      6000
+    );
+  }
 }
 
 
@@ -21288,9 +22090,33 @@ async function startAuthenticatedApp(
 
     renderApp();
 
+    syncExistingPushSubscription()
+      .catch(
+        error => {
+          console.warn(
+            "Push subscription sync failed:",
+            error
+          );
+        }
+      );
+
+    const requestedView =
+      new URLSearchParams(
+        window.location.search
+      ).get(
+        "view"
+      );
+
     navigateToView(
-      APP_STATE.activeView ||
-      "dashboard"
+      requestedView &&
+      VIEW_DEFINITIONS[
+        requestedView
+      ]
+        ? requestedView
+        : (
+            APP_STATE.activeView ||
+            "dashboard"
+          )
     );
 
     showToast(
@@ -21434,6 +22260,16 @@ async function initializeApp() {
 
     bindEvents();
     enablePullToRefresh();
+
+    registerStudioServiceWorker()
+      .catch(
+        error => {
+          console.warn(
+            "Service worker registration failed:",
+            error
+          );
+        }
+      );
 
     await initializeAuthentication();
 
