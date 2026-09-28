@@ -2049,6 +2049,16 @@ function renderBrandPicker() {
             brand.id ===
             APP_STATE.activeBrandId;
 
+          const logoAsset =
+            getBrandLogoAsset(
+              brand.id
+            );
+
+          const logoUrl =
+            logoAsset?.signedUrl ||
+            logoAsset?.externalUrl ||
+            "";
+
 
           return `
             <button
@@ -2137,6 +2147,40 @@ function renderBrandPicker() {
    BRAND GRID
    ========================================================= */
 
+function getBrandLogoAsset(
+  brandId
+) {
+  const logos =
+    (APP_DATA.assets || [])
+      .filter(
+        asset =>
+          String(asset.brandId) ===
+            String(brandId) &&
+          asset.category ===
+            "logo" &&
+          Boolean(
+            asset.signedUrl ||
+            asset.externalUrl
+          )
+      )
+      .sort(
+        (a, b) =>
+          Number(
+            Boolean(
+              b.approvedForMarketing
+            )
+          ) -
+          Number(
+            Boolean(
+              a.approvedForMarketing
+            )
+          )
+      );
+
+  return logos[0] || null;
+}
+
+
 function renderBrandGrid() {
   const grid =
     $("#brandGrid");
@@ -2204,13 +2248,25 @@ function renderBrandGrid() {
               >
 
                 <span
-                  class="brand-switcher-mark"
+                  class="brand-switcher-mark brand-card-logo-shell"
                   aria-hidden="true"
                 >
                   ${
-                    escapeHtml(
-                      brand.mark
-                    )
+                    logoUrl
+                      ? `
+                        <img
+                          class="brand-card-logo"
+                          src="${escapeHtml(
+                            logoUrl
+                          )}"
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      `
+                      : escapeHtml(
+                          brand.mark
+                        )
                   }
                 </span>
 
