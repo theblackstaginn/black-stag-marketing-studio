@@ -1815,12 +1815,28 @@
       true
     );
 
+    let observerFrame =
+      null;
+
     const observer =
       new MutationObserver(
         () => {
-          window.requestAnimationFrame(
-            enhanceVisibleCards
-          );
+          if (observerFrame) {
+            return;
+          }
+
+          observerFrame =
+            window.requestAnimationFrame(
+              () => {
+                observerFrame =
+                  null;
+
+                enhanceCampaignCards();
+                enhanceContentCards();
+                enhanceAssetCards();
+                ensureEmberPanel();
+              }
+            );
         }
       );
 
