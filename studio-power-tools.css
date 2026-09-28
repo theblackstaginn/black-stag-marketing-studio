@@ -2843,3 +2843,143 @@
     width: fit-content;
   }
 }
+
+
+/* =========================================================
+   EMBER LIVE REQUEST TUNNEL
+   ========================================================= */
+
+.ember-chat-section {
+  padding: 16px;
+  border: 1px solid rgba(185,139,91,.18);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.025),
+      rgba(255,255,255,.006)
+    ),
+    rgba(7,10,8,.34);
+}
+
+.ember-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ember-request-form {
+  display: grid;
+  gap: 10px;
+}
+
+.ember-request-form textarea {
+  width: 100%;
+  min-height: 92px;
+  box-sizing: border-box;
+  resize: vertical;
+  padding: 12px 13px;
+  border: 1px solid rgba(190,145,96,.24);
+  border-radius: 11px;
+  color: var(--ink);
+  background: rgba(5,7,6,.58);
+  font: inherit;
+  font-size: .78rem;
+  line-height: 1.55;
+  box-shadow:
+    inset 0 1px 4px rgba(0,0,0,.18);
+}
+
+.ember-request-form textarea:focus {
+  border-color: rgba(205,163,112,.62);
+  outline: 1px solid rgba(205,163,112,.14);
+}
+
+.ember-request-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.ember-request-footer small {
+  color: var(--muted);
+  font-size: .64rem;
+  line-height: 1.45;
+}
+
+.ember-run-list {
+  display: grid;
+  gap: 10px;
+}
+
+.ember-run-row {
+  display: grid;
+  gap: 9px;
+  padding: 13px 14px;
+  border: 1px solid rgba(185,139,91,.13);
+  border-radius: 12px;
+  background: rgba(5,8,6,.34);
+}
+
+.ember-run-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ember-run-meta span {
+  color: var(--ink-soft);
+  font-size: .61rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.ember-run-meta small {
+  color: var(--muted);
+  font-size: .6rem;
+}
+
+.ember-run-request {
+  margin: 0;
+  color: var(--muted);
+  font-size: .7rem;
+  line-height: 1.5;
+}
+
+.ember-run-response {
+  white-space: pre-wrap;
+  color: var(--ink);
+  font-size: .78rem;
+  line-height: 1.62;
+}
+
+.ember-run-row[data-ember-run-status="answered"] {
+  border-color: rgba(185,139,91,.28);
+}
+
+.ember-run-row[data-ember-run-status="failed"],
+.ember-run-row[data-ember-run-status="cancelled"] {
+  border-color: rgba(138,72,64,.34);
+}
+
+@media (max-width: 720px) {
+  .ember-request-footer,
+  .ember-section-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .ember-request-footer .primary-button {
+    width: 100%;
+  }
+
+  .ember-run-meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 3px;
+  }
+}
