@@ -13,6 +13,14 @@
     enhancedAssetIds: new Set()
   };
 
+  const emberState = {
+    brandId: null,
+    workItems: [],
+    decisions: [],
+    loading: false,
+    lastLoadedAt: 0
+  };
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -90,6 +98,7 @@
     host.id = "studioPowerTools";
     host.className = "studio-power-tools";
     host.innerHTML =
+      "<button class='studio-power-button ember-power-button' type='button' data-ember-open aria-label='Open Ember brief'>✦ <span>Ember</span><strong id='emberAttentionCount'>0</strong></button>" +
       "<button class='studio-power-button' type='button' data-power-search aria-label='Search Studio'>⌕ <span>Search</span></button>" +
       "<button class='studio-power-button' type='button' data-power-inbox aria-label='Studio inbox'>◌ <span>Inbox</span><strong id='studioInboxCount'>0</strong></button>" +
       "<button class='primary-button studio-create-button' type='button' data-power-create>✦ Create</button>";
@@ -122,6 +131,693 @@
     ).length;
 
     count.textContent = String(reviewCount + upcomingCount);
+  }
+
+
+  function ensureEmberPanel() {
+    const dashboard = byId("view-dashboard");
+
+    if (!dashboard || byId("emberDashboardPanel")) {
+      return;
+    }
+
+    const overview =
+      dashboard.querySelector(
+        ".dashboard-section"
+      );
+
+    if (!overview) {
+      return;
+    }
+
+    const section =
+      document.createElement(
+        "section"
+      );
+
+    section.id =
+      "emberDashboardPanel";
+
+    section.className =
+      "dashboard-section ember-dashboard-section";
+
+    section.innerHTML =
+      "<div class='section-heading-row'>" +
+        "<div><span class='eyebrow'>Ember</span><h2>Daily Brief</h2></div>" +
+        "<button class='text-button' type='button' data-ember-open>Open Brief</button>" +
+      "</div>" +
+      "<div class='ember-brief-card' id='emberBriefCard'>" +
+        "<div class='ember-brief-loading'>Connecting Ember to the working brand…</div>" +
+      "</div>";
+
+    overview.insertAdjacentElement(
+      "afterend",
+      section
+    );
+  }
+
+  function getBrandSignals(brand) {
+    const now =
+      new Date();
+
+    const horizon =
+      new Date(
+        now.getTime() +
+        7 * 24 * 60 * 60 * 1000
+      );
+
+    const content =
+      (APP_DATA.content || [])
+        .filter(
+          item =>
+            String(item.brandId) ===
+            String(brand.id)
+        );
+
+    const campaigns =
+      (APP_DATA.campaigns || [])
+        .filter(
+          item =>
+            String(item.brandId) ===
+            String(brand.id) &&
+            (
+              item.status === "active" ||
+              item.status === "draft"
+            )
+        );
+
+    const calendar =
+      (APP_DATA.calendar || [])
+        .filter(
+          item => {
+            if (
+              String(item.brandId) !==
+              String(brand.id) ||
+              !item.startsAt
+            ) {
+              return false;
+            }
+
+            const when =
+              new Date(
+                item.startsAt
+              );
+
+            return (
+              when >= now &&
+              when <= horizon
+            );
+          }
+        )
+        .sort(
+          (a, b) =>
+            new Date(a.startsAt) -
+            new Date(b.startsAt)
+        );
+
+    const milestones =
+      (brand.milestones || [])
+        .filter(
+          item =>
+            item.status === "planned" ||
+            item.status === "in_progress"
+        );
+
+    const review =
+      content.filter(
+        item =>
+          item.status === "draft" ||
+          item.status === "review"
+      );
+
+    return {
+      campaigns,
+      calendar,
+      milestones,
+      review
+    };
+  }
+
+  function renderEmberAttentionCount() {
+    const count =
+      byId(
+        "emberAttentionCount"
+      );
+
+    if (!count) {
+      return;
+    }
+
+    const actionableWork =
+      emberState.workItems.filter(
+        item =>
+          item.status !== "done" &&
+          item.status !== "cancelled"
+      ).length;
+
+    const pendingDecisions =
+      emberState.decisions.filter(
+        item =>
+          item.status === "pending" ||
+          item.status === "deferred"
+      ).length;
+
+    count.textContent =
+      String(
+        actionableWork +
+        pendingDecisions
+      );
+  }
+
+  function renderEmberPanel() {
+    ensureEmberPanel();
+
+    const host =
+      byId(
+        "emberBriefCard"
+      );
+
+    const brand =
+      activeBrand();
+
+    if (!host || !brand) {
+      return;
+    }
+
+    if (emberState.loading) {
+      host.innerHTML =
+        "<div class='ember-brief-loading'>Ember is reading the Studio…</div>";
+
+      return;
+    }
+
+    const signals =
+      getBrandSignals(
+        brand
+      );
+
+    const work =
+      emberState.workItems
+        .filter(
+          item =>
+            item.status !== "done" &&
+            item.status !== "cancelled"
+        )
+        .slice(0, 4);
+
+    const decisions =
+      emberState.decisions
+        .filter(
+          item =>
+            item.status === "pending" ||
+            item.status === "deferred"
+        )
+        .slice(0, 3);
+
+    const attention =
+      work.length +
+      decisions.length +
+      signals.review.length;
+
+    const summary =
+      attention
+        ? "There are " +
+          attention +
+          " items worth your attention across work, decisions, and drafts."
+        : "Nothing is pressing right now. The Studio is clear for proactive work.";
+
+    host.innerHTML =
+      "<div class='ember-brief-lead'>" +
+        "<div><strong>" +
+          escapeHtml(
+            brand.shortName ||
+            brand.name ||
+            "Working brand"
+          ) +
+        "</strong><p>" +
+          escapeHtml(
+            summary
+          ) +
+        "</p></div>" +
+        "<button class='secondary-button ember-refresh-button' type='button' data-ember-refresh>Refresh</button>" +
+      "</div>" +
+      "<div class='ember-signal-grid'>" +
+        "<div class='ember-signal'><span>Open Work</span><strong>" +
+          work.length +
+        "</strong></div>" +
+        "<div class='ember-signal'><span>Decisions</span><strong>" +
+          decisions.length +
+        "</strong></div>" +
+        "<div class='ember-signal'><span>Draft / Review</span><strong>" +
+          signals.review.length +
+        "</strong></div>" +
+        "<div class='ember-signal'><span>Campaigns</span><strong>" +
+          signals.campaigns.length +
+        "</strong></div>" +
+        "<div class='ember-signal'><span>Next 7 Days</span><strong>" +
+          signals.calendar.length +
+        "</strong></div>" +
+        "<div class='ember-signal'><span>Milestones</span><strong>" +
+          signals.milestones.length +
+        "</strong></div>" +
+      "</div>" +
+      (
+        work.length
+          ? "<div class='ember-mini-list'><span class='eyebrow'>Next Work</span>" +
+            work.map(
+              item =>
+                "<button class='ember-mini-row' type='button' data-ember-open><strong>" +
+                  escapeHtml(
+                    item.title
+                  ) +
+                "</strong><small>" +
+                  escapeHtml(
+                    item.priority ||
+                    "normal"
+                  ) +
+                " · " +
+                  escapeHtml(
+                    item.owner_type ||
+                    "shared"
+                  ) +
+                "</small></button>"
+            ).join("") +
+            "</div>"
+          : ""
+      ) +
+      (
+        decisions.length
+          ? "<div class='ember-mini-list'><span class='eyebrow'>Needs Your Decision</span>" +
+            decisions.map(
+              item =>
+                "<button class='ember-mini-row ember-decision-row' type='button' data-ember-open><strong>" +
+                  escapeHtml(
+                    item.title
+                  ) +
+                "</strong><small>" +
+                  escapeHtml(
+                    item.question
+                  ) +
+                "</small></button>"
+            ).join("") +
+            "</div>"
+          : ""
+      );
+
+    renderEmberAttentionCount();
+  }
+
+  async function refreshEmberOperatingLayer(
+    force = false
+  ) {
+    const brand =
+      activeBrand();
+
+    if (
+      !brand ||
+      !supabaseClient
+    ) {
+      return;
+    }
+
+    const now =
+      Date.now();
+
+    if (
+      emberState.loading ||
+      (
+        !force &&
+        emberState.brandId ===
+          brand.id &&
+        now -
+          emberState.lastLoadedAt <
+          15000
+      )
+    ) {
+      renderEmberPanel();
+      return;
+    }
+
+    emberState.loading =
+      true;
+
+    emberState.brandId =
+      brand.id;
+
+    renderEmberPanel();
+
+    try {
+      const [
+        workResult,
+        decisionsResult
+      ] =
+        await Promise.all([
+          supabaseClient
+            .from("work_items")
+            .select("*")
+            .eq(
+              "brand_id",
+              brand.id
+            )
+            .not(
+              "status",
+              "in",
+              '("done","cancelled")'
+            )
+            .order(
+              "due_at",
+              {
+                ascending: true,
+                nullsFirst: false
+              }
+            )
+            .order(
+              "created_at",
+              {
+                ascending: false
+              }
+            ),
+
+          supabaseClient
+            .from(
+              "decision_requests"
+            )
+            .select("*")
+            .eq(
+              "brand_id",
+              brand.id
+            )
+            .in(
+              "status",
+              [
+                "pending",
+                "deferred"
+              ]
+            )
+            .order(
+              "due_at",
+              {
+                ascending: true,
+                nullsFirst: false
+              }
+            )
+            .order(
+              "created_at",
+              {
+                ascending: false
+              }
+            )
+        ]);
+
+      if (workResult.error) {
+        throw workResult.error;
+      }
+
+      if (decisionsResult.error) {
+        throw decisionsResult.error;
+      }
+
+      emberState.workItems =
+        workResult.data ||
+        [];
+
+      emberState.decisions =
+        decisionsResult.data ||
+        [];
+
+      emberState.lastLoadedAt =
+        Date.now();
+
+    } catch (error) {
+      console.error(
+        "Ember operating layer failed to load:",
+        error
+      );
+
+      const host =
+        byId(
+          "emberBriefCard"
+        );
+
+      if (host) {
+        host.innerHTML =
+          "<div class='empty-state'><h3>Ember could not read the operating layer.</h3><p>" +
+          escapeHtml(
+            error?.message ||
+            "Unknown error"
+          ) +
+          "</p></div>";
+      }
+
+    } finally {
+      emberState.loading =
+        false;
+
+      renderEmberPanel();
+    }
+  }
+
+  function emberWorkRows() {
+    if (!emberState.workItems.length) {
+      return "<div class='empty-state'><h3>No open work.</h3><p>Ember and the owner have a clear queue.</p></div>";
+    }
+
+    return emberState.workItems
+      .map(
+        item =>
+          "<article class='ember-dialog-row'>" +
+            "<div><span class='eyebrow'>" +
+              escapeHtml(
+                item.priority ||
+                "normal"
+              ) +
+            " · " +
+              escapeHtml(
+                item.owner_type ||
+                "shared"
+              ) +
+            "</span><h3>" +
+              escapeHtml(
+                item.title
+              ) +
+            "</h3><p>" +
+              escapeHtml(
+                item.description ||
+                item.notes ||
+                ""
+              ) +
+            "</p></div>" +
+            "<div class='ember-row-actions'>" +
+              "<button class='secondary-button' type='button' data-ember-work-done='" +
+                escapeHtml(
+                  item.id
+                ) +
+              "'>Mark Done</button>" +
+            "</div>" +
+          "</article>"
+      )
+      .join("");
+  }
+
+  function emberDecisionRows() {
+    if (!emberState.decisions.length) {
+      return "<div class='empty-state'><h3>No decisions waiting.</h3><p>Nothing currently needs owner input.</p></div>";
+    }
+
+    return emberState.decisions
+      .map(
+        item =>
+          "<article class='ember-dialog-row ember-dialog-decision'>" +
+            "<div><span class='eyebrow'>" +
+              escapeHtml(
+                item.priority ||
+                "normal"
+              ) +
+            "</span><h3>" +
+              escapeHtml(
+                item.title
+              ) +
+            "</h3><p>" +
+              escapeHtml(
+                item.question
+              ) +
+            "</p>" +
+            (
+              item.ember_recommendation
+                ? "<div class='ember-recommendation'><strong>Ember's recommendation</strong><p>" +
+                  escapeHtml(
+                    item.ember_recommendation
+                  ) +
+                  "</p></div>"
+                : ""
+            ) +
+            "</div>" +
+            "<div class='ember-row-actions'>" +
+              "<button class='secondary-button' type='button' data-ember-decision-answer='" +
+                escapeHtml(
+                  item.id
+                ) +
+              "'>Answer</button>" +
+              "<button class='text-button' type='button' data-ember-decision-defer='" +
+                escapeHtml(
+                  item.id
+                ) +
+              "'>Defer</button>" +
+            "</div>" +
+          "</article>"
+      )
+      .join("");
+  }
+
+  function openEmberBrief() {
+    const brand =
+      activeBrand();
+
+    if (!brand) {
+      return;
+    }
+
+    const signals =
+      getBrandSignals(
+        brand
+      );
+
+    const dialog =
+      makeDialog(
+        "emberBriefDialog",
+        "app-dialog ember-brief-dialog"
+      );
+
+    dialog.innerHTML =
+      "<div class='dialog-header'>" +
+        "<div><span class='eyebrow'>Ember</span><h2>Daily Brief · " +
+          escapeHtml(
+            brand.shortName ||
+            brand.name
+          ) +
+        "</h2></div>" +
+        "<button class='dialog-close' type='button' data-power-close>×</button>" +
+      "</div>" +
+      "<div class='ember-dialog-body'>" +
+        "<div class='ember-brief-summary-grid'>" +
+          "<div><span>Draft / Review</span><strong>" +
+            signals.review.length +
+          "</strong></div>" +
+          "<div><span>Active / Draft Campaigns</span><strong>" +
+            signals.campaigns.length +
+          "</strong></div>" +
+          "<div><span>Next 7 Days</span><strong>" +
+            signals.calendar.length +
+          "</strong></div>" +
+          "<div><span>Open Milestones</span><strong>" +
+            signals.milestones.length +
+          "</strong></div>" +
+        "</div>" +
+        "<section class='ember-dialog-section'><span class='eyebrow'>Work Queue</span>" +
+          emberWorkRows() +
+        "</section>" +
+        "<section class='ember-dialog-section'><span class='eyebrow'>Decision Queue</span>" +
+          emberDecisionRows() +
+        "</section>" +
+      "</div>";
+
+    openDialog(
+      dialog
+    );
+  }
+
+  async function markEmberWorkDone(
+    id
+  ) {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from("work_items")
+        .update({
+          status: "done",
+          completed_at:
+            new Date().toISOString()
+        })
+        .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    await refreshEmberOperatingLayer(
+      true
+    );
+
+    openEmberBrief();
+  }
+
+  async function answerEmberDecision(
+    id
+  ) {
+    const answer =
+      window.prompt(
+        "What is your decision?"
+      );
+
+    if (
+      answer === null ||
+      !String(answer).trim()
+    ) {
+      return;
+    }
+
+    const {
+      error
+    } =
+      await supabaseClient
+        .from(
+          "decision_requests"
+        )
+        .update({
+          status: "answered",
+          answer:
+            String(answer).trim(),
+          answered_at:
+            new Date().toISOString()
+        })
+        .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    await refreshEmberOperatingLayer(
+      true
+    );
+
+    openEmberBrief();
+  }
+
+  async function deferEmberDecision(
+    id
+  ) {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from(
+          "decision_requests"
+        )
+        .update({
+          status: "deferred"
+        })
+        .eq("id", id);
+
+    if (error) {
+      throw error;
+    }
+
+    await refreshEmberOperatingLayer(
+      true
+    );
+
+    openEmberBrief();
   }
 
   function openCreateMenu() {
@@ -868,6 +1564,8 @@
     enhanceCampaignCards();
     enhanceContentCards();
     enhanceAssetCards();
+    ensureEmberPanel();
+    refreshEmberOperatingLayer();
   }
 
   function runAiContextAction(contentId, action) {
@@ -913,6 +1611,73 @@
 
     if (close) {
       closeDialog(close.closest("dialog"));
+      return;
+    }
+
+    if (event.target.closest("[data-ember-open]")) {
+      refreshEmberOperatingLayer(true)
+        .then(openEmberBrief)
+        .catch(error => {
+          console.error("Ember brief failed:", error);
+        });
+      return;
+    }
+
+    if (event.target.closest("[data-ember-refresh]")) {
+      refreshEmberOperatingLayer(true);
+      return;
+    }
+
+    const workDone =
+      event.target.closest(
+        "[data-ember-work-done]"
+      );
+
+    if (workDone) {
+      markEmberWorkDone(
+        workDone.dataset.emberWorkDone
+      ).catch(error => {
+        console.error(
+          "Unable to complete Ember work item:",
+          error
+        );
+      });
+      return;
+    }
+
+    const decisionAnswer =
+      event.target.closest(
+        "[data-ember-decision-answer]"
+      );
+
+    if (decisionAnswer) {
+      answerEmberDecision(
+        decisionAnswer.dataset
+          .emberDecisionAnswer
+      ).catch(error => {
+        console.error(
+          "Unable to answer Ember decision:",
+          error
+        );
+      });
+      return;
+    }
+
+    const decisionDefer =
+      event.target.closest(
+        "[data-ember-decision-defer]"
+      );
+
+    if (decisionDefer) {
+      deferEmberDecision(
+        decisionDefer.dataset
+          .emberDecisionDefer
+      ).catch(error => {
+        console.error(
+          "Unable to defer Ember decision:",
+          error
+        );
+      });
       return;
     }
 
