@@ -2877,3 +2877,63 @@
 .calendar-editor-dialog {
   overflow: hidden !important;
 }
+
+
+/* =========================================================
+   MOBILE MODAL VIEWPORT LOCK
+   Keep the modal frame anchored to the visual viewport while
+   allowing its own contents to scroll. Prevent the page behind
+   an open modal from moving.
+   ========================================================= */
+
+@media (max-width: 680px) {
+  html:has(.app-dialog[open]),
+  body:has(.app-dialog[open]) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  .app-dialog[open] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+
+    width: min(
+      calc(100% - 24px),
+      620px
+    ) !important;
+
+    max-height: calc(
+      100dvh -
+      max(16px, env(safe-area-inset-top)) -
+      max(16px, env(safe-area-inset-bottom))
+    ) !important;
+
+    margin: 0 !important;
+
+    transform:
+      translate(-50%, -50%) !important;
+
+    animation:
+      none !important;
+
+    overflow-x:
+      hidden !important;
+
+    overflow-y:
+      auto !important;
+
+    overscroll-behavior:
+      contain;
+
+    -webkit-overflow-scrolling:
+      touch;
+  }
+
+  .calendar-editor-dialog[open] {
+    overflow:
+      hidden !important;
+  }
+}
