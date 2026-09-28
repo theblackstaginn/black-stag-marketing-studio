@@ -2049,6 +2049,7 @@ function renderBrandPicker() {
             brand.id ===
             APP_STATE.activeBrandId;
 
+
           return `
             <button
               class="brand-picker-option ${
