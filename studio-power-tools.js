@@ -21,6 +21,15 @@
     lastLoadedAt: 0
   };
 
+  const emberChatState = {
+    brandId: null,
+    requestText: "",
+    responseText: "",
+    errorText: "",
+    status: "idle",
+    runId: null
+  };
+
   function byId(id) {
     return document.getElementById(id);
   }
