@@ -1906,6 +1906,16 @@
       return;
     }
 
+    if (event.target.closest("[data-ember-chat-send]")) {
+      submitEmberChat(false);
+      return;
+    }
+
+    if (event.target.closest("[data-ember-chat-retry]")) {
+      submitEmberChat(true);
+      return;
+    }
+
     const workDone =
       event.target.closest(
         "[data-ember-work-done]"
