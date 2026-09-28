@@ -3142,3 +3142,43 @@
       92px;
   }
 }
+
+
+/* =========================================================
+   BRAND CARD LOGOS
+   Use each brand's routed logo asset in the Brands view while
+   preserving the existing initials mark as a fallback.
+   ========================================================= */
+
+#view-brands .brand-card-logo-shell {
+  width: 68px;
+  height: 68px;
+
+  padding: 7px;
+
+  overflow: hidden;
+
+  border-radius: 16px;
+
+  background:
+    rgba(6, 8, 7, .42);
+}
+
+#view-brands .brand-card-logo {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+  object-position: center;
+}
+
+@media (max-width: 680px) {
+  #view-brands .brand-card-logo-shell {
+    width: 72px;
+    height: 72px;
+
+    padding: 8px;
+  }
+}
