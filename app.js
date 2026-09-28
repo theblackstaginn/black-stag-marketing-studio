@@ -12707,34 +12707,30 @@ function renderAssets() {
   const container =
     $("#assetGrid");
 
-
   if (!container) {
     return;
   }
 
-
   const brand =
     getActiveBrand();
 
-
   if (!brand) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <h3>
-          Choose a working brand.
-        </h3>
-
-        <p>
-          Brand assets are organized by brand.
-        </p>
-
-      </div>
-    `;
+    container.innerHTML =
+      '<div class="empty-state full-width">' +
+        '<h3>Choose a working brand.</h3>' +
+        '<p>Brand assets are organized by brand.</p>' +
+      '</div>';
 
     return;
   }
 
+  /*
+   * The Vault now renders as a collapsible folder tree.
+   * Folder-card navigation is intentionally disabled so
+   * every category remains visible from one screen.
+   */
+  APP_STATE.activeAssetFolderId =
+    null;
 
   const activeFilter =
     document.querySelector(
@@ -12744,108 +12740,31 @@ function renderAssets() {
       ?.assetFilter ||
     "all";
 
-
-  const activeFolderId =
-    APP_STATE.activeAssetFolderId ||
-    null;
-
-
-  /*
-   * FOLDERS
-   *
-   * At the root, show folders that do not
-   * have a parent.
-   *
-   * Inside a folder, show its child folders.
-   */
-  let folders =
-    (
-      APP_DATA.assetFolders ||
-      []
-    )
+  const folders =
+    (APP_DATA.assetFolders || [])
       .filter(
         folder =>
-          String(
-            folder.brandId
-          ) ===
-          String(
-            brand.id
-          )
+          String(folder.brandId) ===
+          String(brand.id)
       )
-      .filter(
-        folder => {
-          if (activeFolderId) {
-            return (
-              String(
-                folder.parentFolderId ||
-                ""
-              ) ===
-              String(
-                activeFolderId
-              )
-            );
-          }
+      .slice()
+      .sort(
+        (a, b) =>
+          String(a.name || "")
+            .localeCompare(
+              String(b.name || "")
+            )
+      );
 
-          return (
-            !folder.parentFolderId
-          );
-        }
-      )
-      .slice();
-
-
-  folders.sort(
-    (a, b) =>
-      String(
-        a.name || ""
-      ).localeCompare(
-        String(
-          b.name || ""
-        )
-      )
-  );
-
-
-  /*
-   * ASSETS
-   */
   let assets =
-    APP_DATA.assets
+    (APP_DATA.assets || [])
       .filter(
         asset =>
-          String(
-            asset.brandId
-          ) ===
-            String(
-              brand.id
-            ) &&
-          asset.active !==
-            false
-      )
-      .filter(
-        asset => {
-          if (activeFolderId) {
-            return (
-              String(
-                asset.folderId ||
-                ""
-              ) ===
-              String(
-                activeFolderId
-              )
-            );
-          }
-
-
-          /*
-           * Root view only shows assets
-           * that are not inside a folder.
-           */
-          return !asset.folderId;
-        }
+          String(asset.brandId) ===
+            String(brand.id) &&
+          asset.active !== false
       )
       .slice();
-
 
   if (
     activeFilter !==
@@ -12861,354 +12780,326 @@ function renderAssets() {
       );
   }
 
+  const foldersByParent =
+    new Map();
 
-  assets.sort(
-    (a, b) =>
-      new Date(
-        b.updatedAt ||
-        b.createdAt ||
-        0
-      ) -
-      new Date(
-        a.updatedAt ||
-        a.createdAt ||
-        0
-      )
+  folders.forEach(
+    folder => {
+      const key =
+        String(
+          folder.parentFolderId ||
+          "root"
+        );
+
+      if (
+        !foldersByParent.has(key)
+      ) {
+        foldersByParent.set(
+          key,
+          []
+        );
+      }
+
+      foldersByParent
+        .get(key)
+        .push(folder);
+    }
   );
 
+  const assetsByFolder =
+    new Map();
 
-  /*
-   * CURRENT FOLDER
-   */
-  const currentFolder =
-    activeFolderId
-      ? (
-          APP_DATA.assetFolders ||
+  assets.forEach(
+    asset => {
+      const key =
+        String(
+          asset.folderId ||
+          "root"
+        );
+
+      if (
+        !assetsByFolder.has(key)
+      ) {
+        assetsByFolder.set(
+          key,
           []
-        ).find(
-          folder =>
-            String(
-              folder.id
-            ) ===
-            String(
-              activeFolderId
+        );
+      }
+
+      assetsByFolder
+        .get(key)
+        .push(asset);
+    }
+  );
+
+  const sortAssets =
+    items =>
+      (items || [])
+        .slice()
+        .sort(
+          (a, b) =>
+            new Date(
+              b.updatedAt ||
+              b.createdAt ||
+              0
+            ) -
+            new Date(
+              a.updatedAt ||
+              a.createdAt ||
+              0
             )
+        );
+
+  const folderTotalCount =
+    folderId => {
+      const key =
+        String(folderId);
+
+      const directCount =
+        (
+          assetsByFolder.get(
+            key
+          ) ||
+          []
+        ).length;
+
+      const childCount =
+        (
+          foldersByParent.get(
+            key
+          ) ||
+          []
+        ).reduce(
+          (total, child) =>
+            total +
+            folderTotalCount(
+              child.id
+            ),
+          0
+        );
+
+      return (
+        directCount +
+        childCount
+      );
+    };
+
+  const renderFolderDropdown =
+    (folder, depth = 0) => {
+      const key =
+        String(folder.id);
+
+      const childFolders =
+        (
+          foldersByParent.get(
+            key
+          ) ||
+          []
         )
-      : null;
-
-
-  /*
-   * TOOLBAR
-   */
-  const toolbarHtml = `
-    <div
-      style="
-        grid-column:1 / -1;
-        display:flex;
-        flex-wrap:wrap;
-        align-items:center;
-        justify-content:space-between;
-        gap:12px;
-        margin-bottom:4px;
-      "
-    >
-
-      <div
-        style="
-          display:flex;
-          flex-wrap:wrap;
-          align-items:center;
-          gap:10px;
-        "
-      >
-
-        ${
-          currentFolder
-            ? `
-              <button
-                class="secondary-button"
-                type="button"
-                data-asset-folder-back
-              >
-                ← Back
-              </button>
-
-              <strong>
-                ${escapeHtml(
-                  currentFolder.name
-                )}
-              </strong>
-
-              <button
-                class="secondary-button"
-                type="button"
-                data-rename-current-asset-folder="${
-                  escapeHtml(
-                    currentFolder.id
-                  )
-                }"
-              >
-                Rename
-              </button>
-
-              <button
-                class="danger-button"
-                type="button"
-                data-delete-asset-folder="${
-                  escapeHtml(
-                    currentFolder.id
-                  )
-                }"
-              >
-                Delete
-              </button>
-            `
-            : ""
-        }
-
-      </div>
-
-
-      <div
-        style="
-          display:flex;
-          flex-wrap:wrap;
-          gap:10px;
-        "
-      >
-
-        <button
-          class="secondary-button"
-          type="button"
-          data-create-asset-folder
-        >
-          + Create Folder
-        </button>
-
-        <button
-          class="secondary-button"
-          type="button"
-          data-add-asset
-        >
-          + Add Asset
-        </button>
-
-      </div>
-
-    </div>
-  `;
-
-
-  /*
-   * FOLDER CARDS
-   */
-  const foldersHtml =
-    folders
-      .map(
-        folder => {
-          const folderCoverAsset =
-            (APP_DATA.assets || [])
-              .filter(
-                asset =>
-                  String(
-                    asset.folderId || ""
-                  ) ===
-                    String(
-                      folder.id
-                    ) &&
-                  asset.active !== false &&
-                  getAssetDisplayUrl(
-                    asset
-                  ) &&
-                  (
-                    asset.mimeType
-                      ?.startsWith(
-                        "image/"
-                      ) ||
-                    [
-                      "logo",
-                      "photo",
-                      "generated_artwork",
-                      "brand_asset"
-                    ].includes(
-                      asset.type
-                    )
-                  )
+          .slice()
+          .sort(
+            (a, b) =>
+              String(
+                a.name || ""
+              ).localeCompare(
+                String(
+                  b.name || ""
+                )
               )
-              .sort(
-                (a, b) =>
-                  new Date(
-                    b.updatedAt ||
-                    b.createdAt ||
-                    0
-                  ) -
-                  new Date(
-                    a.updatedAt ||
-                    a.createdAt ||
-                    0
+          );
+
+      const directAssets =
+        sortAssets(
+          assetsByFolder.get(
+            key
+          ) ||
+          []
+        );
+
+      const total =
+        folderTotalCount(
+          folder.id
+        );
+
+      const childrenHtml =
+        childFolders
+          .map(
+            child =>
+              renderFolderDropdown(
+                child,
+                depth + 1
+              )
+          )
+          .join("");
+
+      const assetsHtml =
+        directAssets.length
+          ? (
+              '<div class="asset-folder-assets asset-grid">' +
+                directAssets
+                  .map(
+                    asset =>
+                      renderAssetCard(
+                        asset
+                      )
                   )
-              )[0] ||
-            null;
+                  .join("") +
+              '</div>'
+            )
+          : "";
 
-          const folderCoverUrl =
-            getAssetDisplayUrl(
-              folderCoverAsset
-            );
+      const emptyHtml =
+        !childFolders.length &&
+        !directAssets.length
+          ? (
+              '<div class="asset-folder-empty">' +
+                'This folder is empty.' +
+              '</div>'
+            )
+          : "";
 
-          return `
-          <article
-            class="content-panel"
-            data-open-asset-folder="${
+      return (
+        '<details class="asset-folder-dropdown" data-folder-depth="' +
+          escapeHtml(depth) +
+        '">' +
+          '<summary class="asset-folder-summary">' +
+            '<span class="asset-folder-chevron" aria-hidden="true">›</span>' +
+            '<span class="asset-folder-icon" aria-hidden="true">◇</span>' +
+            '<span class="asset-folder-title">' +
               escapeHtml(
-                folder.id
-                              )
-            }"
-            role="button"
-            tabindex="0"
-            style="
-              min-width:0;
-              cursor:pointer;
-            "
-          >
-
-            <div
-              style="
-                aspect-ratio:4 / 3;
-                display:flex;
-                align-items:center;
-                justify-content:center;
-                margin-bottom:12px;
-                border:1px solid var(--line);
-                border-radius:calc(
-                  var(--radius) - 4px
-                );
-                background:
-                  rgba(255,255,255,.02);
-                font-size:44px;
-              "
-              aria-hidden="true"
-            >
-              ${
-                folderCoverUrl
-                  ? `
-                    <img
-                      src="${escapeHtml(
-                        folderCoverUrl
-                      )}"
-                      alt=""
-                      loading="lazy"
-                      style="
-                        width:100%;
-                        height:100%;
-                        object-fit:cover;
-                        border-radius:inherit;
-                      "
-                    >
-                  `
-                  : "◇"
-              }
-            </div>
-
-            <div
-              class="eyebrow"
-            >
-              Folder
-            </div>
-
-            <h3
-              style="
-                margin-top:6px;
-                margin-bottom:0;
-              "
-            >
-              ${escapeHtml(
                 folder.name ||
                 "Untitled Folder"
-              )}
-            </h3>
+              ) +
+            '</span>' +
+            '<span class="asset-folder-count">' +
+              escapeHtml(total) +
+              (
+                total === 1
+                  ? " asset"
+                  : " assets"
+              ) +
+            '</span>' +
+          '</summary>' +
+          '<div class="asset-folder-dropdown-body">' +
+            '<div class="asset-folder-actions">' +
+              '<button class="secondary-button" type="button" data-rename-current-asset-folder="' +
+                escapeHtml(folder.id) +
+              '">Rename</button>' +
+              '<button class="danger-button" type="button" data-delete-asset-folder="' +
+                escapeHtml(folder.id) +
+              '">Delete</button>' +
+            '</div>' +
+            (
+              childrenHtml
+                ? (
+                    '<div class="asset-folder-children">' +
+                      childrenHtml +
+                    '</div>'
+                  )
+                : ""
+            ) +
+            assetsHtml +
+            emptyHtml +
+          '</div>' +
+        '</details>'
+      );
+    };
 
-          </article>
-        `;
-        }
-      )
-      .join("");
+  const rootFolders =
+    (
+      foldersByParent.get(
+        "root"
+      ) ||
+      []
+    );
 
+  const rootAssets =
+    sortAssets(
+      assetsByFolder.get(
+        "root"
+      ) ||
+      []
+    );
 
-  /*
-   * ASSET CARDS
-   */
-  const assetsHtml =
-    assets
+  const toolbarHtml =
+    '<div class="asset-vault-toolbar">' +
+      '<div>' +
+        '<span class="eyebrow">Folders</span>' +
+        '<strong>Organized Asset Library</strong>' +
+      '</div>' +
+      '<div class="asset-vault-toolbar-actions">' +
+        '<button class="secondary-button" type="button" data-create-asset-folder>+ Create Folder</button>' +
+        '<button class="secondary-button" type="button" data-add-asset>+ Add Asset</button>' +
+      '</div>' +
+    '</div>';
+
+  const treeHtml =
+    rootFolders
       .map(
-        asset =>
-          renderAssetCard(
-            asset
+        folder =>
+          renderFolderDropdown(
+            folder,
+            0
           )
       )
       .join("");
 
+  const uncategorizedHtml =
+    rootAssets.length
+      ? (
+          '<details class="asset-folder-dropdown asset-folder-uncategorized">' +
+            '<summary class="asset-folder-summary">' +
+              '<span class="asset-folder-chevron" aria-hidden="true">›</span>' +
+              '<span class="asset-folder-icon" aria-hidden="true">◇</span>' +
+              '<span class="asset-folder-title">Uncategorized</span>' +
+              '<span class="asset-folder-count">' +
+                escapeHtml(
+                  rootAssets.length
+                ) +
+                (
+                  rootAssets.length === 1
+                    ? " asset"
+                    : " assets"
+                ) +
+              '</span>' +
+            '</summary>' +
+            '<div class="asset-folder-dropdown-body">' +
+              '<div class="asset-folder-assets asset-grid">' +
+                rootAssets
+                  .map(
+                    asset =>
+                      renderAssetCard(
+                        asset
+                      )
+                  )
+                  .join("") +
+              '</div>' +
+            '</div>' +
+          '</details>'
+        )
+      : "";
 
-  /*
-   * EMPTY FOLDER / EMPTY VAULT
-   */
   if (
-    !folders.length &&
-    !assets.length
+    !rootFolders.length &&
+    !rootAssets.length
   ) {
-    container.innerHTML = `
-      ${toolbarHtml}
-
-      <div
-        class="empty-state"
-        style="
-          grid-column:1 / -1;
-        "
-      >
-
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ◇
-        </span>
-
-        <h3>
-          ${
-            currentFolder
-              ? "This folder is empty."
-              : (
-                  activeFilter ===
-                    "all"
-                    ? "The Asset Vault is empty."
-                    : `No ${escapeHtml(
-                        titleCaseStatus(
-                          activeFilter
-                        )
-                      )} here yet.`
-                )
-          }
-        </h3>
-
-        <p>
-          ${
-            currentFolder
-              ? "Add assets or create another folder here."
-              : "Create folders to organize your library, or add assets individually."
-          }
-        </p>
-
-      </div>
-    `;
+    container.innerHTML =
+      toolbarHtml +
+      '<div class="empty-state full-width">' +
+        '<span class="empty-state-icon" aria-hidden="true">◇</span>' +
+        '<h3>No assets match this view.</h3>' +
+        '<p>Try another filter or add a new asset.</p>' +
+      '</div>';
 
     return;
   }
 
-
-  container.innerHTML = `
-    ${toolbarHtml}
-    ${foldersHtml}
-    ${assetsHtml}
-  `;
+  container.innerHTML =
+    toolbarHtml +
+    '<div class="asset-vault-tree">' +
+      treeHtml +
+      uncategorizedHtml +
+    '</div>';
 }
 
 
