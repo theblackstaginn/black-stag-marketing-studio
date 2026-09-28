@@ -2622,3 +2622,224 @@
 #view-vault #assetGrid > article[data-open-asset-folder]{
   padding:18px!important;
 }
+
+
+/* =========================================================
+   EMBER OPERATING LAYER
+   ========================================================= */
+
+.ember-power-button {
+  border-color: rgba(185,139,91,.44);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(57,34,25,.90),
+      rgba(14,18,15,.90)
+    );
+}
+
+.ember-dashboard-section {
+  position: relative;
+}
+
+.ember-brief-card {
+  display: grid;
+  gap: 18px;
+  padding: clamp(18px,3vw,26px);
+  border: 1px solid rgba(185,139,91,.24);
+  border-radius: 18px;
+  background:
+    linear-gradient(
+      145deg,
+      rgba(28,19,15,.82),
+      rgba(8,12,10,.80)
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.03),
+    0 18px 40px rgba(0,0,0,.20);
+}
+
+.ember-brief-lead {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.ember-brief-lead strong {
+  display: block;
+  margin-bottom: 5px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.1rem,2vw,1.4rem);
+  font-weight: 400;
+}
+
+.ember-brief-lead p,
+.ember-brief-loading {
+  margin: 0;
+  max-width: 70ch;
+  color: var(--muted);
+  font-size: .76rem;
+  line-height: 1.6;
+}
+
+.ember-refresh-button {
+  flex: 0 0 auto;
+  min-height: 34px;
+}
+
+.ember-signal-grid,
+.ember-brief-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3,minmax(0,1fr));
+  gap: 10px;
+}
+
+.ember-signal,
+.ember-brief-summary-grid > div {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid rgba(218,204,181,.09);
+  border-radius: 12px;
+  background: rgba(5,8,6,.40);
+}
+
+.ember-signal span,
+.ember-brief-summary-grid span {
+  display: block;
+  color: var(--muted);
+  font-size: .61rem;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+.ember-signal strong,
+.ember-brief-summary-grid strong {
+  display: block;
+  margin-top: 5px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 400;
+}
+
+.ember-mini-list {
+  display: grid;
+  gap: 8px;
+}
+
+.ember-mini-row {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  padding: 11px 12px;
+  text-align: left;
+  border: 1px solid rgba(185,139,91,.14);
+  border-radius: 11px;
+  color: var(--ink);
+  background: rgba(6,9,7,.42);
+}
+
+.ember-mini-row strong {
+  font-size: .78rem;
+}
+
+.ember-mini-row small {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: .66rem;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+}
+
+.ember-decision-row {
+  border-color: rgba(138,72,64,.24);
+}
+
+.ember-brief-dialog {
+  width: min(calc(100% - 24px), 920px);
+  max-height: min(92dvh,900px);
+}
+
+.ember-dialog-body {
+  display: grid;
+  gap: 24px;
+  max-height: calc(92dvh - 94px);
+  padding: 20px 22px 26px;
+  overflow: auto;
+}
+
+.ember-dialog-section {
+  display: grid;
+  gap: 10px;
+}
+
+.ember-dialog-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 15px;
+  border: 1px solid rgba(185,139,91,.15);
+  border-radius: 13px;
+  background: rgba(7,10,8,.48);
+}
+
+.ember-dialog-row h3 {
+  margin: 5px 0 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.ember-dialog-row p {
+  margin: 0;
+  color: var(--muted);
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.ember-dialog-decision {
+  border-color: rgba(138,72,64,.24);
+}
+
+.ember-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.ember-recommendation {
+  margin-top: 10px;
+  padding: 10px 11px;
+  border-left: 2px solid rgba(185,139,91,.45);
+  background: rgba(57,34,25,.28);
+}
+
+.ember-recommendation strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: .68rem;
+  color: var(--ink-soft);
+}
+
+@media (max-width: 720px) {
+  .ember-signal-grid,
+  .ember-brief-summary-grid {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+  }
+
+  .ember-brief-lead,
+  .ember-dialog-row {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .ember-row-actions {
+    justify-content: flex-start;
+  }
+
+  .ember-refresh-button {
+    width: fit-content;
+  }
+}
