@@ -16315,6 +16315,171 @@ function getDatabaseContentType(
 
 
 /* =========================================================
+   EMBER WORKSPACE AGENT
+   ========================================================= */
+
+async function waitForEmberAgentRun(
+  runId,
+  timeoutMs = 120000
+) {
+  const startedAt =
+    Date.now();
+
+  while (
+    Date.now() -
+      startedAt <
+      timeoutMs
+  ) {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "ember_agent_runs"
+        )
+        .select(
+          "status,response_text,error_text"
+        )
+        .eq(
+          "id",
+          runId
+        )
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (
+      data?.status ===
+        "answered" &&
+      data.response_text
+    ) {
+      return data.response_text;
+    }
+
+    if (
+      data?.status ===
+        "failed" ||
+      data?.status ===
+        "cancelled"
+    ) {
+      throw new Error(
+        data.error_text ||
+        "Ember could not complete the request."
+      );
+    }
+
+    await new Promise(
+      resolve =>
+        window.setTimeout(
+          resolve,
+          1800
+        )
+    );
+  }
+
+  throw new Error(
+    "Ember is still working. Try again in a moment."
+  );
+}
+
+
+async function requestEmberAiDraft({
+  brand,
+  type,
+  request,
+  goal,
+  brief,
+  platform
+}) {
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .functions
+      .invoke(
+        "trigger-ember-agent",
+        {
+          body: {
+            request_type:
+              "content_create",
+            brand_id:
+              brand.id,
+            request_text:
+              request,
+            request_context: {
+              content_type:
+                type,
+              goal:
+                goal ||
+                null,
+              platform:
+                platform ||
+                null,
+              content_brief:
+                brief
+            }
+          }
+        }
+      );
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data?.run_id) {
+    throw new Error(
+      "Ember request was accepted without a run id."
+    );
+  }
+
+  return waitForEmberAgentRun(
+    data.run_id
+  );
+}
+
+
+function setEmberAiPending(
+  pending
+) {
+  const resultField =
+    $("#manualAiResult");
+
+  const saveButton =
+    $("#saveManualAiDraftButton");
+
+  if (resultField) {
+    resultField.readOnly =
+      pending;
+
+    if (pending) {
+      resultField.value =
+        "";
+
+      resultField.placeholder =
+        "Ember is writing your draft…";
+    } else {
+      resultField.placeholder =
+        "Review or edit Ember's finished draft here.";
+    }
+  }
+
+  if (saveButton) {
+    saveButton.disabled =
+      pending;
+
+    saveButton.textContent =
+      pending
+        ? "Waiting for Ember…"
+        : "Save Draft";
+  }
+}
+
+
+/* =========================================================
    QUICK CREATE SUBMISSION
    ========================================================= */
 
@@ -16425,6 +16590,60 @@ async function handleQuickCreateSubmit(
     brief,
     platform
   });
+
+  setEmberAiPending(
+    true
+  );
+
+  try {
+    const result =
+      await requestEmberAiDraft({
+        brand,
+        type,
+        request:
+          platformRequest,
+        goal,
+        brief,
+        platform
+      });
+
+    const resultField =
+      $("#manualAiResult");
+
+    if (resultField) {
+      resultField.value =
+        result;
+    }
+
+    MANUAL_AI_STATE.aiMode =
+      "ember-workspace-agent";
+
+    showToast(
+      "Ember's draft is ready.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Ember AI creation failed:",
+      error
+    );
+
+    MANUAL_AI_STATE.aiMode =
+      "manual-chatgpt";
+
+    showToast(
+      error?.message ||
+      "Ember could not complete this draft. Copy Brief is still available as a fallback.",
+      "error",
+      6000
+    );
+
+  } finally {
+    setEmberAiPending(
+      false
+    );
+  }
 }
 
 
@@ -17227,7 +17446,8 @@ const MANUAL_AI_STATE = {
   type: null,
   request: "",
   goal: "",
-  brief: ""
+  brief: "",
+  aiMode: "ember-workspace-agent"
 };
 
 
@@ -17272,7 +17492,7 @@ function ensureManualAiDialog() {
           </span>
 
           <h2 id="manualAiDialogTitle">
-            Create with ChatGPT
+            Create with Ember
           </h2>
         </div>
 
@@ -17309,7 +17529,7 @@ function ensureManualAiDialog() {
 
             <div>
               <span class="eyebrow">
-                Step One
+                Ember Brief
               </span>
 
               <h3
@@ -17362,10 +17582,11 @@ function ensureManualAiDialog() {
               line-height:1.55;
             "
           >
-            Paste this into ChatGPT. The brief already
-            contains the current Brand Brain, verified
-            facts, voice rules, milestones, and AI
-            guardrails.
+            Ember receives this brief automatically. It
+            already contains the current Brand Brain,
+            verified facts, voice rules, milestones, and
+            AI guardrails. Copy Brief remains available
+            as a manual fallback.
           </p>
 
         </section>
@@ -17383,7 +17604,7 @@ function ensureManualAiDialog() {
             "
           >
             <span class="eyebrow">
-              Step Two
+              Ember Draft
             </span>
 
             <h3
@@ -17397,7 +17618,7 @@ function ensureManualAiDialog() {
                 font-weight:400;
               "
             >
-              Paste the finished result
+              Review Ember's finished result
             </h3>
           </div>
 
@@ -17406,7 +17627,7 @@ function ensureManualAiDialog() {
             style="
               min-height:240px;
             "
-            placeholder="Paste ChatGPT's finished content here."
+            placeholder="Ember's finished draft will appear here."
           ></textarea>
 
         </section>
@@ -17535,7 +17756,8 @@ function showManualAiDialog({
   type,
   request,
   goal,
-  brief
+  brief,
+  platform = ""
 }) {
   const dialog =
     ensureManualAiDialog();
@@ -17554,6 +17776,9 @@ function showManualAiDialog({
 
   MANUAL_AI_STATE.brief =
     brief;
+
+  MANUAL_AI_STATE.aiMode =
+    "ember-workspace-agent";
 
   const definition =
     CREATE_TYPES[type];
@@ -17596,11 +17821,12 @@ function showManualAiDialog({
       );
   }
 
-  const platform =
+  const platformField =
     $("#manualAiPlatform");
 
-  if (platform) {
-    platform.value =
+  if (platformField) {
+    platformField.value =
+      platform ||
       getDefaultPlatformForType(
         type
       );
@@ -17744,7 +17970,7 @@ async function copyManualAiBrief() {
     }
 
     showToast(
-      "AI brief copied. Paste it into ChatGPT.",
+      "AI brief copied. Use it as a manual fallback if needed.",
       "success"
     );
 
@@ -17809,7 +18035,7 @@ async function saveManualAiDraft() {
 
   if (!result) {
     showToast(
-      "Paste the finished ChatGPT result before saving.",
+      "Wait for Ember's draft or add a finished result before saving.",
       "error"
     );
 
@@ -17956,7 +18182,8 @@ async function saveManualContentDraft({
       ),
 
     ai_mode:
-      "manual-chatgpt",
+      MANUAL_AI_STATE.aiMode ||
+      "ember-workspace-agent",
 
     ai_brief:
       nullableText(
@@ -18119,10 +18346,16 @@ async function logManualAiRun({
             brandId,
 
           provider:
-            "manual-chatgpt",
+            MANUAL_AI_STATE.aiMode ===
+              "manual-chatgpt"
+              ? "manual-chatgpt"
+              : "workspace-agent",
 
           mode:
-            "manual",
+            MANUAL_AI_STATE.aiMode ===
+              "manual-chatgpt"
+              ? "manual"
+              : "agent",
 
           task_type:
             contentType,
@@ -18175,6 +18408,9 @@ function clearManualAiState() {
 
   MANUAL_AI_STATE.brief =
     "";
+
+  MANUAL_AI_STATE.aiMode =
+    "ember-workspace-agent";
 }
 
 
