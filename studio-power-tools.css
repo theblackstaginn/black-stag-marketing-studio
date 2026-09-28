@@ -2932,7 +2932,7 @@
     flex: 0 0 auto;
   }
 
-  .app-dialog[open] > :not(.dialog-header) {
+  .app-dialog[open]:not(.calendar-editor-dialog) > :not(.dialog-header) {
     flex: 1 1 auto;
     min-height: 0;
 
@@ -2955,7 +2955,7 @@
       none !important;
   }
 
-  .app-dialog[open] > :not(.dialog-header)::-webkit-scrollbar {
+  .app-dialog[open]:not(.calendar-editor-dialog) > :not(.dialog-header)::-webkit-scrollbar {
     display:
       none !important;
 
