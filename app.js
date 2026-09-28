@@ -16582,86 +16582,7 @@ async function handleQuickCreateSubmit(
     platform
   });
 
-  const resultField =
-    $("#manualAiResult");
-
-  const saveButton =
-    $("#saveManualAiDraftButton");
-
-  if (resultField) {
-    resultField.readOnly =
-      true;
-
-    resultField.placeholder =
-      "Ember is writing your draft…";
-  }
-
-  if (saveButton) {
-    saveButton.disabled =
-      true;
-
-    saveButton.textContent =
-      "Waiting for Ember…";
-  }
-
-  try {
-    const result =
-      await requestEmberContent({
-        brand,
-        type,
-        request:
-          platformRequest,
-        goal,
-        brief,
-        platform
-      });
-
-    if (resultField) {
-      resultField.value =
-        result;
-    }
-
-    MANUAL_AI_STATE.aiMode =
-      "ember-workspace-agent";
-
-    showToast(
-      "Ember's draft is ready.",
-      "success"
-    );
-
-  } catch (error) {
-    console.error(
-      "Ember content request failed:",
-      error
-    );
-
-    MANUAL_AI_STATE.aiMode =
-      "manual-chatgpt";
-
-    showToast(
-      error?.message ||
-      "Ember could not complete the draft. Copy Brief is still available as a fallback.",
-      "error",
-      6000
-    );
-
-  } finally {
-    if (resultField) {
-      resultField.readOnly =
-        false;
-
-      resultField.placeholder =
-        "Review or edit the finished result here.";
-    }
-
-    if (saveButton) {
-      saveButton.disabled =
-        false;
-
-      saveButton.textContent =
-        "Save Draft";
-    }
-  }
+  await runEmberDraftForCurrentState();
 }
 
 
@@ -17618,27 +17539,54 @@ function ensureManualAiDialog() {
 
           <div
             style="
+              display:flex;
+              justify-content:space-between;
+              align-items:flex-start;
+              gap:12px;
+              flex-wrap:wrap;
               margin-bottom:10px;
             "
           >
-            <span class="eyebrow">
-              Ember Draft
-            </span>
+            <div>
+              <span class="eyebrow">
+                Ember Draft
+              </span>
 
-            <h3
-              style="
-                margin:4px 0 0;
-                font-family:
-                  Georgia,
-                  'Times New Roman',
-                  serif;
-                font-size:1rem;
-                font-weight:400;
-              "
+              <h3
+                style="
+                  margin:4px 0 0;
+                  font-family:
+                    Georgia,
+                    'Times New Roman',
+                    serif;
+                  font-size:1rem;
+                  font-weight:400;
+                "
+              >
+                Review Ember's finished result
+              </h3>
+            </div>
+
+            <button
+              id="retryEmberDraftButton"
+              class="secondary-button"
+              type="button"
+              hidden
             >
-              Review Ember's finished result
-            </h3>
+              Retry Ember
+            </button>
           </div>
+
+          <p
+            id="manualAiStatus"
+            style="
+              display:none;
+              margin:0 0 10px;
+              color:var(--muted);
+              font-size:.72rem;
+              line-height:1.55;
+            "
+          ></p>
 
           <textarea
             id="manualAiResult"
@@ -17757,6 +17705,12 @@ function ensureManualAiDialog() {
       saveManualAiDraft
     );
 
+  $("#retryEmberDraftButton")
+    ?.addEventListener(
+      "click",
+      retryManualAiWithEmber
+    );
+
   enableBackdropClose(
     dialog
   );
@@ -17828,6 +17782,19 @@ function showManualAiDialog({
       "";
   }
 
+  setManualAiStatus(
+    "",
+    false
+  );
+
+  const retryButton =
+    $("#retryEmberDraftButton");
+
+  if (retryButton) {
+    retryButton.hidden =
+      true;
+  }
+
   const draftTitle =
     $("#manualAiDraftTitle");
 
@@ -17861,6 +17828,173 @@ function showManualAiDialog({
     },
     100
   );
+}
+
+
+/* =========================================================
+   EMBER DRAFT STATUS / RETRY
+   ========================================================= */
+
+function setManualAiStatus(
+  message,
+  visible = true
+) {
+  const status =
+    $("#manualAiStatus");
+
+  if (!status) {
+    return;
+  }
+
+  status.textContent =
+    message || "";
+
+  status.style.display =
+    visible && message
+      ? "block"
+      : "none";
+}
+
+
+async function runEmberDraftForCurrentState() {
+  const brand =
+    APP_DATA.brands.find(
+      item =>
+        item.id ===
+        MANUAL_AI_STATE.brandId
+    );
+
+  if (!brand) {
+    throw new Error(
+      "The working brand is missing."
+    );
+  }
+
+  const resultField =
+    $("#manualAiResult");
+
+  const saveButton =
+    $("#saveManualAiDraftButton");
+
+  const retryButton =
+    $("#retryEmberDraftButton");
+
+  const platform =
+    $("#manualAiPlatform")
+      ?.value
+      ?.trim() ||
+    getDefaultPlatformForType(
+      MANUAL_AI_STATE.type
+    );
+
+  if (resultField) {
+    resultField.readOnly =
+      true;
+
+    resultField.placeholder =
+      "Ember is writing your draft…";
+  }
+
+  if (saveButton) {
+    saveButton.disabled =
+      true;
+
+    saveButton.textContent =
+      "Waiting for Ember…";
+  }
+
+  if (retryButton) {
+    retryButton.hidden =
+      true;
+  }
+
+  setManualAiStatus(
+    "Sending this brief to Ember…"
+  );
+
+  try {
+    const result =
+      await requestEmberContent({
+        brand,
+        type:
+          MANUAL_AI_STATE.type,
+        request:
+          MANUAL_AI_STATE.request,
+        goal:
+          MANUAL_AI_STATE.goal,
+        brief:
+          MANUAL_AI_STATE.brief,
+        platform
+      });
+
+    if (resultField) {
+      resultField.value =
+        result;
+    }
+
+    MANUAL_AI_STATE.aiMode =
+      "ember-workspace-agent";
+
+    setManualAiStatus(
+      "Ember's draft is ready."
+    );
+
+    showToast(
+      "Ember's draft is ready.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Ember content request failed:",
+      error
+    );
+
+    MANUAL_AI_STATE.aiMode =
+      "manual-chatgpt";
+
+    const message =
+      error?.message ||
+      "Ember could not complete the draft.";
+
+    setManualAiStatus(
+      message +
+      " You can retry here or use Copy Brief as a manual fallback."
+    );
+
+    if (retryButton) {
+      retryButton.hidden =
+        false;
+    }
+
+    showToast(
+      message,
+      "error",
+      6000
+    );
+
+  } finally {
+    if (resultField) {
+      resultField.readOnly =
+        false;
+
+      resultField.placeholder =
+        "Review or edit the finished result here.";
+    }
+
+    if (saveButton) {
+      saveButton.disabled =
+        false;
+
+      saveButton.textContent =
+        "Save Draft";
+    }
+  }
+}
+
+
+async function retryManualAiWithEmber() {
+  await runEmberDraftForCurrentState();
 }
 
 
