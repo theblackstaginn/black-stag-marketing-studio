@@ -17821,11 +17821,11 @@ function showManualAiDialog({
       );
   }
 
-  const platform =
+  const platformField =
     $("#manualAiPlatform");
 
-  if (platform) {
-    platform.value =
+  if (platformField) {
+    platformField.value =
       platform ||
       getDefaultPlatformForType(
         type
@@ -17970,7 +17970,7 @@ async function copyManualAiBrief() {
     }
 
     showToast(
-      "AI brief copied. Paste it into ChatGPT.",
+      "AI brief copied. Use it as a manual fallback if needed.",
       "success"
     );
 
@@ -18035,7 +18035,7 @@ async function saveManualAiDraft() {
 
   if (!result) {
     showToast(
-      "Paste the finished ChatGPT result before saving.",
+      "Wait for Ember's draft or add a finished result before saving.",
       "error"
     );
 
