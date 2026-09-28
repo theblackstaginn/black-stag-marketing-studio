@@ -2877,3 +2877,97 @@
 .calendar-editor-dialog {
   overflow: hidden !important;
 }
+
+
+/* =========================================================
+   MOBILE MODAL VIEWPORT LOCK
+   Keep the modal frame anchored to the visual viewport.
+   The page and modal frame stay fixed; modal contents scroll.
+   ========================================================= */
+
+@media (max-width: 680px) {
+  html:has(.app-dialog[open]),
+  body:has(.app-dialog[open]) {
+    overflow: hidden !important;
+    overscroll-behavior: none;
+  }
+
+  .app-dialog[open] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+
+    display: flex !important;
+    flex-direction: column;
+
+    width: min(
+      calc(100% - 24px),
+      620px
+    ) !important;
+
+    max-height: calc(
+      100dvh -
+      max(16px, env(safe-area-inset-top)) -
+      max(16px, env(safe-area-inset-bottom))
+    ) !important;
+
+    margin: 0 !important;
+
+    transform:
+      translate(-50%, -50%) !important;
+
+    animation:
+      none !important;
+
+    overflow:
+      hidden !important;
+
+    overscroll-behavior:
+      none;
+  }
+
+  .app-dialog[open] > .dialog-header {
+    flex: 0 0 auto;
+  }
+
+  .app-dialog[open]:not(.calendar-editor-dialog) > :not(.dialog-header) {
+    flex: 1 1 auto;
+    min-height: 0;
+
+    overflow-x:
+      hidden !important;
+
+    overflow-y:
+      auto !important;
+
+    overscroll-behavior:
+      contain;
+
+    -webkit-overflow-scrolling:
+      touch;
+
+    scrollbar-width:
+      none !important;
+
+    -ms-overflow-style:
+      none !important;
+  }
+
+  .app-dialog[open]:not(.calendar-editor-dialog) > :not(.dialog-header)::-webkit-scrollbar {
+    display:
+      none !important;
+
+    width:
+      0 !important;
+
+    height:
+      0 !important;
+  }
+
+  .calendar-editor-dialog[open] {
+    overflow:
+      hidden !important;
+  }
+}
