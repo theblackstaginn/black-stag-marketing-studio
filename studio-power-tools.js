@@ -21,6 +21,15 @@
     lastLoadedAt: 0
   };
 
+  const emberChatState = {
+    brandId: null,
+    requestText: "",
+    responseText: "",
+    errorText: "",
+    status: "idle",
+    runId: null
+  };
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -669,6 +678,271 @@
       .join("");
   }
 
+  function resetEmberChatForBrand(brandId) {
+    if (emberChatState.brandId === brandId) {
+      return;
+    }
+
+    emberChatState.brandId = brandId;
+    emberChatState.requestText = "";
+    emberChatState.responseText = "";
+    emberChatState.errorText = "";
+    emberChatState.status = "idle";
+    emberChatState.runId = null;
+  }
+
+  function renderEmberChatPanel() {
+    const host = byId("emberChatPanel");
+    const brand = activeBrand();
+
+    if (!host || !brand) {
+      return;
+    }
+
+    resetEmberChatForBrand(brand.id);
+
+    const busy =
+      emberChatState.status === "sending" ||
+      emberChatState.status === "waiting";
+
+    let statusHtml = "";
+
+    if (busy) {
+      statusHtml =
+        "<p class='muted-copy' style='margin:10px 0 0'>Ember is working on this request…</p>";
+    } else if (emberChatState.errorText) {
+      statusHtml =
+        "<div class='empty-state' style='margin-top:10px'><h3>Ember could not answer yet.</h3><p>" +
+        escapeHtml(emberChatState.errorText) +
+        "</p><button class='secondary-button' type='button' data-ember-chat-retry>Retry Ember</button></div>";
+    } else if (emberChatState.responseText) {
+      statusHtml =
+        "<article class='ember-dialog-row' style='grid-template-columns:1fr;margin-top:10px'><div><span class='eyebrow'>Ember Reply</span><p style='white-space:pre-wrap;margin-top:8px'>" +
+        escapeHtml(emberChatState.responseText) +
+        "</p></div></article>";
+    }
+
+    host.innerHTML =
+      "<span class='eyebrow'>Ask Ember</span>" +
+      "<h3 style='margin:4px 0 10px'>Live Workspace Agent</h3>" +
+      "<label class='field'><span>Message</span>" +
+      "<textarea id='emberChatInput' rows='3' maxlength='20000' placeholder='Ask Ember about this brand, the work queue, campaigns, drafts, or what to do next.'" +
+      (busy ? " disabled" : "") +
+      ">" +
+      escapeHtml(emberChatState.requestText) +
+      "</textarea></label>" +
+      "<div class='form-actions'>" +
+      "<span class='muted-copy'>Review-only. Ember cannot publish or take consequential actions from this request.</span>" +
+      "<button class='primary-button' type='button' data-ember-chat-send" +
+      (busy ? " disabled" : "") +
+      ">Send to Ember</button></div>" +
+      statusHtml;
+  }
+
+  function emberChatContext(brand) {
+    const signals = getBrandSignals(brand);
+
+    return {
+      source: "ember_daily_brief",
+      brand: {
+        id: brand.id,
+        name: brand.name || null,
+        short_name: brand.shortName || null
+      },
+      open_work: emberState.workItems
+        .filter(item => item.status !== "done" && item.status !== "cancelled")
+        .slice(0, 10)
+        .map(item => ({
+          title: item.title,
+          description: item.description || item.notes || null,
+          priority: item.priority || null,
+          owner: item.owner_type || null,
+          due_at: item.due_at || null
+        })),
+      pending_decisions: emberState.decisions
+        .filter(item => item.status === "pending" || item.status === "deferred")
+        .slice(0, 8)
+        .map(item => ({
+          title: item.title,
+          question: item.question,
+          priority: item.priority || null,
+          due_at: item.due_at || null
+        })),
+      active_campaigns: signals.campaigns
+        .slice(0, 8)
+        .map(item => ({
+          name: item.name || null,
+          objective: item.objective || null,
+          status: item.status || null
+        })),
+      upcoming_7_days: signals.calendar
+        .slice(0, 10)
+        .map(item => ({
+          title: item.title || null,
+          type: item.itemType || item.type || null,
+          starts_at: item.startsAt || null
+        })),
+      draft_review: signals.review
+        .slice(0, 8)
+        .map(item => ({
+          title: item.title || null,
+          platform: item.platform || null,
+          goal: item.goal || null,
+          status: item.status || null
+        }))
+    };
+  }
+
+  async function emberFunctionErrorMessage(error) {
+    let message =
+      error?.message ||
+      "Unable to reach Ember.";
+
+    if (
+      error?.context &&
+      typeof error.context.json === "function"
+    ) {
+      try {
+        const payload = await error.context.json();
+        message =
+          payload?.message ||
+          payload?.error ||
+          message;
+      } catch {}
+    }
+
+    return message;
+  }
+
+  async function waitForEmberChatReply(runId) {
+    for (let attempt = 0; attempt < 60; attempt += 1) {
+      await new Promise(resolve =>
+        window.setTimeout(resolve, attempt === 0 ? 1200 : 1800)
+      );
+
+      const { data, error } =
+        await supabaseClient
+          .from("ember_agent_runs")
+          .select("status,response_text,error_text")
+          .eq("id", runId)
+          .single();
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.status === "answered" && data.response_text) {
+        emberChatState.status = "answered";
+        emberChatState.responseText = data.response_text;
+        emberChatState.errorText = "";
+        renderEmberChatPanel();
+        return;
+      }
+
+      if (data?.status === "failed" || data?.status === "cancelled") {
+        throw new Error(
+          data.error_text ||
+          "Ember could not complete the request."
+        );
+      }
+    }
+
+    throw new Error(
+      "Ember is still working. Retry in a moment."
+    );
+  }
+
+  async function submitEmberChat(retry = false) {
+    const brand = activeBrand();
+
+    if (!brand || !supabaseClient) {
+      return;
+    }
+
+    resetEmberChatForBrand(brand.id);
+
+    const input = byId("emberChatInput");
+
+    const requestText =
+      retry
+        ? emberChatState.requestText
+        : String(input?.value || "").trim();
+
+    if (!requestText) {
+      showToast(
+        "Ask Ember something first.",
+        "error"
+      );
+
+      input?.focus();
+      return;
+    }
+
+    emberChatState.requestText = requestText;
+    emberChatState.responseText = "";
+    emberChatState.errorText = "";
+    emberChatState.status = "sending";
+    renderEmberChatPanel();
+
+    try {
+      const { data, error } =
+        await supabaseClient
+          .functions
+          .invoke(
+            "trigger-ember-agent",
+            {
+              body: {
+                request_type: "studio_chat",
+                brand_id: brand.id,
+                request_text: requestText,
+                request_context: emberChatContext(brand)
+              }
+            }
+          );
+
+      if (error) {
+        throw new Error(
+          await emberFunctionErrorMessage(error)
+        );
+      }
+
+      if (!data?.run_id) {
+        throw new Error(
+          "Ember request was accepted without a run id."
+        );
+      }
+
+      emberChatState.runId = data.run_id;
+      emberChatState.status = "waiting";
+      renderEmberChatPanel();
+
+      await waitForEmberChatReply(data.run_id);
+
+      showToast(
+        "Ember replied.",
+        "success"
+      );
+    } catch (error) {
+      console.error(
+        "Ember Daily Brief request failed:",
+        error
+      );
+
+      emberChatState.status = "error";
+      emberChatState.errorText =
+        error?.message ||
+        "Ember could not answer this request.";
+
+      renderEmberChatPanel();
+
+      showToast(
+        emberChatState.errorText,
+        "error",
+        6000
+      );
+    }
+  }
+
   function openEmberBrief() {
     const brand =
       activeBrand();
@@ -713,6 +987,7 @@
             signals.milestones.length +
           "</strong></div>" +
         "</div>" +
+        "<section class='ember-dialog-section' id='emberChatPanel'></section>" +
         "<section class='ember-dialog-section'><span class='eyebrow'>Work Queue</span>" +
           emberWorkRows() +
         "</section>" +
@@ -720,6 +995,8 @@
           emberDecisionRows() +
         "</section>" +
       "</div>";
+
+    renderEmberChatPanel();
 
     openDialog(
       dialog
@@ -1626,6 +1903,16 @@
 
     if (event.target.closest("[data-ember-refresh]")) {
       refreshEmberOperatingLayer(true);
+      return;
+    }
+
+    if (event.target.closest("[data-ember-chat-send]")) {
+      submitEmberChat(false);
+      return;
+    }
+
+    if (event.target.closest("[data-ember-chat-retry]")) {
+      submitEmberChat(true);
       return;
     }
 
