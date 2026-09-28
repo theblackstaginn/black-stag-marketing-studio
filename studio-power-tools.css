@@ -2843,3 +2843,355 @@
     width: fit-content;
   }
 }
+
+
+/* =========================================================
+   EMBER COMMAND CENTER
+   ========================================================= */
+
+.studio-ember-button {
+  border-color: rgba(197, 154, 112, .46);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(52, 31, 23, .88),
+      rgba(17, 22, 18, .92)
+    );
+}
+
+.ember-brief-section {
+  position: relative;
+}
+
+.ember-brief-body {
+  display: grid;
+  gap: 14px;
+}
+
+.ember-brief-loading {
+  min-height: 130px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-bronze);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(31, 22, 17, .62),
+      rgba(9, 13, 10, .68)
+    );
+  backdrop-filter: blur(var(--glass-blur));
+}
+
+.ember-brief-hero {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1.4fr)
+    minmax(280px, .6fr);
+  gap: 16px;
+  align-items: stretch;
+  padding: 18px 20px;
+  border: 1px solid var(--line-bronze);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      135deg,
+      rgba(54, 32, 23, .55),
+      rgba(10, 15, 12, .72)
+    );
+  box-shadow: var(--shadow-soft);
+  backdrop-filter:
+    blur(var(--glass-blur));
+}
+
+.ember-brief-hero p {
+  margin: 5px 0 0;
+  max-width: 760px;
+  color: var(--ink-soft);
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size:
+    clamp(1.04rem, 1.8vw, 1.28rem);
+  line-height: 1.5;
+}
+
+.ember-brief-stats {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.ember-brief-stats span {
+  display: grid;
+  place-items: center;
+  min-height: 82px;
+  padding: 10px;
+  text-align: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--muted);
+  background: rgba(8, 11, 9, .38);
+  font-size: .67rem;
+}
+
+.ember-brief-stats strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--ink);
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: 1.55rem;
+  font-weight: 400;
+}
+
+.ember-brief-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr)
+    minmax(0, 1fr)
+    minmax(240px, .72fr);
+  gap: 14px;
+}
+
+.ember-brief-card {
+  min-width: 0;
+  padding: 17px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(
+      145deg,
+      rgba(16, 20, 17, .58),
+      rgba(7, 10, 8, .52)
+    );
+  box-shadow: var(--shadow-soft);
+  backdrop-filter:
+    blur(var(--glass-blur));
+}
+
+.ember-card-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.ember-card-heading h3,
+.ember-command-body h3 {
+  margin: 3px 0 0;
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: 1.08rem;
+  font-weight: 400;
+}
+
+.ember-queue-item,
+.ember-command-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ember-queue-item:first-of-type,
+.ember-command-item:first-of-type {
+  border-top: 0;
+}
+
+.ember-queue-copy,
+.ember-command-item > div:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.ember-queue-copy strong,
+.ember-command-item strong,
+.ember-decision-item strong,
+.ember-upcoming-item strong {
+  color: var(--ink);
+  font-size: .78rem;
+  font-weight: 680;
+}
+
+.ember-queue-copy small,
+.ember-command-item small,
+.ember-decision-item small,
+.ember-upcoming-item small {
+  color: var(--muted);
+  font-size: .67rem;
+  line-height: 1.45;
+}
+
+.ember-priority {
+  width: max-content;
+  padding: 2px 7px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: .56rem;
+  font-weight: 800;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.ember-priority-urgent {
+  color: #e7b0a7;
+  border-color: rgba(163, 95, 95, .42);
+  background: rgba(87, 37, 37, .28);
+}
+
+.ember-priority-high {
+  color: var(--bronze-light);
+  border-color: var(--line-bronze);
+  background: rgba(87, 58, 35, .25);
+}
+
+.ember-decision-item {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 11px 0;
+  text-align: left;
+  border: 0;
+  border-top: 1px solid var(--line);
+  color: inherit;
+  background: transparent;
+}
+
+.ember-decision-item:first-of-type {
+  border-top: 0;
+}
+
+.ember-decision-item span {
+  color: var(--bronze-light);
+  font-size: .57rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.ember-upcoming-item {
+  display: grid;
+  gap: 3px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line);
+}
+
+.ember-upcoming-item:first-of-type {
+  border-top: 0;
+}
+
+.ember-command-dialog {
+  width: min(calc(100% - 24px), 920px);
+  max-height: min(92dvh, 920px);
+}
+
+.ember-command-body {
+  display: grid;
+  gap: 25px;
+  padding: 20px 22px 26px;
+  max-height: 72dvh;
+  overflow-y: auto;
+}
+
+.ember-command-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.ember-command-actions {
+  display: flex;
+  gap: 7px;
+  flex-shrink: 0;
+}
+
+.ember-decision-question {
+  margin: 0;
+  color: var(--ink-soft);
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+
+.ember-recommendation {
+  padding: 14px 15px;
+  border: 1px solid var(--line-bronze);
+  border-radius: var(--radius-sm);
+  background: rgba(61, 38, 25, .26);
+}
+
+.ember-recommendation p {
+  margin: 5px 0 0;
+  color: var(--ink-soft);
+  font-size: .78rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 980px) {
+  .ember-brief-hero,
+  .ember-brief-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ember-brief-stats {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
+  .ember-brief-hero {
+    padding: 15px;
+  }
+
+  .ember-brief-stats {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+
+  .ember-brief-stats span {
+    min-height: 68px;
+    padding: 8px 5px;
+    font-size: .6rem;
+  }
+
+  .ember-brief-stats strong {
+    font-size: 1.25rem;
+  }
+
+  .ember-brief-card {
+    padding: 14px;
+  }
+
+  .ember-command-item,
+  .ember-queue-item {
+    align-items: flex-start;
+  }
+
+  .ember-command-actions {
+    flex-direction: column;
+  }
+
+  .studio-power-tools {
+    gap: 5px;
+  }
+
+  .studio-ember-button span {
+    display: none;
+  }
+}
