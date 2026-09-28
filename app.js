@@ -2049,17 +2049,6 @@ function renderBrandPicker() {
             brand.id ===
             APP_STATE.activeBrandId;
 
-          const logoAsset =
-            getBrandLogoAsset(
-              brand.id
-            );
-
-          const logoUrl =
-            logoAsset?.signedUrl ||
-            logoAsset?.externalUrl ||
-            "";
-
-
           return `
             <button
               class="brand-picker-option ${
@@ -2226,6 +2215,16 @@ function renderBrandGrid() {
           const isActive =
             brand.id ===
             APP_STATE.activeBrandId;
+
+          const logoAsset =
+            getBrandLogoAsset(
+              brand.id
+            );
+
+          const logoUrl =
+            logoAsset?.signedUrl ||
+            logoAsset?.externalUrl ||
+            "";
 
 
           return `
