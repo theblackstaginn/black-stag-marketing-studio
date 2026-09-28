@@ -987,6 +987,7 @@
             signals.milestones.length +
           "</strong></div>" +
         "</div>" +
+        "<section class='ember-dialog-section' id='emberChatPanel'></section>" +
         "<section class='ember-dialog-section'><span class='eyebrow'>Work Queue</span>" +
           emberWorkRows() +
         "</section>" +
@@ -994,6 +995,8 @@
           emberDecisionRows() +
         "</section>" +
       "</div>";
+
+    renderEmberChatPanel();
 
     openDialog(
       dialog
