@@ -2843,3 +2843,37 @@
     width: fit-content;
   }
 }
+
+
+/* =========================================================
+   APP-WIDE MODAL SCROLLING
+   Every modal can scroll vertically when its content exceeds
+   the viewport. Scrollbars stay visually hidden.
+   ========================================================= */
+
+.app-dialog {
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.app-dialog::-webkit-scrollbar,
+.app-dialog *::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+.app-dialog * {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+/* Calendar editor already uses its own internal scrolling grid.
+   Keep the leather frame fixed while preserving hidden-bar scrolling. */
+.calendar-editor-dialog {
+  overflow: hidden !important;
+}
