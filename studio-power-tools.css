@@ -2971,3 +2971,62 @@
       hidden !important;
   }
 }
+
+
+/* =========================================================
+   MOBILE TOP TOOLBAR SPACING
+   Keep brand/settings row clean. Ember, Search, and Inbox sit
+   in a compact utility row below the sticky topbar.
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .studio-power-tools {
+    top: calc(
+      env(safe-area-inset-top)
+      + var(--topbar-height)
+      + 8px
+    );
+
+    right: 14px;
+
+    gap: 10px;
+  }
+
+  .studio-power-button {
+    position: relative;
+
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0;
+
+    gap: 0;
+
+    border-radius: 13px;
+  }
+
+  .studio-power-button strong {
+    position: absolute;
+
+    top: -6px;
+    right: -6px;
+
+    min-width: 20px;
+    height: 20px;
+
+    padding: 0 5px;
+
+    border:
+      2px solid
+      rgba(8, 10, 9, .92);
+
+    font-size: .58rem;
+  }
+
+  .content {
+    padding-top:
+      82px;
+  }
+}
