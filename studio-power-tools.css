@@ -3030,3 +3030,115 @@
       82px;
   }
 }
+
+
+/* =========================================================
+   MOBILE TOP TOOLBAR — BALANCED PASS
+   Keep the utility row separate from the header, but retain
+   readable labels and enough visual weight to feel intentional.
+   ========================================================= */
+
+@media (max-width: 680px) {
+  .studio-power-tools {
+    left: 14px;
+    right: 14px;
+
+    display: grid;
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 10px;
+  }
+
+  .studio-power-button:not(.studio-create-button) {
+    width: 100%;
+    min-width: 0;
+    height: 52px;
+    min-height: 52px;
+
+    padding:
+      0
+      12px;
+
+    gap: 8px;
+
+    border-color:
+      rgba(195, 154, 112, .34);
+
+    border-radius:
+      14px;
+
+    background:
+      rgba(10, 12, 10, .88);
+
+    box-shadow:
+      0
+      10px
+      26px
+      rgba(0, 0, 0, .26);
+  }
+
+  .studio-power-button:not(.studio-create-button) span {
+    display: inline !important;
+
+    overflow:
+      hidden;
+
+    font-size:
+      .68rem;
+
+    font-weight:
+      760;
+
+    text-overflow:
+      ellipsis;
+
+    white-space:
+      nowrap;
+  }
+
+  .studio-power-button:not(.studio-create-button) strong {
+    position: static;
+
+    flex:
+      0
+      0
+      auto;
+
+    min-width:
+      22px;
+
+    height:
+      22px;
+
+    padding:
+      0
+      6px;
+
+    border:
+      0;
+
+    background:
+      rgba(120, 61, 55, .82);
+
+    font-size:
+      .58rem;
+  }
+
+  .ember-power-button {
+    border-color:
+      rgba(195, 154, 112, .48) !important;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(64, 39, 27, .90),
+        rgba(15, 17, 14, .92)
+      ) !important;
+  }
+
+  .content {
+    padding-top:
+      92px;
+  }
+}
