@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Authorize Black Stag Content Studio</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <meta name="theme-color" content="#0b0c0c" />
+  <link rel="stylesheet" href="styles.css?v=4" />
+</head>
+<body>
+  <main style="min-height:100vh;display:grid;place-items:center;padding:24px;">
+    <section class="content-panel" style="width:min(620px,100%);padding:24px;">
+      <span class="eyebrow">Black Stag</span>
+      <h1 style="margin:6px 0 10px;font-family:Georgia,'Times New Roman',serif;font-weight:400;">
+        Content Studio Access
+      </h1>
+
+      <p style="margin:0 0 18px;color:var(--muted);line-height:1.65;">
+        Review this request before allowing ChatGPT to connect to your private Marketing Studio workspace.
+      </p>
+
+      <div id="oauthStatus" style="margin-bottom:16px;color:var(--muted);font-size:.82rem;line-height:1.55;">
+        Loading authorization request…
+      </div>
+
+      <div id="oauthDetails" hidden>
+        <div style="display:grid;gap:12px;margin-bottom:20px;">
+          <div>
+            <span class="eyebrow">Requesting app</span>
+            <strong id="oauthClientName" style="display:block;margin-top:4px;">ChatGPT</strong>
+          </div>
+
+          <div>
+            <span class="eyebrow">Redirect</span>
+            <div id="oauthRedirect" style="margin-top:4px;color:var(--muted);overflow-wrap:anywhere;"></div>
+          </div>
+
+          <div>
+            <span class="eyebrow">Requested access</span>
+            <div id="oauthScopes" style="margin-top:4px;color:var(--muted);"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button id="oauthDenyButton" class="secondary-button" type="button">Deny</button>
+          <button id="oauthApproveButton" class="primary-button" type="button">Approve</button>
+        </div>
+      </div>
+
+      <div id="oauthLoginNeeded" hidden>
+        <p style="margin:0 0 14px;color:var(--muted);line-height:1.6;">
+          Sign in to Marketing Studio first, then return here and refresh this page.
+        </p>
+        <a class="primary-button" href="./">Open Marketing Studio</a>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="config.js"></script>
+  <script>
+    "use strict";
+
+    const CONFIG = window.BLACK_STAG_CONFIG || {};
+    const SB = CONFIG.supabase || {};
+    const SB_URL = SB.url || "";
+    const SB_KEY = SB.publishableKey || SB.anonKey || "";
+    const authorizationId = new URLSearchParams(window.location.search).get("authorization_id");
+
+    const statusEl = document.getElementById("oauthStatus");
+    const detailsEl = document.getElementById("oauthDetails");
+    const loginNeededEl = document.getElementById("oauthLoginNeeded");
+
+    function setStatus(message, error = false) {
+      statusEl.textContent = message;
+      statusEl.style.color = error ? "#d8a09a" : "var(--muted)";
+    }
+
+    async function init() {
+      if (!authorizationId) {
+        setStatus("This authorization request is missing its authorization ID.", true);
+        return;
+      }
+
+      if (!window.supabase || !SB_URL || !SB_KEY) {
+        setStatus("Marketing Studio connection settings are unavailable.", true);
+        return;
+      }
+
+      const client = window.supabase.createClient(SB_URL, SB_KEY, {
+        auth: {
+          persistSession: true,
+          autoRefreshToken: true,
+          detectSessionInUrl: true
+        }
+      });
+
+      const { data: sessionData } = await client.auth.getSession();
+
+      if (!sessionData?.session) {
+        setStatus("Sign in to continue.");
+        loginNeededEl.hidden = false;
+        return;
+      }
+
+      const { data, error } = await client.auth.oauth.getAuthorizationDetails(authorizationId);
+
+      if (error) {
+        setStatus(error.message || "Unable to load authorization details.", true);
+        return;
+      }
+
+      const appName =
+        data?.client?.client_name ||
+        data?.client?.name ||
+        data?.client_name ||
+        "ChatGPT";
+
+      const scopes =
+        Array.isArray(data?.scopes)
+          ? data.scopes
+          : String(data?.scope || "").split(/\s+/).filter(Boolean);
+
+      document.getElementById("oauthClientName").textContent = appName;
+      document.getElementById("oauthRedirect").textContent =
+        data?.redirect_uri || "Provided by the requesting app";
+      document.getElementById("oauthScopes").textContent =
+        scopes.length ? scopes.join(", ") : "Marketing Studio account access";
+
+      detailsEl.hidden = false;
+      setStatus("You are signed in. Approve only if you recognize this request.");
+
+      document.getElementById("oauthApproveButton").addEventListener("click", async () => {
+        setStatus("Approving connection…");
+        const { data: approved, error: approveError } =
+          await client.auth.oauth.approveAuthorization(authorizationId);
+
+        if (approveError) {
+          setStatus(approveError.message || "Approval failed.", true);
+          return;
+        }
+
+        if (!approved?.redirect_url) {
+          setStatus("Supabase did not return a redirect URL.", true);
+          return;
+        }
+
+        window.location.assign(approved.redirect_url);
+      });
+
+      document.getElementById("oauthDenyButton").addEventListener("click", async () => {
+        setStatus("Denying connection…");
+        const { data: denied, error: denyError } =
+          await client.auth.oauth.denyAuthorization(authorizationId);
+
+        if (denyError) {
+          setStatus(denyError.message || "Denial failed.", true);
+          return;
+        }
+
+        if (!denied?.redirect_url) {
+          setStatus("Supabase did not return a redirect URL.", true);
+          return;
+        }
+
+        window.location.assign(denied.redirect_url);
+      });
+    }
+
+    init();
+  </script>
+</body>
+</html>
