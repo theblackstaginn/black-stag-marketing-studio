@@ -2663,6 +2663,7 @@
     enhanceContentCards();
     enhanceAssetCards();
     enhanceDialogEmberButtons();
+    ensureContentShareButtons();
     ensureEmberPanel();
     refreshEmberOperatingLayer();
   }
@@ -2705,6 +2706,692 @@
     }
   }
 
+
+  /* =========================================================
+     DRAFT SHARE / EXPORT
+     Builds a portable package from the live content row and
+     its linked primary asset without changing publish status.
+     ========================================================= */
+
+  const draftShareCache =
+    new Map();
+
+  function draftShareLabel(
+    row
+  ) {
+    return row?.platform
+      ? "Share " +
+          row.platform +
+          " Draft"
+      : "Share Draft";
+  }
+
+  function draftShareText(row) {
+    const parts = [];
+
+    const body =
+      String(
+        row?.body || ""
+      ).trim();
+
+    const cta =
+      String(
+        row?.cta || ""
+      ).trim();
+
+    if (body) {
+      parts.push(body);
+    }
+
+    if (cta) {
+      parts.push(cta);
+    }
+
+    const hashtags =
+      Array.isArray(
+        row?.hashtags
+      )
+        ? row.hashtags
+            .map(tag =>
+              String(tag || "")
+                .trim()
+            )
+            .filter(Boolean)
+            .map(tag =>
+              tag.startsWith("#")
+                ? tag
+                : "#" + tag
+            )
+        : [];
+
+    if (hashtags.length) {
+      parts.push(
+        hashtags.join(" ")
+      );
+    }
+
+    return parts.join("\n\n");
+  }
+
+  async function linkedPrimaryAssetFile(
+    contentId
+  ) {
+    const {
+      data: links,
+      error: linkError
+    } =
+      await supabaseClient
+        .from("content_assets")
+        .select(
+          "asset_id,role,caption,created_at"
+        )
+        .eq(
+          "content_id",
+          contentId
+        );
+
+    if (linkError) {
+      throw linkError;
+    }
+
+    if (!links?.length) {
+      return null;
+    }
+
+    const link =
+      links.find(
+        item =>
+          item.role ===
+          "primary"
+      ) ||
+      links[0];
+
+    const {
+      data: asset,
+      error: assetError
+    } =
+      await supabaseClient
+        .from("assets")
+        .select(
+          "id,name,external_url,storage_bucket,storage_path,mime_type"
+        )
+        .eq(
+          "id",
+          link.asset_id
+        )
+        .single();
+
+    if (assetError) {
+      throw assetError;
+    }
+
+    let assetUrl =
+      asset.external_url ||
+      "";
+
+    if (
+      !assetUrl &&
+      asset.storage_bucket &&
+      asset.storage_path
+    ) {
+      const {
+        data: signed,
+        error: signedError
+      } =
+        await supabaseClient
+          .storage
+          .from(
+            asset.storage_bucket
+          )
+          .createSignedUrl(
+            asset.storage_path,
+            60 * 15
+          );
+
+      if (signedError) {
+        throw signedError;
+      }
+
+      assetUrl =
+        signed?.signedUrl ||
+        "";
+    }
+
+    if (!assetUrl) {
+      return null;
+    }
+
+    const response =
+      await fetch(assetUrl);
+
+    if (!response.ok) {
+      throw new Error(
+        "Unable to load the linked image."
+      );
+    }
+
+    const blob =
+      await response.blob();
+
+    const storageName =
+      asset.storage_path
+        ?.split("/")
+        .pop();
+
+    const fileName =
+      storageName ||
+      (
+        String(
+          asset.name ||
+          "draft-asset"
+        )
+          .trim()
+          .replace(
+            /[^a-z0-9._-]+/gi,
+            "-"
+          )
+          .replace(
+            /^-+|-+$/g,
+            ""
+          ) ||
+        "draft-asset"
+      );
+
+    return new File(
+      [blob],
+      fileName,
+      {
+        type:
+          blob.type ||
+          asset.mime_type ||
+          "application/octet-stream"
+      }
+    );
+  }
+
+  async function buildDraftSharePackage(
+    contentId
+  ) {
+    const {
+      data: row,
+      error
+    } =
+      await supabaseClient
+        .from("content_items")
+        .select(
+          "id,title,body,platform,cta,hashtags,content_type,status,updated_at"
+        )
+        .eq(
+          "id",
+          contentId
+        )
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const text =
+      draftShareText(row);
+
+    if (!text) {
+      throw new Error(
+        "This draft does not contain shareable copy."
+      );
+    }
+
+    let file = null;
+
+    try {
+      file =
+        await linkedPrimaryAssetFile(
+          contentId
+        );
+    } catch (assetError) {
+      console.warn(
+        "Linked draft asset could not be prepared:",
+        assetError
+      );
+    }
+
+    return {
+      contentId,
+      row,
+      text,
+      file
+    };
+  }
+
+  function prepareDraftSharePackage(
+    contentId,
+    force = false
+  ) {
+    if (!contentId) {
+      return Promise.reject(
+        new Error(
+          "Content ID is missing."
+        )
+      );
+    }
+
+    const cached =
+      draftShareCache.get(
+        contentId
+      );
+
+    const fresh =
+      cached?.package &&
+      Date.now() -
+        cached.preparedAt <
+        15000;
+
+    if (
+      !force &&
+      fresh
+    ) {
+      return Promise.resolve(
+        cached.package
+      );
+    }
+
+    if (cached?.promise) {
+      return cached.promise;
+    }
+
+    const promise =
+      buildDraftSharePackage(
+        contentId
+      )
+        .then(packageData => {
+          draftShareCache.set(
+            contentId,
+            {
+              package:
+                packageData,
+              preparedAt:
+                Date.now(),
+              promise:
+                null
+            }
+          );
+
+          return packageData;
+        })
+        .catch(error => {
+          draftShareCache.delete(
+            contentId
+          );
+
+          throw error;
+        });
+
+    draftShareCache.set(
+      contentId,
+      {
+        package:
+          cached?.package ||
+          null,
+        preparedAt:
+          cached?.preparedAt ||
+          0,
+        promise
+      }
+    );
+
+    return promise;
+  }
+
+  function ensureContentShareButtons() {
+    const dialog =
+      byId(
+        "contentEditorDialog"
+      );
+
+    if (
+      !dialog ||
+      !dialog.open
+    ) {
+      return;
+    }
+
+    const actions =
+      dialog.querySelector(
+        ".form-actions"
+      );
+
+    if (!actions) {
+      return;
+    }
+
+    let copyButton =
+      dialog.querySelector(
+        "[data-copy-content-caption]"
+      );
+
+    if (!copyButton) {
+      copyButton =
+        document.createElement(
+          "button"
+        );
+
+      copyButton.type =
+        "button";
+      copyButton.className =
+        "secondary-button";
+      copyButton.dataset.copyContentCaption =
+        "true";
+      copyButton.textContent =
+        "Copy Caption";
+
+      actions.insertBefore(
+        copyButton,
+        actions.firstElementChild
+      );
+    }
+
+    let shareButton =
+      dialog.querySelector(
+        "[data-share-content-draft]"
+      );
+
+    if (!shareButton) {
+      shareButton =
+        document.createElement(
+          "button"
+        );
+
+      shareButton.type =
+        "button";
+      shareButton.className =
+        "secondary-button";
+      shareButton.dataset.shareContentDraft =
+        "true";
+
+      actions.insertBefore(
+        shareButton,
+        copyButton
+      );
+    }
+
+    const contentId =
+      byId(
+        "contentEditorId"
+      )?.value;
+
+    const item =
+      contentId
+        ? contentById(
+            contentId
+          )
+        : null;
+
+    const cached =
+      contentId
+        ? draftShareCache.get(
+            contentId
+          )
+        : null;
+
+    shareButton.textContent =
+      draftShareLabel(
+        item
+      );
+
+    copyButton.disabled =
+      !cached?.package;
+    shareButton.disabled =
+      !cached?.package;
+
+    if (!cached?.package) {
+      shareButton.textContent =
+        "Preparing Share…";
+    }
+
+    if (!contentId) {
+      return;
+    }
+
+    prepareDraftSharePackage(
+      contentId
+    )
+      .then(packageData => {
+        if (
+          byId(
+            "contentEditorId"
+          )?.value !==
+          contentId
+        ) {
+          return;
+        }
+
+        copyButton.disabled =
+          false;
+        shareButton.disabled =
+          false;
+        shareButton.textContent =
+          draftShareLabel(
+            packageData.row
+          );
+      })
+      .catch(error => {
+        console.error(
+          "Unable to prepare draft share package:",
+          error
+        );
+
+        copyButton.disabled =
+          true;
+        shareButton.disabled =
+          true;
+        shareButton.textContent =
+          "Share Unavailable";
+      });
+  }
+
+  function downloadDraftAssetFile(
+    file
+  ) {
+    if (!file) {
+      return;
+    }
+
+    const url =
+      URL.createObjectURL(
+        file
+      );
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+    link.href = url;
+    link.download =
+      file.name ||
+      "draft-asset";
+    link.hidden = true;
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+    link.remove();
+
+    window.setTimeout(
+      () =>
+        URL.revokeObjectURL(
+          url
+        ),
+      1000
+    );
+  }
+
+  function copyContentDraftCaption(
+    contentId
+  ) {
+    const packageData =
+      draftShareCache.get(
+        contentId
+      )?.package;
+
+    if (!packageData?.text) {
+      showToast(
+        "The share package is still preparing.",
+        "error"
+      );
+
+      return;
+    }
+
+    if (
+      !navigator.clipboard ||
+      typeof navigator.clipboard.writeText !==
+        "function"
+    ) {
+      showToast(
+        "Clipboard access is not available in this browser.",
+        "error"
+      );
+
+      return;
+    }
+
+    navigator.clipboard
+      .writeText(
+        packageData.text
+      )
+      .then(() => {
+        showToast(
+          "Caption copied.",
+          "success"
+        );
+      })
+      .catch(error => {
+        console.error(
+          "Caption copy failed:",
+          error
+        );
+
+        showToast(
+          "Unable to copy the caption.",
+          "error"
+        );
+      });
+  }
+
+  function shareContentDraft(
+    contentId
+  ) {
+    const packageData =
+      draftShareCache.get(
+        contentId
+      )?.package;
+
+    if (!packageData) {
+      showToast(
+        "The share package is still preparing.",
+        "error"
+      );
+
+      return;
+    }
+
+    const {
+      row,
+      text,
+      file
+    } =
+      packageData;
+
+    const title =
+      row.title ||
+      activeBrand()?.name ||
+      "Black Stag Marketing Studio";
+
+    if (
+      typeof navigator.share !==
+      "function"
+    ) {
+      if (file) {
+        downloadDraftAssetFile(
+          file
+        );
+      }
+
+      copyContentDraftCaption(
+        contentId
+      );
+
+      return;
+    }
+
+    const payload = {
+      title,
+      text
+    };
+
+    let fileIncluded =
+      false;
+
+    if (file) {
+      try {
+        if (
+          typeof navigator.canShare !==
+            "function" ||
+          navigator.canShare({
+            files: [file]
+          })
+        ) {
+          payload.files =
+            [file];
+          fileIncluded =
+            true;
+        }
+      } catch {}
+    }
+
+    navigator.share(
+      payload
+    )
+      .then(() => {
+        if (
+          file &&
+          !fileIncluded
+        ) {
+          downloadDraftAssetFile(
+            file
+          );
+        }
+
+        showToast(
+          fileIncluded
+            ? "Draft handed off with its primary asset."
+            : "Draft handed off.",
+          "success"
+        );
+      })
+      .catch(error => {
+        if (
+          error?.name ===
+          "AbortError"
+        ) {
+          return;
+        }
+
+        console.error(
+          "Draft share failed:",
+          error
+        );
+
+        showToast(
+          error?.message ||
+            "Unable to open the share sheet.",
+          "error"
+        );
+      });
+  }
+
   function handlePowerClick(event) {
     captureEmberSelection(event);
 
@@ -2742,6 +3429,40 @@
 
     if (close) {
       closeDialog(close.closest("dialog"));
+      return;
+    }
+
+    const copyCaption =
+      event.target.closest(
+        "[data-copy-content-caption]"
+      );
+
+    if (copyCaption) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      copyContentDraftCaption(
+        byId("contentEditorId")
+          ?.value
+      );
+
+      return;
+    }
+
+    const draftShare =
+      event.target.closest(
+        "[data-share-content-draft]"
+      );
+
+    if (draftShare) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      shareContentDraft(
+        byId("contentEditorId")
+          ?.value
+      );
+
       return;
     }
 
@@ -3025,6 +3746,7 @@
                 enhanceContentCards();
                 enhanceAssetCards();
                 enhanceDialogEmberButtons();
+                ensureContentShareButtons();
                 ensureEmberPanel();
               }
             );
