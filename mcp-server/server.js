@@ -308,7 +308,7 @@ function isAllowedExternalAssetHost(hostname) {
 const STUDIO_UI_URI =
   "ui://black-stag/marketing-studio.html";
 
-const STUDIO_UI_HTML = String.raw\`<!DOCTYPE html>
+const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -957,7 +957,7 @@ const STUDIO_UI_HTML = String.raw\`<!DOCTYPE html>
       );
   </script>
 </body>
-</html>\`;
+</html>`;
 
 /* ========================================
    READ-ONLY TOOL METADATA
