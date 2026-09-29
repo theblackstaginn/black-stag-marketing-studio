@@ -754,10 +754,10 @@
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
       "<div class='form-actions'>" +
-      "<span class='muted-copy'>Uses your connected Black Stag Marketing Studio app in ChatGPT. No separate Studio AI request is sent.</span>" +
+      "<span class='muted-copy'>Copies this exact BSMS context so you can paste it into your existing ChatGPT conversation with Ember.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
       (busy ? " disabled" : "") +
-      ">Open Ember in ChatGPT</button></div>" +
+      ">Copy for Ember</button></div>" +
       statusHtml;
   }
 
@@ -1363,22 +1363,6 @@
     return false;
   }
 
-  function openChatGptHandoff() {
-    const url =
-      "https://chatgpt.com/";
-
-    const opened =
-      window.open(
-        url,
-        "_blank",
-        "noopener,noreferrer"
-      );
-
-    if (!opened) {
-      window.location.assign(url);
-    }
-  }
-
   function emberChatContext(brand, requestText = "") {
     const signals = getBrandSignals(brand);
     const text = String(requestText || "").toLowerCase();
@@ -1632,29 +1616,38 @@
           requestText
         );
 
-      const copyPromise =
-        copyEmberHandoff(
+      const copied =
+        await copyEmberHandoff(
           promptText
         );
 
-      openChatGptHandoff();
-
-      const copied =
-        await copyPromise;
-
       emberChatState.status =
-        "answered";
+        copied
+          ? "answered"
+          : "error";
 
       emberChatState.responseText =
         copied
-          ? "Handoff copied. Paste it into ChatGPT and send it to Ember."
-          : "ChatGPT opened, but this browser could not copy the handoff automatically. Reopen this panel and try Copy / Paste from a secure browser context.";
+          ? "Ember handoff copied. Switch to your ChatGPT app, paste it into the conversation, and send."
+          : "";
+
+      emberChatState.errorText =
+        copied
+          ? ""
+          : "This browser could not copy the Ember handoff. Try again after allowing clipboard access.";
 
       renderEmberChatPanel();
 
       showToast(
-        "Opening Ember in ChatGPT.",
-        "success"
+        copied
+          ? "Ember handoff copied."
+          : emberChatState.errorText,
+        copied
+          ? "success"
+          : "error",
+        copied
+          ? 3000
+          : 6000
       );
     } catch (error) {
       console.error(
@@ -2874,7 +2867,7 @@
       selectedRecord() {
         return selectedStudioRecord();
       },
-      open(requestText = "") {
+      async copy(requestText = "") {
         const brand = activeBrand();
         const text = String(requestText || "").trim();
 
@@ -2888,13 +2881,9 @@
             text
           );
 
-        copyEmberHandoff(
+        return await copyEmberHandoff(
           promptText
-        ).catch(() => {});
-
-        openChatGptHandoff();
-
-        return true;
+        );
       }
     };
 
