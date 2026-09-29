@@ -30,6 +30,10 @@
     runId: null
   };
 
+  const emberHandoffState = {
+    selectedRecord: null
+  };
+
   function byId(id) {
     return document.getElementById(id);
   }
@@ -722,21 +726,330 @@
         "</p></div></article>";
     }
 
+    const selected =
+      selectedStudioRecord();
+
+    const contextLabel =
+      selected
+        ? selected.type + ": " + (selected.title || selected.id)
+        : "Current " + currentStudioView() + " view";
+
     host.innerHTML =
       "<span class='eyebrow'>Ask Ember</span>" +
-      "<h3 style='margin:4px 0 10px'>Live Workspace Agent</h3>" +
+      "<h3 style='margin:4px 0 6px'>Continue in ChatGPT</h3>" +
+      "<p class='muted-copy' style='margin:0 0 10px'>Context: " +
+      escapeHtml(contextLabel) +
+      "</p>" +
       "<label class='field'><span>Message</span>" +
-      "<textarea id='emberChatInput' rows='3' maxlength='20000' placeholder='Ask Ember for marketing strategy, content, campaign, brand, or performance guidance.'" +
+      "<textarea id='emberChatInput' rows='3' maxlength='12000' placeholder='Tell Ember what to do with the current Studio item or view.'" +
       (busy ? " disabled" : "") +
       ">" +
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
       "<div class='form-actions'>" +
-      "<span class='muted-copy'>Marketing review-only. Routine Studio operations stay local and do not use Ember.</span>" +
+      "<span class='muted-copy'>Uses your connected Black Stag Marketing Studio app in ChatGPT. No separate Studio AI request is sent.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
       (busy ? " disabled" : "") +
-      ">Send to Ember</button></div>" +
+      ">Open Ember in ChatGPT</button></div>" +
       statusHtml;
+  }
+
+  function currentStudioView() {
+    try {
+      if (
+        typeof APP_STATE !== "undefined" &&
+        APP_STATE?.activeView
+      ) {
+        return String(APP_STATE.activeView);
+      }
+    } catch {}
+
+    return (
+      document.querySelector(
+        "[data-view-panel]:not([hidden])"
+      )?.dataset?.viewPanel ||
+      "dashboard"
+    );
+  }
+
+  function recordTitle(type, id) {
+    let item = null;
+
+    if (type === "content") {
+      item = contentById(id);
+      return item?.title || "Untitled Content";
+    }
+
+    if (type === "campaign") {
+      item = campaignById(id);
+      return item?.name || "Untitled Campaign";
+    }
+
+    if (type === "calendar") {
+      item = (APP_DATA.calendar || []).find(
+        entry => String(entry.id) === String(id)
+      );
+      return item?.title || "Calendar Item";
+    }
+
+    if (type === "asset") {
+      item = assetById(id);
+      return item?.name || "Asset";
+    }
+
+    if (type === "asset_folder") {
+      item = (APP_DATA.assetFolders || []).find(
+        entry => String(entry.id) === String(id)
+      );
+      return item?.name || "Asset Folder";
+    }
+
+    return null;
+  }
+
+  function rememberEmberSelection(type, id) {
+    const brand = activeBrand();
+
+    if (!type || !id || !brand) {
+      return;
+    }
+
+    emberHandoffState.selectedRecord = {
+      type: String(type),
+      id: String(id),
+      title: recordTitle(type, id),
+      brandId: String(brand.id),
+      view: currentStudioView()
+    };
+  }
+
+  function captureEmberSelection(event) {
+    const viewButton =
+      event.target.closest?.("[data-view]");
+
+    if (viewButton) {
+      emberHandoffState.selectedRecord = null;
+      return;
+    }
+
+    const result =
+      event.target.closest?.(
+        "[data-power-result-kind][data-power-result-id]"
+      );
+
+    if (result) {
+      rememberEmberSelection(
+        result.dataset.powerResultKind,
+        result.dataset.powerResultId
+      );
+      return;
+    }
+
+    const campaign =
+      event.target.closest?.(
+        "[data-power-campaign], [data-campaign-id]"
+      );
+
+    if (campaign) {
+      rememberEmberSelection(
+        "campaign",
+        campaign.dataset.powerCampaign ||
+          campaign.dataset.campaignId
+      );
+      return;
+    }
+
+    const content =
+      event.target.closest?.("[data-open-content]");
+
+    if (content) {
+      rememberEmberSelection(
+        "content",
+        content.dataset.openContent
+      );
+      return;
+    }
+
+    const calendar =
+      event.target.closest?.(
+        "[data-calendar-action][data-calendar-item-id]"
+      );
+
+    if (calendar) {
+      rememberEmberSelection(
+        calendar.dataset.calendarAction === "content"
+          ? "content"
+          : "calendar",
+        calendar.dataset.calendarItemId
+      );
+      return;
+    }
+
+    const asset =
+      event.target.closest?.("[data-open-asset]");
+
+    if (asset) {
+      rememberEmberSelection(
+        "asset",
+        asset.dataset.openAsset
+      );
+      return;
+    }
+
+    const folder =
+      event.target.closest?.("[data-open-asset-folder]");
+
+    if (folder) {
+      rememberEmberSelection(
+        "asset_folder",
+        folder.dataset.openAssetFolder
+      );
+    }
+  }
+
+  function selectedStudioRecord() {
+    const brand = activeBrand();
+    const selected =
+      emberHandoffState.selectedRecord;
+
+    if (
+      selected &&
+      brand &&
+      String(selected.brandId) === String(brand.id)
+    ) {
+      return {
+        type: selected.type,
+        id: selected.id,
+        title:
+          recordTitle(selected.type, selected.id) ||
+          selected.title ||
+          null
+      };
+    }
+
+    const candidates = [
+      ["campaign", "campaignDetailId"],
+      ["content", "contentEditorId"],
+      ["calendar", "calendarItemEditorId"],
+      ["asset", "assetEditorId"]
+    ];
+
+    for (const [type, inputId] of candidates) {
+      const input = byId(inputId);
+      const dialog = input?.closest?.("dialog");
+
+      if (
+        input?.value &&
+        dialog?.open
+      ) {
+        return {
+          type,
+          id: String(input.value),
+          title: recordTitle(type, input.value)
+        };
+      }
+    }
+
+    try {
+      if (
+        currentStudioView() === "vault" &&
+        APP_STATE?.activeAssetFolderId
+      ) {
+        return {
+          type: "asset_folder",
+          id: String(APP_STATE.activeAssetFolderId),
+          title:
+            recordTitle(
+              "asset_folder",
+              APP_STATE.activeAssetFolderId
+            )
+        };
+      }
+    } catch {}
+
+    return null;
+  }
+
+  function emberHandoffPayload(brand, requestText) {
+    const selected =
+      selectedStudioRecord();
+
+    return {
+      schema: "bsms.ember_handoff.v1",
+      source: "black_stag_marketing_studio",
+      created_at: new Date().toISOString(),
+      brand: {
+        id: brand.id,
+        name: brand.name || null,
+        short_name: brand.shortName || null
+      },
+      studio: {
+        view: currentStudioView(),
+        selected_record: selected
+      },
+      instruction: String(requestText || "").trim(),
+      writeback: {
+        requested: true,
+        target: selected
+          ? {
+              type: selected.type,
+              id: selected.id
+            }
+          : null,
+        rule:
+          "Use the connected Black Stag Marketing Studio tools for reads and supported writes. If the request changes Studio data, write the result back to the referenced record when a matching write tool exists. Never claim a save succeeded unless the tool confirms it."
+      }
+    };
+  }
+
+  function emberHandoffPrompt(brand, requestText) {
+    const payload =
+      emberHandoffPayload(
+        brand,
+        requestText
+      );
+
+    return (
+      "@Black Stag Marketing Studio\n\n" +
+      "Ember handoff from Black Stag Marketing Studio. " +
+      "Use the connected BSMS tools to fulfill my request. " +
+      "The JSON payload below is Studio context supplied by my app. " +
+      "Use the record IDs to read the live source of truth before changing anything. " +
+      "If a supported write is requested, save the result back to BSMS and tell me what changed. " +
+      "If there is no matching write tool, tell me clearly and do not pretend it was saved.\n\n" +
+      "BSMS_HANDOFF_PAYLOAD\n" +
+      JSON.stringify(payload, null, 2)
+    );
+  }
+
+  async function copyEmberHandoff(text) {
+    try {
+      if (
+        navigator.clipboard &&
+        window.isSecureContext
+      ) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {}
+
+    return false;
+  }
+
+  function openChatGptHandoff() {
+    const url =
+      "https://chatgpt.com/";
+
+    const opened =
+      window.open(
+        url,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+    if (!opened) {
+      window.location.assign(url);
+    }
   }
 
   function emberChatContext(brand, requestText = "") {
@@ -954,7 +1267,7 @@
   async function submitEmberChat(retry = false) {
     const brand = activeBrand();
 
-    if (!brand || !supabaseClient) {
+    if (!brand) {
       return;
     }
 
@@ -977,60 +1290,57 @@
       return;
     }
 
-    emberChatState.requestText = requestText;
+    emberChatState.requestText =
+      requestText;
+
     emberChatState.responseText = "";
     emberChatState.errorText = "";
     emberChatState.status = "sending";
     renderEmberChatPanel();
 
     try {
-      const { data, error } =
-        await supabaseClient
-          .functions
-          .invoke(
-            "trigger-ember-agent",
-            {
-              body: {
-                request_type: "studio_chat",
-                brand_id: brand.id,
-                request_text: requestText,
-                request_context: emberChatContext(brand, requestText)
-              }
-            }
-          );
-
-      if (error) {
-        throw new Error(
-          await emberFunctionErrorMessage(error)
+      const promptText =
+        emberHandoffPrompt(
+          brand,
+          requestText
         );
-      }
 
-      if (!data?.run_id) {
-        throw new Error(
-          "Ember request was accepted without a run id."
+      const copyPromise =
+        copyEmberHandoff(
+          promptText
         );
-      }
 
-      emberChatState.runId = data.run_id;
-      emberChatState.status = "waiting";
+      openChatGptHandoff();
+
+      const copied =
+        await copyPromise;
+
+      emberChatState.status =
+        "answered";
+
+      emberChatState.responseText =
+        copied
+          ? "Handoff copied. Paste it into ChatGPT and send it to Ember."
+          : "ChatGPT opened, but this browser could not copy the handoff automatically. Reopen this panel and try Copy / Paste from a secure browser context.";
+
       renderEmberChatPanel();
 
-      await waitForEmberChatReply(data.run_id);
-
       showToast(
-        "Ember replied.",
+        "Opening Ember in ChatGPT.",
         "success"
       );
     } catch (error) {
       console.error(
-        "Ember Daily Brief request failed:",
+        "Ember handoff failed:",
         error
       );
 
-      emberChatState.status = "error";
+      emberChatState.status =
+        "error";
+
       emberChatState.errorText =
         error?.message ||
-        "Ember could not answer this request.";
+        "The Ember handoff could not be prepared.";
 
       renderEmberChatPanel();
 
@@ -1984,6 +2294,8 @@
   }
 
   function handlePowerClick(event) {
+    captureEmberSelection(event);
+
     const close = event.target.closest("[data-power-close]");
 
     if (close) {
@@ -2192,6 +2504,40 @@
   }
 
   function startPowerTools() {
+    window.BlackStagEmberHandoff = {
+      buildPayload(requestText = "") {
+        const brand = activeBrand();
+        return brand
+          ? emberHandoffPayload(brand, requestText)
+          : null;
+      },
+      selectedRecord() {
+        return selectedStudioRecord();
+      },
+      open(requestText = "") {
+        const brand = activeBrand();
+        const text = String(requestText || "").trim();
+
+        if (!brand || !text) {
+          return false;
+        }
+
+        const promptText =
+          emberHandoffPrompt(
+            brand,
+            text
+          );
+
+        copyEmberHandoff(
+          promptText
+        ).catch(() => {});
+
+        openChatGptHandoff();
+
+        return true;
+      }
+    };
+
     addPowerTools();
     enhanceVisibleCards();
 
