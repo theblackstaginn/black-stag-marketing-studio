@@ -36,7 +36,7 @@ where b.active = true
 create or replace function public.ensure_newly_created_asset_folder()
 returns trigger
 language plpgsql
-security definer
+security invoker
 set search_path = public
 as $$
 begin
@@ -73,7 +73,7 @@ create trigger brand_newly_created_asset_folder
 create or replace function public.route_new_generated_asset()
 returns trigger
 language plpgsql
-security definer
+security invoker
 set search_path = public
 as $$
 declare
