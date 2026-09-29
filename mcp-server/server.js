@@ -304,6 +304,661 @@ function isAllowedExternalAssetHost(hostname) {
   );
 }
 
+
+const STUDIO_UI_URI =
+  "ui://black-stag/marketing-studio.html";
+
+const STUDIO_UI_HTML = String.raw\`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover"
+  />
+  <title>Black Stag Marketing Studio</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family:
+        Inter,
+        ui-sans-serif,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+      --ink: #f1e7d2;
+      --muted: #b7aa95;
+      --panel: rgba(17, 15, 14, 0.78);
+      --panel-soft: rgba(31, 25, 21, 0.68);
+      --line: rgba(197, 134, 76, 0.38);
+      --copper: #c5864c;
+      --copper-soft: #e2b17b;
+      --shadow: rgba(0, 0, 0, 0.42);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      background:
+        radial-gradient(
+          circle at 18% 12%,
+          rgba(132, 77, 42, 0.16),
+          transparent 34%
+        ),
+        radial-gradient(
+          circle at 86% 4%,
+          rgba(103, 53, 31, 0.14),
+          transparent 31%
+        ),
+        linear-gradient(
+          180deg,
+          #151210 0%,
+          #0d0b0a 100%
+        );
+      color: var(--ink);
+    }
+
+    body {
+      padding:
+        max(18px, env(safe-area-inset-top))
+        max(18px, env(safe-area-inset-right))
+        max(88px, calc(env(safe-area-inset-bottom) + 72px))
+        max(18px, env(safe-area-inset-left));
+    }
+
+    .shell {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      display: grid;
+      gap: 18px;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 18px 20px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(44, 34, 28, 0.82),
+          rgba(19, 16, 14, 0.9)
+        );
+      box-shadow:
+        0 20px 50px var(--shadow),
+        inset 0 1px rgba(255, 255, 255, 0.04);
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .eyebrow {
+      margin: 0 0 5px;
+      color: var(--copper-soft);
+      font-size: 0.76rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+      font-size: clamp(1.45rem, 4vw, 2.4rem);
+      font-weight: 700;
+      line-height: 1.05;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      padding: 8px 12px;
+      border: 1px solid rgba(197, 134, 76, 0.28);
+      border-radius: 999px;
+      color: var(--muted);
+      background: rgba(0, 0, 0, 0.18);
+      font-size: 0.83rem;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--copper);
+      box-shadow: 0 0 14px rgba(197, 134, 76, 0.7);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1.6fr)
+        minmax(260px, 0.8fr);
+      gap: 18px;
+    }
+
+    .panel {
+      min-width: 0;
+      border: 1px solid rgba(197, 134, 76, 0.24);
+      border-radius: 20px;
+      padding: 20px;
+      background: var(--panel);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.28),
+        inset 0 1px rgba(255, 255, 255, 0.035);
+      backdrop-filter: blur(12px);
+    }
+
+    .panel h2 {
+      margin: 0 0 8px;
+      font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+      font-size: 1.25rem;
+    }
+
+    .panel p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .ask-form {
+      margin-top: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 132px;
+      resize: vertical;
+      border: 1px solid rgba(197, 134, 76, 0.34);
+      border-radius: 16px;
+      padding: 14px 15px;
+      color: var(--ink);
+      background: rgba(4, 4, 4, 0.32);
+      font: inherit;
+      line-height: 1.45;
+      outline: none;
+    }
+
+    textarea:focus {
+      border-color: rgba(226, 177, 123, 0.7);
+      box-shadow: 0 0 0 3px rgba(197, 134, 76, 0.12);
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid rgba(226, 177, 123, 0.5);
+      border-radius: 14px;
+      padding: 11px 14px;
+      color: #17100b;
+      background:
+        linear-gradient(
+          180deg,
+          #dfad78,
+          #a96232
+        );
+      font: inherit;
+      font-weight: 850;
+      cursor: pointer;
+      box-shadow:
+        inset 0 1px rgba(255, 255, 255, 0.28),
+        0 10px 24px rgba(0, 0, 0, 0.25);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    .quick-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .quick-actions button {
+      width: 100%;
+      text-align: left;
+      color: var(--ink);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(67, 50, 40, 0.88),
+          rgba(35, 27, 23, 0.9)
+        );
+    }
+
+    .helper {
+      margin-top: 12px !important;
+      font-size: 0.86rem;
+    }
+
+    .bridge-status {
+      margin-top: 12px;
+      min-height: 1.3em;
+      color: var(--copper-soft);
+      font-size: 0.86rem;
+    }
+
+    .rule {
+      height: 1px;
+      margin: 18px 0;
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(197, 134, 76, 0.42),
+          transparent
+        );
+    }
+
+    .small {
+      font-size: 0.88rem;
+    }
+
+    @media (max-width: 760px) {
+      body {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .masthead {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+
+      .status {
+        white-space: normal;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="masthead">
+      <div class="brand">
+        <p class="eyebrow">Black Stag</p>
+        <h1>Marketing Studio</h1>
+      </div>
+
+      <div class="status">
+        <span class="status-dot" aria-hidden="true"></span>
+        <span id="connectionLabel">Connecting Ember...</span>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="panel">
+        <p class="eyebrow">Ask Ember</p>
+        <h2>Use the same ChatGPT conversation from inside Studio.</h2>
+        <p>
+          Messages sent here become normal user messages in this ChatGPT
+          conversation. Ember can then use the existing Marketing Studio tools,
+          Asset Vault, Brand Brain, work queues, and other connected tools.
+        </p>
+
+        <form class="ask-form" id="askForm">
+          <textarea
+            id="askInput"
+            maxlength="12000"
+            placeholder="Ask Ember what you want to work on..."
+          ></textarea>
+
+          <button id="askButton" type="submit">
+            Send to Ember
+          </button>
+        </form>
+
+        <p class="bridge-status" id="bridgeStatus" aria-live="polite"></p>
+
+        <div class="rule"></div>
+
+        <p class="helper">
+          The native ChatGPT composer remains available in fullscreen too, so
+          you can use either input.
+        </p>
+      </article>
+
+      <aside class="panel">
+        <p class="eyebrow">Quick actions</p>
+        <h2>Start with context.</h2>
+        <p class="small">
+          These buttons send a normal follow-up message to Ember. They do not
+          publish, schedule, approve, or delete anything.
+        </p>
+
+        <div class="quick-actions">
+          <button
+            type="button"
+            data-prompt="Morning Ember. Build my live Black Stag Marketing Studio daily brief and tell me what needs attention first."
+          >
+            Morning Ember
+          </button>
+
+          <button
+            type="button"
+            data-prompt="Show me the open work items across my Black Stag Marketing Studio brands and help me choose what to tackle next."
+          >
+            Open work
+          </button>
+
+          <button
+            type="button"
+            data-prompt="Open my Marketing Studio Asset Vault workflow. Tell me what asset work is currently waiting or incomplete."
+          >
+            Asset work
+          </button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <script>
+    const connectionLabel =
+      document.getElementById("connectionLabel");
+
+    const bridgeStatus =
+      document.getElementById("bridgeStatus");
+
+    const askForm =
+      document.getElementById("askForm");
+
+    const askInput =
+      document.getElementById("askInput");
+
+    const askButton =
+      document.getElementById("askButton");
+
+    const pendingRequests =
+      new Map();
+
+    let nextRequestId = 1;
+    let bridgeReady = false;
+
+    function rpcRequest(method, params) {
+      const id = nextRequestId++;
+
+      window.parent.postMessage(
+        {
+          jsonrpc: "2.0",
+          id,
+          method,
+          params
+        },
+        "*"
+      );
+
+      return new Promise(
+        (resolve, reject) => {
+          pendingRequests.set(
+            id,
+            {
+              resolve,
+              reject
+            }
+          );
+        }
+      );
+    }
+
+    function rpcNotify(method, params) {
+      window.parent.postMessage(
+        {
+          jsonrpc: "2.0",
+          method,
+          params
+        },
+        "*"
+      );
+    }
+
+    window.addEventListener(
+      "message",
+      (event) => {
+        if (
+          event.source !==
+          window.parent
+        ) {
+          return;
+        }
+
+        const message =
+          event.data;
+
+        if (
+          !message ||
+          message.jsonrpc !==
+            "2.0"
+        ) {
+          return;
+        }
+
+        if (
+          typeof message.id ===
+          "number"
+        ) {
+          const pending =
+            pendingRequests.get(
+              message.id
+            );
+
+          if (!pending) {
+            return;
+          }
+
+          pendingRequests.delete(
+            message.id
+          );
+
+          if (message.error) {
+            pending.reject(
+              message.error
+            );
+
+            return;
+          }
+
+          pending.resolve(
+            message.result
+          );
+        }
+      },
+      {
+        passive: true
+      }
+    );
+
+    async function initializeBridge() {
+      try {
+        await rpcRequest(
+          "ui/initialize",
+          {
+            appInfo: {
+              name:
+                "black-stag-marketing-studio",
+              version:
+                "0.1.0"
+            },
+            appCapabilities: {},
+            protocolVersion:
+              "2026-01-26"
+          }
+        );
+
+        rpcNotify(
+          "ui/notifications/initialized",
+          {}
+        );
+
+        bridgeReady = true;
+        connectionLabel.textContent =
+          "Ember bridge ready";
+
+        bridgeStatus.textContent =
+          "Connected to the current ChatGPT conversation.";
+
+        if (
+          window.openai &&
+          window.openai
+            .requestDisplayMode
+        ) {
+          try {
+            await window.openai
+              .requestDisplayMode({
+                mode:
+                  "fullscreen"
+              });
+          } catch {}
+        }
+      } catch (error) {
+        connectionLabel.textContent =
+          "ChatGPT bridge available";
+
+        bridgeStatus.textContent =
+          "Using ChatGPT compatibility bridge.";
+
+        console.warn(
+          "MCP Apps bridge initialization failed.",
+          error
+        );
+      }
+    }
+
+    const ready =
+      initializeBridge();
+
+    async function sendPrompt(prompt) {
+      const text =
+        String(
+          prompt ||
+          ""
+        ).trim();
+
+      if (!text) {
+        return;
+      }
+
+      askButton.disabled = true;
+      bridgeStatus.textContent =
+        "Sending to Ember...";
+
+      try {
+        await ready;
+
+        if (bridgeReady) {
+          const result =
+            await rpcRequest(
+              "ui/message",
+              {
+                role: "user",
+                content: [
+                  {
+                    type:
+                      "text",
+                    text
+                  }
+                ]
+              }
+            );
+
+          if (
+            result &&
+            result.isError
+          ) {
+            throw new Error(
+              "ChatGPT rejected the message."
+            );
+          }
+        } else if (
+          window.openai &&
+          window.openai
+            .sendFollowUpMessage
+        ) {
+          await window.openai
+            .sendFollowUpMessage({
+              prompt: text,
+              scrollToBottom:
+                true
+            });
+        } else {
+          throw new Error(
+            "No ChatGPT message bridge is available."
+          );
+        }
+
+        askInput.value = "";
+        bridgeStatus.textContent =
+          "Sent. Ember is responding in this conversation.";
+      } catch (error) {
+        console.error(
+          "Unable to send Studio message.",
+          error
+        );
+
+        bridgeStatus.textContent =
+          "Could not send the message. Use the native ChatGPT composer below and retry.";
+      } finally {
+        askButton.disabled =
+          false;
+      }
+    }
+
+    askForm.addEventListener(
+      "submit",
+      async (event) => {
+        event.preventDefault();
+
+        await sendPrompt(
+          askInput.value
+        );
+      }
+    );
+
+    document
+      .querySelectorAll(
+        "[data-prompt]"
+      )
+      .forEach(
+        (button) => {
+          button.addEventListener(
+            "click",
+            async () => {
+              await sendPrompt(
+                button.dataset
+                  .prompt
+              );
+            }
+          );
+        }
+      );
+  </script>
+</body>
+</html>\`;
+
 /* ========================================
    READ-ONLY TOOL METADATA
    ======================================== */
@@ -351,6 +1006,88 @@ function buildServer(supabase, authenticatedUser) {
         "black-stag-marketing-studio",
       version: "0.1.0"
     });
+
+  /* --------------------------------------
+     MARKETING STUDIO UI
+     -------------------------------------- */
+
+  server.registerResource(
+    "black-stag-marketing-studio-ui",
+    STUDIO_UI_URI,
+    {
+      title:
+        "Black Stag Marketing Studio",
+      description:
+        "Fullscreen Black Stag Marketing Studio interface for use inside ChatGPT.",
+      mimeType:
+        "text/html;profile=mcp-app"
+    },
+    async (uri) => ({
+      contents: [
+        {
+          uri:
+            uri.href,
+          mimeType:
+            "text/html;profile=mcp-app",
+          text:
+            STUDIO_UI_HTML,
+          _meta: {
+            ui: {
+              prefersBorder:
+                false
+            },
+            "openai/ui": {
+              availableDisplayModes: [
+                "fullscreen"
+              ]
+            }
+          }
+        }
+      ]
+    })
+  );
+
+  server.registerTool(
+    "open_marketing_studio",
+    {
+      title:
+        "Open Marketing Studio",
+
+      description:
+        "Open the Black Stag Marketing Studio as a fullscreen interface inside ChatGPT. Use when the owner asks to open, enter, view, or work inside Marketing Studio.",
+
+      inputSchema: {},
+
+      _meta: {
+        ui: {
+          resourceUri:
+            STUDIO_UI_URI
+        },
+
+        "openai/outputTemplate":
+          STUDIO_UI_URI
+      },
+
+      ...readOnlyToolMetadata
+    },
+
+    async () => ({
+      content: [
+        {
+          type:
+            "text",
+
+          text:
+            "Black Stag Marketing Studio is ready."
+        }
+      ],
+
+      structuredContent: {
+        ready:
+          true
+      }
+    })
+  );
 
   /* --------------------------------------
      LIST BRANDS
