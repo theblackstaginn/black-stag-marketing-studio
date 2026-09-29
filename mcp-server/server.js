@@ -1030,21 +1030,7 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
       try {
         await ready;
 
-        const pinned =
-          await requestMode("pip");
-
-        if (
-          window.openai &&
-          window.openai
-            .sendFollowUpMessage
-        ) {
-          await window.openai
-            .sendFollowUpMessage({
-              prompt: text,
-              scrollToBottom:
-                pinned
-            });
-        } else if (bridgeReady) {
+        if (bridgeReady) {
           const result =
             await rpcRequest(
               "ui/message",
@@ -1068,6 +1054,17 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
               "ChatGPT rejected the message."
             );
           }
+        } else if (
+          window.openai &&
+          window.openai
+            .sendFollowUpMessage
+        ) {
+          await window.openai
+            .sendFollowUpMessage({
+              prompt: text,
+              scrollToBottom:
+                false
+            });
         } else {
           throw new Error(
             "No ChatGPT message bridge is available."
