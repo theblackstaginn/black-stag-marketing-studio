@@ -270,6 +270,40 @@ function extensionForMime(mimeType) {
   return "png";
 }
 
+
+function isSupportedImageMime(mimeType) {
+  return new Set([
+    "image/png",
+    "image/jpeg",
+    "image/webp",
+    "image/gif"
+  ]).has(
+    String(
+      mimeType ||
+      ""
+    )
+      .split(";")[0]
+      .trim()
+      .toLowerCase()
+  );
+}
+
+
+function isAllowedExternalAssetHost(hostname) {
+  return new Set([
+    "raw.githubusercontent.com",
+    "github.com",
+    "user-images.githubusercontent.com"
+  ]).has(
+    String(
+      hostname ||
+      ""
+    )
+      .trim()
+      .toLowerCase()
+  );
+}
+
 /* ========================================
    READ-ONLY TOOL METADATA
    ======================================== */
@@ -928,12 +962,12 @@ function buildServer(supabase, authenticatedUser) {
 
       if (
         mimeType &&
-        !mimeType.startsWith(
-          "image/"
+        !isSupportedImageMime(
+          mimeType
         )
       ) {
         throw new Error(
-          "This Asset Vault item is not an image."
+          "This Asset Vault item is not a supported raster image."
         );
       }
 
@@ -984,10 +1018,13 @@ function buildServer(supabase, authenticatedUser) {
 
         if (
           url.protocol !==
-          "https:"
+          "https:" ||
+          !isAllowedExternalAssetHost(
+            url.hostname
+          )
         ) {
           throw new Error(
-            "External Asset Vault images must use HTTPS."
+            "This external Asset Vault image source is not on an approved host."
           );
         }
 
@@ -1034,12 +1071,12 @@ function buildServer(supabase, authenticatedUser) {
           .toLowerCase();
 
       if (
-        !resolvedMime.startsWith(
-          "image/"
+        !isSupportedImageMime(
+          resolvedMime
         )
       ) {
         throw new Error(
-          "The resolved Asset Vault file is not an image."
+          "The resolved Asset Vault file is not a supported raster image."
         );
       }
 
@@ -1314,12 +1351,12 @@ function buildServer(supabase, authenticatedUser) {
           .toLowerCase();
 
       if (
-        !responseMime.startsWith(
-          "image/"
+        !isSupportedImageMime(
+          responseMime
         )
       ) {
         throw new Error(
-          "Only image files can be saved with this tool."
+          "Only PNG, JPEG, WebP, or GIF image files can be saved with this tool."
         );
       }
 
