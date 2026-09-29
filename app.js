@@ -1401,6 +1401,15 @@ function normalizeAssetFolder(row) {
       row.description ||
       "",
 
+    isPinned:
+      Boolean(
+        row.is_pinned
+      ),
+
+    systemKey:
+      row.system_key ||
+      "",
+
     createdAt:
       row.created_at,
 
@@ -12805,11 +12814,20 @@ function renderAssets() {
       )
       .slice()
       .sort(
-        (a, b) =>
-          String(a.name || "")
+        (a, b) => {
+          const pinDifference =
+            Number(Boolean(b.isPinned)) -
+            Number(Boolean(a.isPinned));
+
+          if (pinDifference) {
+            return pinDifference;
+          }
+
+          return String(a.name || "")
             .localeCompare(
               String(b.name || "")
-            )
+            );
+        }
       );
 
   let assets =
@@ -12954,14 +12972,23 @@ function renderAssets() {
         )
           .slice()
           .sort(
-            (a, b) =>
-              String(
+            (a, b) => {
+              const pinDifference =
+                Number(Boolean(b.isPinned)) -
+                Number(Boolean(a.isPinned));
+
+              if (pinDifference) {
+                return pinDifference;
+              }
+
+              return String(
                 a.name || ""
               ).localeCompare(
                 String(
                   b.name || ""
                 )
-              )
+              );
+            }
           );
 
       const directAssets =
@@ -13014,19 +13041,51 @@ function renderAssets() {
             )
           : "";
 
+      const pinned =
+        Boolean(folder.isPinned);
+
+      const actionsHtml =
+        pinned
+          ? (
+              '<div class="asset-folder-actions">' +
+                '<span class="eyebrow">Pinned intake folder</span>' +
+              '</div>'
+            )
+          : (
+              '<div class="asset-folder-actions">' +
+                '<button class="secondary-button" type="button" data-rename-current-asset-folder="' +
+                  escapeHtml(folder.id) +
+                '">Rename</button>' +
+                '<button class="danger-button" type="button" data-delete-asset-folder="' +
+                  escapeHtml(folder.id) +
+                '">Delete</button>' +
+              '</div>'
+            );
+
       return (
-        '<details class="asset-folder-dropdown" data-folder-depth="' +
+        '<details class="asset-folder-dropdown' +
+          (pinned ? ' asset-folder-pinned' : '') +
+          '" data-folder-depth="' +
           escapeHtml(depth) +
-        '">' +
+          '"' +
+          (pinned ? ' open' : '') +
+        '>' +
           '<summary class="asset-folder-summary">' +
             '<span class="asset-folder-chevron" aria-hidden="true">›</span>' +
-            '<span class="asset-folder-icon" aria-hidden="true">◇</span>' +
+            '<span class="asset-folder-icon" aria-hidden="true">' +
+              (pinned ? '◆' : '◇') +
+            '</span>' +
             '<span class="asset-folder-title">' +
               escapeHtml(
                 folder.name ||
                 "Untitled Folder"
               ) +
             '</span>' +
+            (
+              pinned
+                ? '<span class="asset-folder-pin-label">PINNED</span>'
+                : ''
+            ) +
             '<span class="asset-folder-count">' +
               escapeHtml(total) +
               (
@@ -13037,14 +13096,7 @@ function renderAssets() {
             '</span>' +
           '</summary>' +
           '<div class="asset-folder-dropdown-body">' +
-            '<div class="asset-folder-actions">' +
-              '<button class="secondary-button" type="button" data-rename-current-asset-folder="' +
-                escapeHtml(folder.id) +
-              '">Rename</button>' +
-              '<button class="danger-button" type="button" data-delete-asset-folder="' +
-                escapeHtml(folder.id) +
-              '">Delete</button>' +
-            '</div>' +
+            actionsHtml +
             (
               childrenHtml
                 ? (
@@ -14739,6 +14791,14 @@ async function renameAssetFolder(
     return;
   }
 
+  if (folder.systemKey) {
+    showToast(
+      "Pinned system folders cannot be renamed.",
+      "error"
+    );
+    return;
+  }
+
   const currentName =
     folderName(folder);
 
@@ -14834,6 +14894,15 @@ async function deleteAssetFolder(
   if (!folder) {
     showToast(
       "Asset folder could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (folder.systemKey) {
+    showToast(
+      "Pinned system folders cannot be deleted.",
       "error"
     );
 
