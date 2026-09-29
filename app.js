@@ -17442,7 +17442,8 @@ const MANUAL_AI_STATE = {
   request: "",
   goal: "",
   brief: "",
-  aiMode: "manual-chatgpt"
+  aiMode: "manual-chatgpt",
+  generatedAssetId: null
 };
 
 
@@ -17654,6 +17655,176 @@ function ensureManualAiDialog() {
 
         </section>
 
+
+        <section
+          id="manualAiImageSection"
+          style="
+            padding-top:18px;
+            border-top:1px solid var(--line);
+          "
+        >
+          <div
+            style="
+              display:flex;
+              justify-content:space-between;
+              align-items:flex-start;
+              gap:12px;
+              flex-wrap:wrap;
+              margin-bottom:10px;
+            "
+          >
+            <div>
+              <span class="eyebrow">
+                Visual Studio
+              </span>
+
+              <h3
+                style="
+                  margin:4px 0 0;
+                  font-family:
+                    Georgia,
+                    'Times New Roman',
+                    serif;
+                  font-size:1rem;
+                  font-weight:400;
+                "
+              >
+                Generate a visual for this content
+              </h3>
+            </div>
+
+            <span
+              style="
+                color:var(--muted);
+                font-size:.72rem;
+                line-height:1.5;
+              "
+            >
+              One image per click · saved to Asset Vault
+            </span>
+          </div>
+
+          <label class="field">
+            <span>
+              Image direction
+            </span>
+
+            <textarea
+              id="manualAiImagePrompt"
+              rows="4"
+              maxlength="12000"
+              placeholder="Describe the image you want. You can change this without changing the written draft."
+            ></textarea>
+          </label>
+
+          <div
+            style="
+              display:grid;
+              grid-template-columns:
+                repeat(auto-fit,minmax(170px,1fr));
+              gap:12px;
+              margin-top:12px;
+            "
+          >
+            <label class="field">
+              <span>
+                Format
+              </span>
+
+              <select id="manualAiImageSize">
+                <option value="1024x1024">
+                  Square · 1024 × 1024
+                </option>
+                <option value="1024x1536">
+                  Portrait · 1024 × 1536
+                </option>
+                <option value="1536x1024">
+                  Landscape · 1536 × 1024
+                </option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>
+                Quality
+              </span>
+
+              <select id="manualAiImageQuality">
+                <option value="low">
+                  Draft · Low
+                </option>
+                <option value="medium">
+                  Better · Medium
+                </option>
+                <option value="high">
+                  Final · High
+                </option>
+              </select>
+            </label>
+          </div>
+
+          <div
+            class="form-actions"
+            style="
+              justify-content:flex-start;
+              margin-top:12px;
+            "
+          >
+            <button
+              id="generateStudioImageButton"
+              class="secondary-button"
+              type="button"
+            >
+              Generate Image
+            </button>
+
+            <span
+              id="manualAiImageStatus"
+              style="
+                color:var(--muted);
+                font-size:.72rem;
+                line-height:1.5;
+              "
+            ></span>
+          </div>
+
+          <div
+            id="manualAiImagePreview"
+            hidden
+            style="
+              margin-top:14px;
+              padding:12px;
+              border:1px solid var(--line);
+              border-radius:var(--radius);
+              background:rgba(255,255,255,.018);
+            "
+          >
+            <img
+              id="manualAiGeneratedImage"
+              alt="Generated Content Studio visual"
+              style="
+                display:block;
+                width:100%;
+                max-height:560px;
+                object-fit:contain;
+                border-radius:calc(var(--radius) - 4px);
+              "
+            />
+
+            <p
+              style="
+                margin:10px 0 0;
+                color:var(--muted);
+                font-size:.72rem;
+                line-height:1.5;
+              "
+            >
+              Saved as generated artwork in this brand's Asset Vault.
+              Generated images stay unapproved until you review them.
+            </p>
+          </div>
+        </section>
+
         <section
           style="
             padding-top:18px;
@@ -17767,6 +17938,12 @@ function ensureManualAiDialog() {
       retryManualAiWithEmber
     );
 
+  $("#generateStudioImageButton")
+    ?.addEventListener(
+      "click",
+      generateStudioImageForCurrentState
+    );
+
   enableBackdropClose(
     dialog
   );
@@ -17808,6 +17985,9 @@ function showManualAiDialog({
   MANUAL_AI_STATE.aiMode =
     "manual-chatgpt";
 
+  MANUAL_AI_STATE.generatedAssetId =
+    null;
+
   const definition =
     CREATE_TYPES[type];
 
@@ -17836,6 +18016,58 @@ function showManualAiDialog({
   if (resultField) {
     resultField.value =
       "";
+  }
+
+  const imagePromptField =
+    $("#manualAiImagePrompt");
+
+  if (imagePromptField) {
+    imagePromptField.value =
+      request || "";
+  }
+
+  const imageSizeField =
+    $("#manualAiImageSize");
+
+  if (imageSizeField) {
+    imageSizeField.value =
+      type === "story" ||
+      type === "reel"
+        ? "1024x1536"
+        : "1024x1024";
+  }
+
+  const imageQualityField =
+    $("#manualAiImageQuality");
+
+  if (imageQualityField) {
+    imageQualityField.value =
+      "low";
+  }
+
+  const imageStatus =
+    $("#manualAiImageStatus");
+
+  if (imageStatus) {
+    imageStatus.textContent =
+      "";
+  }
+
+  const imagePreview =
+    $("#manualAiImagePreview");
+
+  if (imagePreview) {
+    imagePreview.hidden =
+      true;
+  }
+
+  const generatedImage =
+    $("#manualAiGeneratedImage");
+
+  if (generatedImage) {
+    generatedImage.removeAttribute(
+      "src"
+    );
   }
 
   setManualAiStatus(
@@ -17884,6 +18116,313 @@ function showManualAiDialog({
     },
     100
   );
+}
+
+
+/* =========================================================
+   CONTENT STUDIO IMAGE GENERATION
+   ========================================================= */
+
+function buildStudioImagePrompt({
+  brand,
+  direction,
+  goal,
+  platform
+}) {
+  const parts = [
+    `Create a polished marketing visual for ${brand.name}.`,
+    direction
+  ];
+
+  if (brand.shortDescription) {
+    parts.push(
+      `Brand context: ${brand.shortDescription}`
+    );
+  }
+
+  const voice =
+    brand.voice?.adjectives ||
+    [];
+
+  if (voice.length) {
+    parts.push(
+      `Visual tone: ${voice.slice(0, 6).join(", ")}.`
+    );
+  }
+
+  if (goal) {
+    parts.push(
+      `Marketing goal: ${goal}.`
+    );
+  }
+
+  if (platform) {
+    parts.push(
+      `Intended placement: ${platform}.`
+    );
+  }
+
+  parts.push(
+    "Do not invent prices, dates, offers, locations, products, claims, or other factual details that were not supplied."
+  );
+
+  return parts
+    .filter(Boolean)
+    .join("\n\n");
+}
+
+
+async function studioFunctionErrorMessage(
+  error,
+  fallback
+) {
+  let message =
+    error?.message ||
+    fallback;
+
+  if (
+    error?.context &&
+    typeof error.context.json ===
+      "function"
+  ) {
+    try {
+      const payload =
+        await error.context.json();
+
+      message =
+        payload?.message ||
+        payload?.error ||
+        message;
+    } catch {}
+  }
+
+  return message;
+}
+
+
+async function generateStudioImageForCurrentState() {
+  const brand =
+    APP_DATA.brands.find(
+      item =>
+        item.id ===
+        MANUAL_AI_STATE.brandId
+    );
+
+  if (!brand) {
+    showToast(
+      "Choose a working brand before generating an image.",
+      "error"
+    );
+
+    return;
+  }
+
+  const direction =
+    $("#manualAiImagePrompt")
+      ?.value
+      ?.trim();
+
+  if (!direction) {
+    showToast(
+      "Describe the image you want first.",
+      "error"
+    );
+
+    $("#manualAiImagePrompt")
+      ?.focus();
+
+    return;
+  }
+
+  const button =
+    $("#generateStudioImageButton");
+
+  const status =
+    $("#manualAiImageStatus");
+
+  const preview =
+    $("#manualAiImagePreview");
+
+  const image =
+    $("#manualAiGeneratedImage");
+
+  const size =
+    $("#manualAiImageSize")
+      ?.value ||
+    "1024x1024";
+
+  const quality =
+    $("#manualAiImageQuality")
+      ?.value ||
+    "low";
+
+  const platform =
+    $("#manualAiPlatform")
+      ?.value
+      ?.trim() ||
+    getDefaultPlatformForType(
+      MANUAL_AI_STATE.type
+    );
+
+  const prompt =
+    buildStudioImagePrompt({
+      brand,
+      direction,
+      goal:
+        MANUAL_AI_STATE.goal,
+      platform
+    });
+
+  const draftTitle =
+    $("#manualAiDraftTitle")
+      ?.value
+      ?.trim();
+
+  const title =
+    draftTitle
+      ? `${draftTitle} — Visual`
+      : `${brand.name} — Content Studio Visual`;
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Generating…";
+  }
+
+  if (status) {
+    status.textContent =
+      quality === "low"
+        ? "Creating one draft image…"
+        : "Creating one image…";
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .functions
+        .invoke(
+          "generate-studio-image",
+          {
+            body: {
+              brand_id:
+                brand.id,
+              title,
+              prompt,
+              size,
+              quality
+            }
+          }
+        );
+
+    if (error) {
+      throw new Error(
+        await studioFunctionErrorMessage(
+          error,
+          "Image generation failed."
+        )
+      );
+    }
+
+    if (!data?.asset?.id) {
+      throw new Error(
+        "The generated image did not return an Asset Vault record."
+      );
+    }
+
+    const normalized =
+      normalizeAsset(
+        data.asset
+      );
+
+    await hydrateAssetSignedUrls(
+      [normalized]
+    );
+
+    APP_DATA.assets =
+      (APP_DATA.assets || [])
+        .filter(
+          item =>
+            String(item.id) !==
+            String(normalized.id)
+        );
+
+    APP_DATA.assets.unshift(
+      normalized
+    );
+
+    MANUAL_AI_STATE.generatedAssetId =
+      normalized.id;
+
+    const displayUrl =
+      getAssetDisplayUrl(
+        normalized
+      );
+
+    if (
+      image &&
+      displayUrl
+    ) {
+      image.src =
+        displayUrl;
+
+      image.alt =
+        normalized.altText ||
+        normalized.name ||
+        "Generated Content Studio visual";
+    }
+
+    if (preview) {
+      preview.hidden =
+        !displayUrl;
+    }
+
+    if (status) {
+      status.textContent =
+        "Generated and saved to Asset Vault.";
+    }
+
+    renderAssets();
+
+    showToast(
+      "Image generated and saved to Asset Vault.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Content Studio image generation failed:",
+      error
+    );
+
+    const message =
+      error?.message ||
+      "Image generation failed.";
+
+    if (status) {
+      status.textContent =
+        message;
+    }
+
+    showToast(
+      message,
+      "error",
+      7000
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Generate Image";
+    }
+  }
 }
 
 
