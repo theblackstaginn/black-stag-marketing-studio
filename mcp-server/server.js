@@ -310,7 +310,7 @@ const writeToolMetadata = {
    MCP SERVER
    ======================================== */
 
-function buildServer(supabase) {
+function buildServer(supabase, authenticatedUser) {
   const server =
     new McpServer({
       name:
@@ -1263,20 +1263,10 @@ function buildServer(supabase) {
         }
       }
 
-      const {
-        data: {
-          user
-        },
-        error:
-          userError
-      } =
-        await supabase.auth
-          .getUser();
+      const user =
+        authenticatedUser;
 
-      if (
-        userError ||
-        !user?.id
-      ) {
+      if (!user?.id) {
         throw new Error(
           "The signed-in Marketing Studio user could not be resolved."
         );
@@ -4274,7 +4264,8 @@ async function handleMcpRequest(
 ) {
   const server =
     buildServer(
-      req.supabase
+      req.supabase,
+      req.supabaseUser
     );
 
   const transport =
