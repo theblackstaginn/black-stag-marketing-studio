@@ -48,3 +48,8 @@ create policy "Owners can manage content assets"
         and c.brand_id = a.brand_id
     )
   );
+
+
+grant select, insert, update, delete
+on table public.content_assets
+to authenticated;
