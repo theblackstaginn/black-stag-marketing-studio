@@ -726,71 +726,170 @@
       "<span class='eyebrow'>Ask Ember</span>" +
       "<h3 style='margin:4px 0 10px'>Live Workspace Agent</h3>" +
       "<label class='field'><span>Message</span>" +
-      "<textarea id='emberChatInput' rows='3' maxlength='20000' placeholder='Ask Ember about this brand, the work queue, campaigns, drafts, or what to do next.'" +
+      "<textarea id='emberChatInput' rows='3' maxlength='20000' placeholder='Ask Ember for marketing strategy, content, campaign, brand, or performance guidance.'" +
       (busy ? " disabled" : "") +
       ">" +
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
       "<div class='form-actions'>" +
-      "<span class='muted-copy'>Review-only. Ember cannot publish or take consequential actions from this request.</span>" +
+      "<span class='muted-copy'>Marketing review-only. Routine Studio operations stay local and do not use Ember.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
       (busy ? " disabled" : "") +
       ">Send to Ember</button></div>" +
       statusHtml;
   }
 
-  function emberChatContext(brand) {
+  function emberChatContext(brand, requestText = "") {
     const signals = getBrandSignals(brand);
+    const text = String(requestText || "").toLowerCase();
 
-    return {
+    const openWork = emberState.workItems
+      .filter(item => item.status !== "done" && item.status !== "cancelled");
+
+    const pendingDecisions = emberState.decisions
+      .filter(item => item.status === "pending" || item.status === "deferred");
+
+    const activeCampaigns = signals.campaigns || [];
+    const upcoming = signals.calendar || [];
+    const draftReview = signals.review || [];
+
+    const mentionsAny = terms =>
+      terms.some(term => text.includes(term));
+
+    const wantsAll = mentionsAny([
+      "overview",
+      "full picture",
+      "everything",
+      "whole brand",
+      "brief me"
+    ]);
+
+    const wantsWork = wantsAll || mentionsAny([
+      "work",
+      "task",
+      "queue",
+      "priority",
+      "next",
+      "due",
+      "deadline",
+      "todo",
+      "to do"
+    ]);
+
+    const wantsDecisions = wantsAll || mentionsAny([
+      "decision",
+      "decide",
+      "choice",
+      "choose"
+    ]);
+
+    const wantsCampaigns = wantsAll || mentionsAny([
+      "campaign",
+      "strategy",
+      "marketing",
+      "promotion",
+      "promo",
+      "launch",
+      "audience",
+      "offer",
+      "growth",
+      "positioning"
+    ]);
+
+    const wantsCalendar = wantsAll || mentionsAny([
+      "calendar",
+      "schedule",
+      "event",
+      "tomorrow",
+      "today",
+      "this week",
+      "date",
+      "deadline"
+    ]);
+
+    const wantsDrafts = wantsAll || mentionsAny([
+      "draft",
+      "post",
+      "caption",
+      "content",
+      "copy",
+      "review",
+      "rewrite",
+      "social"
+    ]);
+
+    const context = {
       source: "ember_daily_brief",
+      scope: "marketing_only",
       brand: {
         id: brand.id,
         name: brand.name || null,
         short_name: brand.shortName || null
       },
-      open_work: emberState.workItems
-        .filter(item => item.status !== "done" && item.status !== "cancelled")
-        .slice(0, 10)
+      summary_counts: {
+        open_work: openWork.length,
+        pending_decisions: pendingDecisions.length,
+        active_campaigns: activeCampaigns.length,
+        upcoming_7_days: upcoming.length,
+        draft_review: draftReview.length
+      }
+    };
+
+    if (wantsWork) {
+      context.open_work = openWork
+        .slice(0, 5)
         .map(item => ({
           title: item.title,
           description: item.description || item.notes || null,
           priority: item.priority || null,
           owner: item.owner_type || null,
           due_at: item.due_at || null
-        })),
-      pending_decisions: emberState.decisions
-        .filter(item => item.status === "pending" || item.status === "deferred")
-        .slice(0, 8)
+        }));
+    }
+
+    if (wantsDecisions) {
+      context.pending_decisions = pendingDecisions
+        .slice(0, 5)
         .map(item => ({
           title: item.title,
           question: item.question,
           priority: item.priority || null,
           due_at: item.due_at || null
-        })),
-      active_campaigns: signals.campaigns
-        .slice(0, 8)
+        }));
+    }
+
+    if (wantsCampaigns) {
+      context.active_campaigns = activeCampaigns
+        .slice(0, 5)
         .map(item => ({
           name: item.name || null,
           objective: item.objective || null,
           status: item.status || null
-        })),
-      upcoming_7_days: signals.calendar
-        .slice(0, 10)
+        }));
+    }
+
+    if (wantsCalendar) {
+      context.upcoming_7_days = upcoming
+        .slice(0, 6)
         .map(item => ({
           title: item.title || null,
           type: item.itemType || item.type || null,
           starts_at: item.startsAt || null
-        })),
-      draft_review: signals.review
-        .slice(0, 8)
+        }));
+    }
+
+    if (wantsDrafts) {
+      context.draft_review = draftReview
+        .slice(0, 5)
         .map(item => ({
           title: item.title || null,
           platform: item.platform || null,
           goal: item.goal || null,
           status: item.status || null
-        }))
-    };
+        }));
+    }
+
+    return context;
   }
 
   async function emberFunctionErrorMessage(error) {
@@ -895,7 +994,7 @@
                 request_type: "studio_chat",
                 brand_id: brand.id,
                 request_text: requestText,
-                request_context: emberChatContext(brand)
+                request_context: emberChatContext(brand, requestText)
               }
             }
           );
