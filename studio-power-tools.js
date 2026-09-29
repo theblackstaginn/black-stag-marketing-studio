@@ -1036,10 +1036,9 @@
     return false;
   }
 
-  function openChatGptHandoff(promptText) {
+  function openChatGptHandoff() {
     const url =
-      "https://chatgpt.com/?prompt=" +
-      encodeURIComponent(promptText);
+      "https://chatgpt.com/";
 
     const opened =
       window.open(
@@ -1306,19 +1305,23 @@
           requestText
         );
 
-      copyEmberHandoff(
-        promptText
-      ).catch(() => {});
+      const copyPromise =
+        copyEmberHandoff(
+          promptText
+        );
 
-      openChatGptHandoff(
-        promptText
-      );
+      openChatGptHandoff();
+
+      const copied =
+        await copyPromise;
 
       emberChatState.status =
         "answered";
 
       emberChatState.responseText =
-        "Handoff prepared. ChatGPT opened with the current Studio context and write-back instructions.";
+        copied
+          ? "Handoff copied. Paste it into ChatGPT and send it to Ember."
+          : "ChatGPT opened, but this browser could not copy the handoff automatically. Reopen this panel and try Copy / Paste from a secure browser context.";
 
       renderEmberChatPanel();
 
@@ -2519,12 +2522,17 @@
           return false;
         }
 
-        openChatGptHandoff(
+        const promptText =
           emberHandoffPrompt(
             brand,
             text
-          )
-        );
+          );
+
+        copyEmberHandoff(
+          promptText
+        ).catch(() => {});
+
+        openChatGptHandoff();
 
         return true;
       }
