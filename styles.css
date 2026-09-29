@@ -1511,6 +1511,7 @@ strong {
     auto
     auto
     minmax(0, 1fr)
+    auto
     auto;
 
   align-items: center;
@@ -1598,6 +1599,59 @@ strong {
   white-space: nowrap;
 }
 
+.asset-folder-pinned {
+  border-color:
+    rgba(216, 179, 131, .36);
+
+  background:
+    rgba(216, 179, 131, .055);
+
+  box-shadow:
+    0 12px 32px rgba(0, 0, 0, .14);
+}
+
+.asset-folder-pinned
+> .asset-folder-summary {
+  background:
+    rgba(216, 179, 131, .035);
+}
+
+.asset-folder-pin-label {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 22px;
+
+  padding:
+    3px
+    8px;
+
+  border:
+    1px solid
+    rgba(216, 179, 131, .28);
+
+  border-radius:
+    999px;
+
+  color:
+    #d8b383;
+
+  background:
+    rgba(216, 179, 131, .07);
+
+  font-size:
+    .58rem;
+
+  font-weight:
+    800;
+
+  letter-spacing:
+    .08em;
+
+  white-space:
+    nowrap;
+}
+
 .asset-folder-dropdown-body {
   padding:
     0
@@ -1674,13 +1728,21 @@ strong {
     grid-template-columns:
       auto
       auto
-      minmax(0, 1fr);
+      minmax(0, 1fr)
+      auto;
 
     min-height: 54px;
   }
 
+  .asset-folder-pin-label {
+    grid-column: 4;
+    grid-row: 1;
+
+    justify-self: end;
+  }
+
   .asset-folder-count {
-    grid-column: 3;
+    grid-column: 3 / 5;
 
     justify-self: start;
   }
