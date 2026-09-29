@@ -31,7 +31,8 @@
   };
 
   const emberHandoffState = {
-    selectedRecord: null
+    selectedRecord: null,
+    modalSource: null
   };
 
   function byId(id) {
@@ -66,6 +67,12 @@
 
   function assetById(id) {
     return (APP_DATA.assets || []).find(
+      item => String(item.id) === String(id)
+    ) || null;
+  }
+
+  function brandById(id) {
+    return (APP_DATA.brands || []).find(
       item => String(item.id) === String(id)
     ) || null;
   }
@@ -797,6 +804,16 @@
       return item?.name || "Asset";
     }
 
+    if (type === "brand") {
+      item = brandById(id);
+      return (
+        item?.shortName ||
+        item?.name ||
+        item?.officialName ||
+        "Brand"
+      );
+    }
+
     if (type === "asset_folder") {
       item = (APP_DATA.assetFolders || []).find(
         entry => String(entry.id) === String(id)
@@ -829,6 +846,7 @@
 
     if (viewButton) {
       emberHandoffState.selectedRecord = null;
+      emberHandoffState.modalSource = null;
       return;
     }
 
@@ -907,6 +925,313 @@
     }
   }
 
+  function ensureDialogSourceId(dialog) {
+    if (!dialog) {
+      return null;
+    }
+
+    if (dialog.id) {
+      return dialog.id;
+    }
+
+    const heading =
+      dialog.querySelector(
+        "h1, h2, h3, .dialog-title"
+      );
+
+    const raw =
+      String(
+        heading?.textContent ||
+        "studio-modal"
+      )
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "") ||
+      "studio-modal";
+
+    let candidate =
+      "bsms-" + raw + "-dialog";
+
+    let suffix = 2;
+
+    while (
+      document.getElementById(candidate) &&
+      document.getElementById(candidate) !== dialog
+    ) {
+      candidate =
+        "bsms-" +
+        raw +
+        "-dialog-" +
+        suffix;
+
+      suffix += 1;
+    }
+
+    dialog.id = candidate;
+
+    return candidate;
+  }
+
+  function dialogRecordContext(dialog) {
+    if (!dialog) {
+      return null;
+    }
+
+    const candidates = [
+      ["campaign", "campaignDetailId"],
+      ["content", "contentEditorId"],
+      ["calendar", "calendarItemEditorId"],
+      ["asset", "assetEditorId"]
+    ];
+
+    for (const [type, inputId] of candidates) {
+      const input =
+        dialog.querySelector(
+          "#" + inputId
+        );
+
+      if (input?.value) {
+        return {
+          type,
+          id: String(input.value),
+          title:
+            recordTitle(
+              type,
+              input.value
+            )
+        };
+      }
+    }
+
+    if (
+      dialog.id === "brandBrainDialog"
+    ) {
+      try {
+        const brandId =
+          APP_STATE?.brandBrainBrandId ||
+          activeBrand()?.id;
+
+        if (brandId) {
+          return {
+            type: "brand",
+            id: String(brandId),
+            title:
+              recordTitle(
+                "brand",
+                brandId
+              )
+          };
+        }
+      } catch {}
+    }
+
+    if (
+      /asset.*folder/i.test(
+        dialog.id || ""
+      )
+    ) {
+      try {
+        if (
+          APP_STATE?.activeAssetFolderId
+        ) {
+          return {
+            type: "asset_folder",
+            id: String(
+              APP_STATE.activeAssetFolderId
+            ),
+            title:
+              recordTitle(
+                "asset_folder",
+                APP_STATE.activeAssetFolderId
+              )
+          };
+        }
+      } catch {}
+    }
+
+    return null;
+  }
+
+  function dialogSourceContext(dialog) {
+    if (!dialog) {
+      return null;
+    }
+
+    const id =
+      ensureDialogSourceId(
+        dialog
+      );
+
+    const heading =
+      dialog.querySelector(
+        ".dialog-header h1, .dialog-header h2, .dialog-header h3, .calendar-editor-header h1, .calendar-editor-header h2, .calendar-editor-header h3, h1, h2, h3"
+      );
+
+    const emberButton =
+      dialog.querySelector(
+        "[data-ember-modal-source]"
+      );
+
+    return {
+      id,
+      title:
+        String(
+          heading?.textContent ||
+          ""
+        ).trim() ||
+        null,
+      ember_button_id:
+        emberButton?.id ||
+        null,
+      selected_record:
+        dialogRecordContext(
+          dialog
+        )
+    };
+  }
+
+  function enhanceDialogEmberButton(dialog) {
+    if (
+      !dialog ||
+      dialog.id === "emberBriefDialog" ||
+      dialog.dataset.emberButtonEnhanced === "1"
+    ) {
+      return;
+    }
+
+    const sourceId =
+      ensureDialogSourceId(
+        dialog
+      );
+
+    if (!sourceId) {
+      return;
+    }
+
+    const header =
+      dialog.querySelector(
+        ".dialog-header, .calendar-editor-header"
+      );
+
+    const button =
+      document.createElement(
+        "button"
+      );
+
+    button.id =
+      "emberButton--" +
+      sourceId;
+
+    button.className =
+      "secondary-button ember-modal-button";
+
+    button.type =
+      "button";
+
+    button.dataset.emberModalSource =
+      sourceId;
+
+    button.setAttribute(
+      "aria-label",
+      "Ask Ember about this dialog"
+    );
+
+    button.innerHTML =
+      "<span aria-hidden='true'>✦</span><span>Ember</span>";
+
+    if (header) {
+      let actions =
+        header.querySelector(
+          ".ember-modal-header-actions"
+        );
+
+      if (!actions) {
+        actions =
+          document.createElement(
+            "div"
+          );
+
+        actions.className =
+          "ember-modal-header-actions";
+
+        const close =
+          header.querySelector(
+            ".dialog-close"
+          );
+
+        header.appendChild(
+          actions
+        );
+
+        if (close) {
+          actions.appendChild(
+            close
+          );
+        }
+      }
+
+      actions.insertBefore(
+        button,
+        actions.firstChild
+      );
+    } else {
+      const floating =
+        document.createElement(
+          "div"
+        );
+
+      floating.className =
+        "ember-modal-floating-actions";
+
+      floating.appendChild(
+        button
+      );
+
+      dialog.prepend(
+        floating
+      );
+    }
+
+    dialog.dataset.emberButtonEnhanced =
+      "1";
+  }
+
+  function enhanceDialogEmberButtons() {
+    document
+      .querySelectorAll(
+        "dialog"
+      )
+      .forEach(
+        enhanceDialogEmberButton
+      );
+  }
+
+  function rememberModalSource(dialog) {
+    const source =
+      dialogSourceContext(
+        dialog
+      );
+
+    emberHandoffState.modalSource =
+      source;
+
+    const record =
+      source?.selected_record;
+
+    if (
+      record?.type &&
+      record?.id
+    ) {
+      rememberEmberSelection(
+        record.type,
+        record.id
+      );
+    }
+
+    return source;
+  }
+
   function selectedStudioRecord() {
     const brand = activeBrand();
     const selected =
@@ -975,7 +1300,7 @@
       selectedStudioRecord();
 
     return {
-      schema: "bsms.ember_handoff.v1",
+      schema: "bsms.ember_handoff.v2",
       source: "black_stag_marketing_studio",
       created_at: new Date().toISOString(),
       brand: {
@@ -985,6 +1310,8 @@
       },
       studio: {
         view: currentStudioView(),
+        source_dialog:
+          emberHandoffState.modalSource,
         selected_record: selected
       },
       instruction: String(requestText || "").trim(),
@@ -1013,8 +1340,8 @@
       "@Black Stag Marketing Studio\n\n" +
       "Ember handoff from Black Stag Marketing Studio. " +
       "Use the connected BSMS tools to fulfill my request. " +
-      "The JSON payload below is Studio context supplied by my app. " +
-      "Use the record IDs to read the live source of truth before changing anything. " +
+      "The JSON payload below is Studio context supplied by my app, including the exact modal source when Ember was opened from a dialog. " +
+      "Use the dialog ID, Ember button ID, and record IDs to identify where the request originated, then read the live source of truth before changing anything. " +
       "If a supported write is requested, save the result back to BSMS and tell me what changed. " +
       "If there is no matching write tool, tell me clearly and do not pretend it was saved.\n\n" +
       "BSMS_HANDOFF_PAYLOAD\n" +
@@ -2251,6 +2578,7 @@
     enhanceCampaignCards();
     enhanceContentCards();
     enhanceAssetCards();
+    enhanceDialogEmberButtons();
     ensureEmberPanel();
     refreshEmberOperatingLayer();
   }
@@ -2296,6 +2624,36 @@
   function handlePowerClick(event) {
     captureEmberSelection(event);
 
+    const modalEmber =
+      event.target.closest(
+        "[data-ember-modal-source]"
+      );
+
+    if (modalEmber) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      const dialog =
+        modalEmber.closest(
+          "dialog"
+        );
+
+      rememberModalSource(
+        dialog
+      );
+
+      refreshEmberOperatingLayer(true)
+        .then(openEmberBrief)
+        .catch(error => {
+          console.error(
+            "Modal Ember handoff failed:",
+            error
+          );
+        });
+
+      return;
+    }
+
     const close = event.target.closest("[data-power-close]");
 
     if (close) {
@@ -2304,6 +2662,8 @@
     }
 
     if (event.target.closest("[data-ember-open]")) {
+      emberHandoffState.modalSource = null;
+
       refreshEmberOperatingLayer(true)
         .then(openEmberBrief)
         .catch(error => {
@@ -2539,6 +2899,7 @@
     };
 
     addPowerTools();
+    enhanceDialogEmberButtons();
     enhanceVisibleCards();
 
     document.addEventListener(
@@ -2566,6 +2927,7 @@
                 enhanceCampaignCards();
                 enhanceContentCards();
                 enhanceAssetCards();
+                enhanceDialogEmberButtons();
                 ensureEmberPanel();
               }
             );
