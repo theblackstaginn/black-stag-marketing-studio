@@ -754,10 +754,10 @@
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
       "<div class='form-actions'>" +
-      "<span class='muted-copy'>Copies this exact BSMS context so you can paste it into your existing ChatGPT conversation with Ember.</span>" +
+      "<span class='muted-copy'>Shares this exact BSMS context through your iPhone share sheet. Choose ChatGPT when it appears.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
       (busy ? " disabled" : "") +
-      ">Copy for Ember</button></div>" +
+      ">Share to Ember</button></div>" +
       statusHtml;
   }
 
@@ -1575,6 +1575,46 @@
     );
   }
 
+  async function shareEmberHandoff(text) {
+    if (
+      typeof navigator.share !== "function"
+    ) {
+      return {
+        status: "unsupported"
+      };
+    }
+
+    try {
+      await navigator.share({
+        title:
+          "Black Stag Marketing Studio → Ember",
+        text
+      });
+
+      return {
+        status: "shared"
+      };
+    } catch (error) {
+      if (
+        error?.name === "AbortError"
+      ) {
+        return {
+          status: "cancelled"
+        };
+      }
+
+      console.warn(
+        "Ember share sheet failed:",
+        error
+      );
+
+      return {
+        status: "failed",
+        error
+      };
+    }
+  }
+
   async function submitEmberChat(retry = false) {
     const brand = activeBrand();
 
@@ -1616,6 +1656,57 @@
           requestText
         );
 
+      const shareResult =
+        await shareEmberHandoff(
+          promptText
+        );
+
+      if (
+        shareResult.status === "shared"
+      ) {
+        emberChatState.status =
+          "answered";
+
+        emberChatState.responseText =
+          "Handoff shared. If you chose ChatGPT, continue there with Ember.";
+
+        emberChatState.errorText =
+          "";
+
+        renderEmberChatPanel();
+
+        showToast(
+          "Ember handoff shared.",
+          "success",
+          3200
+        );
+
+        return;
+      }
+
+      if (
+        shareResult.status === "cancelled"
+      ) {
+        emberChatState.status =
+          "idle";
+
+        emberChatState.responseText =
+          "";
+
+        emberChatState.errorText =
+          "";
+
+        renderEmberChatPanel();
+
+        showToast(
+          "Share cancelled.",
+          "info",
+          2200
+        );
+
+        return;
+      }
+
       const copied =
         await copyEmberHandoff(
           promptText
@@ -1628,25 +1719,25 @@
 
       emberChatState.responseText =
         copied
-          ? "Ember handoff copied. Switch to your ChatGPT app, paste it into the conversation, and send."
+          ? "Sharing was unavailable, so the Ember handoff was copied instead. Switch to ChatGPT, paste, and send."
           : "";
 
       emberChatState.errorText =
         copied
           ? ""
-          : "This browser could not copy the Ember handoff. Try again after allowing clipboard access.";
+          : "This browser could neither open the share sheet nor copy the Ember handoff.";
 
       renderEmberChatPanel();
 
       showToast(
         copied
-          ? "Ember handoff copied."
+          ? "Share unavailable — handoff copied."
           : emberChatState.errorText,
         copied
           ? "success"
           : "error",
         copied
-          ? 3000
+          ? 3800
           : 6000
       );
     } catch (error) {
@@ -2883,6 +2974,23 @@
 
         return await copyEmberHandoff(
           promptText
+        );
+      },
+      async share(requestText = "") {
+        const brand = activeBrand();
+        const text = String(requestText || "").trim();
+
+        if (!brand || !text) {
+          return {
+            status: "invalid"
+          };
+        }
+
+        return await shareEmberHandoff(
+          emberHandoffPrompt(
+            brand,
+            text
+          )
         );
       }
     };
