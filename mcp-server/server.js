@@ -581,6 +581,77 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
       font-size: 0.88rem;
     }
 
+
+    body[data-mode="pip"] {
+      padding: 10px;
+    }
+
+    body[data-mode="pip"] .shell {
+      width: 100%;
+      gap: 10px;
+    }
+
+    body[data-mode="pip"] .masthead {
+      padding: 12px 14px;
+      border-radius: 16px;
+    }
+
+    body[data-mode="pip"] .grid {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    body[data-mode="pip"] .panel {
+      padding: 14px;
+      border-radius: 16px;
+    }
+
+    body[data-mode="pip"] .panel > p:not(.eyebrow):not(.bridge-status),
+    body[data-mode="pip"] .helper,
+    body[data-mode="pip"] aside.panel {
+      display: none;
+    }
+
+    body[data-mode="pip"] textarea {
+      min-height: 72px;
+      resize: none;
+    }
+
+    body[data-mode="pip"] .ask-form {
+      margin-top: 10px;
+      gap: 8px;
+    }
+
+    .mode-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mode-actions button {
+      padding: 8px 11px;
+      font-size: 0.82rem;
+      color: var(--ink);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(67, 50, 40, 0.88),
+          rgba(35, 27, 23, 0.9)
+        );
+    }
+
+    #expandButton {
+      display: none;
+    }
+
+    body[data-mode="pip"] #pinButton {
+      display: none;
+    }
+
+    body[data-mode="pip"] #expandButton {
+      display: inline-flex;
+    }
+
     @media (max-width: 760px) {
       body {
         padding-left: 12px;
@@ -610,9 +681,19 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
         <h1>Marketing Studio</h1>
       </div>
 
-      <div class="status">
-        <span class="status-dot" aria-hidden="true"></span>
-        <span id="connectionLabel">Connecting Ember...</span>
+      <div class="mode-actions">
+        <button id="pinButton" type="button">
+          Pin Ember
+        </button>
+
+        <button id="expandButton" type="button">
+          Expand Studio
+        </button>
+
+        <div class="status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span id="connectionLabel">Connecting Ember...</span>
+        </div>
       </div>
     </header>
 
@@ -697,6 +778,12 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
 
     const askButton =
       document.getElementById("askButton");
+
+    const pinButton =
+      document.getElementById("pinButton");
+
+    const expandButton =
+      document.getElementById("expandButton");
 
     const pendingRequests =
       new Map();
@@ -797,6 +884,80 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
       }
     );
 
+
+    function applyDisplayMode(mode) {
+      const normalized =
+        mode === "pip"
+          ? "pip"
+          : "fullscreen";
+
+      document.body.dataset.mode =
+        normalized;
+    }
+
+    async function requestMode(mode) {
+      if (
+        !window.openai ||
+        !window.openai.requestDisplayMode
+      ) {
+        return false;
+      }
+
+      try {
+        await window.openai.requestDisplayMode({
+          mode
+        });
+
+        applyDisplayMode(mode);
+
+        return true;
+      } catch (error) {
+        console.warn(
+          "Display mode request failed.",
+          error
+        );
+
+        return false;
+      }
+    }
+
+    applyDisplayMode(
+      window.openai?.displayMode ||
+      "fullscreen"
+    );
+
+    window.addEventListener(
+      "openai:set_globals",
+      (event) => {
+        const mode =
+          event?.detail?.globals
+            ?.displayMode;
+
+        if (mode) {
+          applyDisplayMode(mode);
+        }
+      },
+      {
+        passive: true
+      }
+    );
+
+    pinButton?.addEventListener(
+      "click",
+      async () => {
+        await requestMode("pip");
+      }
+    );
+
+    expandButton?.addEventListener(
+      "click",
+      async () => {
+        await requestMode(
+          "fullscreen"
+        );
+      }
+    );
+
     async function initializeBridge() {
       try {
         await rpcRequest(
@@ -810,7 +971,8 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
             },
             appCapabilities: {
               availableDisplayModes: [
-                "fullscreen"
+                "fullscreen",
+                "pip"
               ]
             },
             protocolVersion:
@@ -830,19 +992,9 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
         bridgeStatus.textContent =
           "Connected to the current ChatGPT conversation.";
 
-        if (
-          window.openai &&
-          window.openai
-            .requestDisplayMode
-        ) {
-          try {
-            await window.openai
-              .requestDisplayMode({
-                mode:
-                  "fullscreen"
-              });
-          } catch {}
-        }
+        await requestMode(
+          "fullscreen"
+        );
       } catch (error) {
         connectionLabel.textContent =
           "ChatGPT bridge available";
@@ -878,7 +1030,21 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
       try {
         await ready;
 
-        if (bridgeReady) {
+        const pinned =
+          await requestMode("pip");
+
+        if (
+          window.openai &&
+          window.openai
+            .sendFollowUpMessage
+        ) {
+          await window.openai
+            .sendFollowUpMessage({
+              prompt: text,
+              scrollToBottom:
+                pinned
+            });
+        } else if (bridgeReady) {
           const result =
             await rpcRequest(
               "ui/message",
@@ -902,17 +1068,6 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
               "ChatGPT rejected the message."
             );
           }
-        } else if (
-          window.openai &&
-          window.openai
-            .sendFollowUpMessage
-        ) {
-          await window.openai
-            .sendFollowUpMessage({
-              prompt: text,
-              scrollToBottom:
-                true
-            });
         } else {
           throw new Error(
             "No ChatGPT message bridge is available."
@@ -1028,7 +1183,7 @@ function buildServer(supabase, authenticatedUser) {
       title:
         "Black Stag Marketing Studio",
       description:
-        "Fullscreen Black Stag Marketing Studio interface for use inside ChatGPT.",
+        "Black Stag Marketing Studio interface for use inside ChatGPT, with fullscreen and persistent picture-in-picture modes.",
       _meta: {
         ui: {
           prefersBorder:
@@ -1052,7 +1207,8 @@ function buildServer(supabase, authenticatedUser) {
             },
             "openai/ui": {
               availableDisplayModes: [
-                "fullscreen"
+                "fullscreen",
+                "pip"
               ]
             }
           }
