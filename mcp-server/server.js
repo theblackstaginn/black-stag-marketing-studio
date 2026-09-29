@@ -3,6 +3,11 @@ import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import {
+  registerAppResource,
+  registerAppTool,
+  RESOURCE_MIME_TYPE
+} from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
 
 const required = [
@@ -803,7 +808,11 @@ const STUDIO_UI_HTML = String.raw`<!DOCTYPE html>
               version:
                 "0.1.0"
             },
-            appCapabilities: {},
+            appCapabilities: {
+              availableDisplayModes: [
+                "fullscreen"
+              ]
+            },
             protocolVersion:
               "2026-01-26"
           }
@@ -1011,7 +1020,8 @@ function buildServer(supabase, authenticatedUser) {
      MARKETING STUDIO UI
      -------------------------------------- */
 
-  server.registerResource(
+  registerAppResource(
+    server,
     "black-stag-marketing-studio-ui",
     STUDIO_UI_URI,
     {
@@ -1019,8 +1029,12 @@ function buildServer(supabase, authenticatedUser) {
         "Black Stag Marketing Studio",
       description:
         "Fullscreen Black Stag Marketing Studio interface for use inside ChatGPT.",
-      mimeType:
-        "text/html;profile=mcp-app"
+      _meta: {
+        ui: {
+          prefersBorder:
+            false
+        }
+      }
     },
     async (uri) => ({
       contents: [
@@ -1028,7 +1042,7 @@ function buildServer(supabase, authenticatedUser) {
           uri:
             uri.href,
           mimeType:
-            "text/html;profile=mcp-app",
+            RESOURCE_MIME_TYPE,
           text:
             STUDIO_UI_HTML,
           _meta: {
@@ -1047,7 +1061,8 @@ function buildServer(supabase, authenticatedUser) {
     })
   );
 
-  server.registerTool(
+  registerAppTool(
+    server,
     "open_marketing_studio",
     {
       title:
@@ -1061,7 +1076,11 @@ function buildServer(supabase, authenticatedUser) {
       _meta: {
         ui: {
           resourceUri:
-            STUDIO_UI_URI
+            STUDIO_UI_URI,
+          visibility: [
+            "model",
+            "app"
+          ]
         },
 
         "openai/outputTemplate":
