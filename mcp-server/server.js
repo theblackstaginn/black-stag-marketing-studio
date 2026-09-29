@@ -196,6 +196,80 @@ function jsonResult(value) {
   };
 }
 
+
+const OpenAIFileSchema =
+  z.object({
+    download_url:
+      z.string().url(),
+
+    file_id:
+      z.string().min(1),
+
+    mime_type:
+      z.string().optional(),
+
+    file_name:
+      z.string().optional()
+  })
+  .strict();
+
+
+function safeFileBase(value) {
+  return String(
+    value ||
+    "generated-image"
+  )
+    .toLowerCase()
+    .replace(
+      /[^a-z0-9._-]+/g,
+      "-"
+    )
+    .replace(
+      /^-+|-+$/g,
+      ""
+    )
+    .slice(
+      0,
+      80
+    ) ||
+    "generated-image";
+}
+
+
+function extensionForMime(mimeType) {
+  const normalized =
+    String(
+      mimeType ||
+      ""
+    )
+      .split(";")[0]
+      .trim()
+      .toLowerCase();
+
+  if (
+    normalized ===
+    "image/jpeg"
+  ) {
+    return "jpg";
+  }
+
+  if (
+    normalized ===
+    "image/webp"
+  ) {
+    return "webp";
+  }
+
+  if (
+    normalized ===
+    "image/gif"
+  ) {
+    return "gif";
+  }
+
+  return "png";
+}
+
 /* ========================================
    READ-ONLY TOOL METADATA
    ======================================== */
@@ -750,6 +824,8 @@ function buildServer(supabase) {
                 "name",
                 "asset_type",
                 "description",
+                "storage_bucket",
+                "storage_path",
                 "external_url",
                 "mime_type",
                 "width",
@@ -780,6 +856,701 @@ function buildServer(supabase) {
         );
 
       return jsonResult(rows);
+    }
+  );
+
+
+  /* --------------------------------------
+     GET ASSET IMAGE
+     -------------------------------------- */
+
+  server.registerTool(
+    "get_asset_image",
+    {
+      title:
+        "Get Asset Image",
+
+      description:
+        "Load one image from the private Asset Vault so ChatGPT can visually inspect it. Read-only. Use after list_assets when an actual visual reference is needed.",
+
+      inputSchema: {
+        asset_id:
+          z.string().uuid()
+      },
+
+      ...readOnlyToolMetadata
+    },
+
+    async ({ asset_id }) => {
+      const asset =
+        await select(
+          "assets",
+
+          supabase
+            .from("assets")
+            .select(
+              [
+                "id",
+                "brand_id",
+                "name",
+                "asset_type",
+                "description",
+                "storage_bucket",
+                "storage_path",
+                "external_url",
+                "mime_type",
+                "alt_text",
+                "tags",
+                "approved_for_ai",
+                "approved_for_marketing",
+                "active"
+              ].join(",")
+            )
+            .eq(
+              "id",
+              asset_id
+            )
+            .eq(
+              "active",
+              true
+            )
+            .single()
+        );
+
+      const mimeType =
+        String(
+          asset?.mime_type ||
+          ""
+        )
+          .split(";")[0]
+          .trim()
+          .toLowerCase();
+
+      if (
+        mimeType &&
+        !mimeType.startsWith(
+          "image/"
+        )
+      ) {
+        throw new Error(
+          "This Asset Vault item is not an image."
+        );
+      }
+
+      let bytes;
+      let resolvedMime =
+        mimeType;
+
+      if (
+        asset?.storage_bucket &&
+        asset?.storage_path
+      ) {
+        const {
+          data,
+          error
+        } =
+          await supabase.storage
+            .from(
+              asset.storage_bucket
+            )
+            .download(
+              asset.storage_path
+            );
+
+        if (error) {
+          throw new Error(
+            "Asset image download failed: " +
+            error.message
+          );
+        }
+
+        bytes =
+          Buffer.from(
+            await data.arrayBuffer()
+          );
+
+        resolvedMime =
+          resolvedMime ||
+          data.type ||
+          "image/png";
+
+      } else if (
+        asset?.external_url
+      ) {
+        const url =
+          new URL(
+            asset.external_url
+          );
+
+        if (
+          url.protocol !==
+          "https:"
+        ) {
+          throw new Error(
+            "External Asset Vault images must use HTTPS."
+          );
+        }
+
+        const response =
+          await fetch(
+            url,
+            {
+              redirect:
+                "follow"
+            }
+          );
+
+        if (!response.ok) {
+          throw new Error(
+            "External Asset Vault image could not be loaded."
+          );
+        }
+
+        bytes =
+          Buffer.from(
+            await response.arrayBuffer()
+          );
+
+        resolvedMime =
+          resolvedMime ||
+          response.headers.get(
+            "content-type"
+          ) ||
+          "image/png";
+
+      } else {
+        throw new Error(
+          "This Asset Vault item has no readable image source."
+        );
+      }
+
+      resolvedMime =
+        String(
+          resolvedMime ||
+          "image/png"
+        )
+          .split(";")[0]
+          .trim()
+          .toLowerCase();
+
+      if (
+        !resolvedMime.startsWith(
+          "image/"
+        )
+      ) {
+        throw new Error(
+          "The resolved Asset Vault file is not an image."
+        );
+      }
+
+      if (
+        bytes.byteLength >
+        12 * 1024 * 1024
+      ) {
+        throw new Error(
+          "This image is larger than the 12 MB visual inspection limit."
+        );
+      }
+
+      return {
+        content: [
+          {
+            type:
+              "text",
+
+            text:
+              JSON.stringify(
+                {
+                  id:
+                    asset.id,
+
+                  brand_id:
+                    asset.brand_id,
+
+                  name:
+                    asset.name,
+
+                  description:
+                    asset.description,
+
+                  alt_text:
+                    asset.alt_text,
+
+                  tags:
+                    asset.tags,
+
+                  approved_for_ai:
+                    asset.approved_for_ai,
+
+                  approved_for_marketing:
+                    asset.approved_for_marketing
+                },
+                null,
+                2
+              )
+          },
+          {
+            type:
+              "image",
+
+            data:
+              bytes.toString(
+                "base64"
+              ),
+
+            mimeType:
+              resolvedMime
+          }
+        ]
+      };
+    }
+  );
+
+
+  /* --------------------------------------
+     SAVE GENERATED ASSET
+     -------------------------------------- */
+
+  server.registerTool(
+    "save_generated_asset",
+    {
+      title:
+        "Save Generated Image",
+
+      description:
+        "Save one image generated or edited in ChatGPT into the selected brand's private Asset Vault. Generated artwork is left unapproved, routed to the pinned Newly Created folder, and can optionally be attached to a Content Studio item. This does not publish or schedule anything.",
+
+      inputSchema: {
+        brand_id:
+          z.string().uuid(),
+
+        content_id:
+          z.string().uuid().nullable().optional(),
+
+        name:
+          z.string().trim().min(1).max(180),
+
+        description:
+          z.string().max(2000).nullable().optional(),
+
+        alt_text:
+          z.string().max(500).nullable().optional(),
+
+        tags:
+          z.array(
+            z.string().trim().min(1).max(80)
+          )
+          .max(30)
+          .optional(),
+
+        role:
+          z.enum([
+            "primary",
+            "supporting",
+            "reference"
+          ])
+          .optional(),
+
+        file:
+          OpenAIFileSchema
+      },
+
+      securitySchemes: [
+        {
+          type:
+            "oauth2",
+
+          scopes: []
+        }
+      ],
+
+      annotations: {
+        readOnlyHint:
+          false,
+
+        destructiveHint:
+          false,
+
+        idempotentHint:
+          false,
+
+        openWorldHint:
+          true
+      },
+
+      _meta: {
+        "openai/fileParams": [
+          "file"
+        ],
+
+        "openai/toolInvocation/invoking":
+          "Saving image to the Asset Vault…",
+
+        "openai/toolInvocation/invoked":
+          "Image saved to the Asset Vault"
+      }
+    },
+
+    async ({
+      brand_id,
+      content_id,
+      name,
+      description,
+      alt_text,
+      tags,
+      role,
+      file
+    }) => {
+      const brand =
+        await select(
+          "brands",
+
+          supabase
+            .from("brands")
+            .select(
+              [
+                "id",
+                "official_name"
+              ].join(",")
+            )
+            .eq(
+              "id",
+              brand_id
+            )
+            .eq(
+              "active",
+              true
+            )
+            .single()
+        );
+
+      if (!brand?.id) {
+        throw new Error(
+          "Brand not found."
+        );
+      }
+
+      if (content_id) {
+        const content =
+          await select(
+            "content_items",
+
+            supabase
+              .from(
+                "content_items"
+              )
+              .select(
+                [
+                  "id",
+                  "brand_id"
+                ].join(",")
+              )
+              .eq(
+                "id",
+                content_id
+              )
+              .single()
+          );
+
+        if (
+          !content?.id ||
+          content.brand_id !==
+            brand_id
+        ) {
+          throw new Error(
+            "The selected Content Studio item does not belong to this brand."
+          );
+        }
+      }
+
+      const {
+        data: {
+          user
+        },
+        error:
+          userError
+      } =
+        await supabase.auth
+          .getUser();
+
+      if (
+        userError ||
+        !user?.id
+      ) {
+        throw new Error(
+          "The signed-in Marketing Studio user could not be resolved."
+        );
+      }
+
+      const downloadUrl =
+        new URL(
+          file.download_url
+        );
+
+      if (
+        downloadUrl.protocol !==
+        "https:"
+      ) {
+        throw new Error(
+          "ChatGPT file downloads must use HTTPS."
+        );
+      }
+
+      const response =
+        await fetch(
+          downloadUrl,
+          {
+            redirect:
+              "follow"
+          }
+        );
+
+      if (!response.ok) {
+        throw new Error(
+          "ChatGPT's temporary image file could not be downloaded."
+        );
+      }
+
+      const responseMime =
+        String(
+          file.mime_type ||
+          response.headers.get(
+            "content-type"
+          ) ||
+          "image/png"
+        )
+          .split(";")[0]
+          .trim()
+          .toLowerCase();
+
+      if (
+        !responseMime.startsWith(
+          "image/"
+        )
+      ) {
+        throw new Error(
+          "Only image files can be saved with this tool."
+        );
+      }
+
+      const bytes =
+        Buffer.from(
+          await response.arrayBuffer()
+        );
+
+      if (
+        bytes.byteLength >
+        25 * 1024 * 1024
+      ) {
+        throw new Error(
+          "The image exceeds the 25 MB Asset Vault limit."
+        );
+      }
+
+      const originalBase =
+        file.file_name
+          ? file.file_name.replace(
+              /\.[^.]+$/,
+              ""
+            )
+          : name;
+
+      const extension =
+        extensionForMime(
+          responseMime
+        );
+
+      const filename =
+        safeFileBase(
+          originalBase
+        ) +
+        "-" +
+        crypto.randomUUID()
+          .slice(
+            0,
+            8
+          ) +
+        "." +
+        extension;
+
+      const storagePath =
+        user.id +
+        "/" +
+        brand_id +
+        "/" +
+        filename;
+
+      const {
+        error:
+          uploadError
+      } =
+        await supabase.storage
+          .from(
+            "brand-assets"
+          )
+          .upload(
+            storagePath,
+            bytes,
+            {
+              contentType:
+                responseMime,
+
+              cacheControl:
+                "3600",
+
+              upsert:
+                false
+            }
+          );
+
+      if (uploadError) {
+        throw new Error(
+          "Asset Vault upload failed: " +
+          uploadError.message
+        );
+      }
+
+      let asset;
+
+      try {
+        const finalTags =
+          Array.from(
+            new Set([
+              "generated",
+              "chatgpt",
+              "content-studio",
+              ...(
+                tags ||
+                []
+              )
+            ])
+          );
+
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from("assets")
+            .insert({
+              brand_id,
+
+              asset_type:
+                "generated_artwork",
+
+              name,
+
+              description:
+                description ??
+                "Generated in ChatGPT for Content Studio.",
+
+              storage_bucket:
+                "brand-assets",
+
+              storage_path:
+                storagePath,
+
+              external_url:
+                null,
+
+              mime_type:
+                responseMime,
+
+              alt_text:
+                alt_text ??
+                null,
+
+              tags:
+                finalTags,
+
+              approved_for_ai:
+                false,
+
+              approved_for_marketing:
+                false,
+
+              active:
+                true
+            })
+            .select()
+            .single();
+
+        if (error) {
+          throw new Error(
+            "Asset record failed: " +
+            error.message
+          );
+        }
+
+        asset =
+          data;
+
+      } catch (error) {
+        await supabase.storage
+          .from(
+            "brand-assets"
+          )
+          .remove([
+            storagePath
+          ]);
+
+        throw error;
+      }
+
+      let contentLink =
+        null;
+
+      if (content_id) {
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from(
+              "content_assets"
+            )
+            .upsert(
+              {
+                content_id,
+
+                asset_id:
+                  asset.id,
+
+                role:
+                  role ||
+                  "primary"
+              },
+              {
+                onConflict:
+                  "content_id,asset_id"
+              }
+            )
+            .select()
+            .single();
+
+        if (error) {
+          throw new Error(
+            "The image was saved, but attaching it to the Content Studio item failed: " +
+            error.message
+          );
+        }
+
+        contentLink =
+          data;
+      }
+
+      return jsonResult({
+        ok:
+          true,
+
+        asset,
+
+        content_link:
+          contentLink,
+
+        note:
+          "Saved to the brand's pinned Newly Created folder. The image remains unapproved until the owner reviews it."
+      });
     }
   );
 
