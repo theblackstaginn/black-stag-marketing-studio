@@ -903,6 +903,9 @@ async function handleSignIn(
   if (errorElement) {
     errorElement.style.display =
       "none";
+
+    errorElement.style.color =
+      "#d8a09a";
   }
 
 
@@ -1031,6 +1034,9 @@ async function handleOwnerSignUp() {
   if (errorElement) {
     errorElement.style.display =
       "none";
+
+    errorElement.style.color =
+      "#d8a09a";
   }
 
   try {
