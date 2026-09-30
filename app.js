@@ -764,6 +764,26 @@ function ensureAuthDialog() {
         Sign In
       </button>
 
+      <button
+        class="secondary-button full-button"
+        id="authCreateOwnerButton"
+        type="button"
+      >
+        Create Owner Account
+      </button>
+
+      <p
+        style="
+          margin:0;
+          color:var(--muted);
+          font-size:.72rem;
+          line-height:1.5;
+          text-align:center;
+        "
+      >
+        Owner accounts only receive brand access when the email has been invited by the primary owner.
+      </p>
+
     </form>
   `;
 
@@ -777,6 +797,13 @@ function ensureAuthDialog() {
     ?.addEventListener(
       "submit",
       handleSignIn
+    );
+
+
+  $("#authCreateOwnerButton")
+    ?.addEventListener(
+      "click",
+      handleOwnerSignUp
     );
 
 
@@ -943,6 +970,144 @@ async function handleSignIn(
 
       submitButton.textContent =
         "Sign In";
+    }
+  }
+}
+
+
+
+async function handleOwnerSignUp() {
+  if (!supabaseClient) {
+    return;
+  }
+
+  const email =
+    $("#authEmail")
+      ?.value
+      ?.trim();
+
+  const password =
+    $("#authPassword")
+      ?.value;
+
+  const button =
+    $("#authCreateOwnerButton");
+
+  const errorElement =
+    $("#authError");
+
+  if (!email || !password) {
+    if (errorElement) {
+      errorElement.textContent =
+        "Enter the invited email and choose a password first.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+  if (password.length < 8) {
+    if (errorElement) {
+      errorElement.textContent =
+        "Use a password with at least 8 characters.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Creating Account…";
+  }
+
+  if (errorElement) {
+    errorElement.style.display =
+      "none";
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient.auth
+        .signUp({
+          email,
+          password,
+          options: {
+            data: {
+              display_name:
+                email.split("@")[0]
+            }
+          }
+        });
+
+    if (error) {
+      throw error;
+    }
+
+    if (data?.session) {
+      APP_STATE.session =
+        data.session;
+
+      APP_STATE.user =
+        data.user || null;
+
+      safeDialogClose(
+        $("#authDialog")
+      );
+
+      await loadAppData();
+
+      renderApp();
+
+      showToast(
+        "Owner account created and signed in.",
+        "success"
+      );
+
+      return;
+    }
+
+    if (errorElement) {
+      errorElement.textContent =
+        "Account created. Check your email if confirmation is required, then return here and sign in.";
+
+      errorElement.style.display =
+        "block";
+
+      errorElement.style.color =
+        "var(--muted)";
+    }
+  } catch (error) {
+    console.error(
+      "Owner account creation failed:",
+      error
+    );
+
+    if (errorElement) {
+      errorElement.textContent =
+        error?.message ||
+        "Unable to create the owner account.";
+
+      errorElement.style.display =
+        "block";
+    }
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Create Owner Account";
     }
   }
 }
@@ -19816,6 +19981,10 @@ function handleSettingsSection(
       openReminderSettings();
       break;
 
+    case "owners":
+      openOwnerSettings();
+      break;
+
     case "preferences":
       openPreferenceSettings();
       break;
@@ -19825,6 +19994,382 @@ function handleSettingsSection(
         "That settings section could not be found.",
         "error"
       );
+  }
+}
+
+
+
+/* =========================================================
+   OWNER ACCESS SETTINGS
+   ========================================================= */
+
+async function openOwnerSettings() {
+  const dialog =
+    getSettingsDialog();
+
+  const brand =
+    getActiveBrand();
+
+  if (!brand) {
+    showToast(
+      "Choose a brand first.",
+      "error"
+    );
+
+    return;
+  }
+
+  const isPrimaryOwner =
+    String(
+      brand.ownerId || ""
+    ) ===
+    String(
+      APP_STATE.user?.id || ""
+    );
+
+  if (!isPrimaryOwner) {
+    dialog.innerHTML =
+      settingsDialogShell({
+        title:
+          "Owners",
+
+        description:
+          "You have owner access to this brand.",
+
+        content: `
+          <div
+            class="content-panel"
+            style="padding:16px;"
+          >
+            <strong>
+              Co-owner access is active.
+            </strong>
+
+            <p
+              style="
+                margin:8px 0 0;
+                color:var(--muted);
+                font-size:.78rem;
+                line-height:1.6;
+              "
+            >
+              Only the primary owner account can add or remove other owners.
+            </p>
+          </div>
+        `
+      });
+
+    bindSettingsDialogClose(
+      dialog
+    );
+
+    safeDialogOpen(
+      dialog
+    );
+
+    return;
+  }
+
+  dialog.innerHTML =
+    settingsDialogShell({
+      title:
+        "Owners",
+
+      description:
+        "Invite another owner to this brand. They will use their own BSMS login and receive full day-to-day access to this brand.",
+
+      content: `
+        <form
+          id="ownerInviteForm"
+          class="create-form"
+        >
+          <label class="field">
+            <span>
+              Owner Email
+            </span>
+
+            <input
+              id="ownerInviteEmail"
+              type="email"
+              autocomplete="email"
+              placeholder="name@example.com"
+              required
+            />
+          </label>
+
+          <div class="form-actions">
+            <button
+              type="button"
+              class="secondary-button"
+              data-close-settings-dialog
+            >
+              Cancel
+            </button>
+
+            <button
+              type="submit"
+              class="primary-button"
+              id="ownerInviteButton"
+            >
+              Add Owner
+            </button>
+          </div>
+        </form>
+
+        <div
+          style="
+            margin-top:18px;
+            padding-top:16px;
+            border-top:1px solid var(--line);
+          "
+        >
+          <span class="eyebrow">
+            Brand Owners
+          </span>
+
+          <div
+            id="ownerInviteList"
+            style="
+              display:grid;
+              gap:10px;
+              margin-top:10px;
+            "
+          >
+            <div
+              style="
+                color:var(--muted);
+                font-size:.76rem;
+              "
+            >
+              Loading owners…
+            </div>
+          </div>
+        </div>
+      `
+    });
+
+  bindSettingsDialogClose(
+    dialog
+  );
+
+  $("#ownerInviteForm")
+    ?.addEventListener(
+      "submit",
+      saveOwnerInvite
+    );
+
+  safeDialogOpen(
+    dialog
+  );
+
+  await renderOwnerInviteList(
+    brand.id
+  );
+}
+
+
+async function renderOwnerInviteList(
+  brandId
+) {
+  const host =
+    $("#ownerInviteList");
+
+  if (!host) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .from(
+        "brand_owner_invites"
+      )
+      .select(
+        "id,email,role,accepted_at,created_at"
+      )
+      .eq(
+        "brand_id",
+        brandId
+      )
+      .order(
+        "created_at",
+        {
+          ascending: true
+        }
+      );
+
+  if (error) {
+    host.innerHTML = `
+      <div
+        style="
+          color:#d8a09a;
+          font-size:.76rem;
+        "
+      >
+        Unable to load owner access.
+      </div>
+    `;
+
+    return;
+  }
+
+  const rows =
+    data || [];
+
+  host.innerHTML =
+    [
+      `
+        <div
+          class="content-panel"
+          style="
+            padding:12px 14px;
+          "
+        >
+          <strong>
+            Primary Owner
+          </strong>
+
+          <div
+            style="
+              margin-top:4px;
+              color:var(--muted);
+              font-size:.72rem;
+            "
+          >
+            Your account
+          </div>
+        </div>
+      `,
+      ...rows.map(
+        item => `
+          <div
+            class="content-panel"
+            style="
+              padding:12px 14px;
+            "
+          >
+            <strong>
+              ${escapeHtml(
+                item.email
+              )}
+            </strong>
+
+            <div
+              style="
+                margin-top:4px;
+                color:var(--muted);
+                font-size:.72rem;
+              "
+            >
+              ${item.accepted_at
+                ? "Owner · account active"
+                : "Owner · invite ready"}
+            </div>
+          </div>
+        `
+      )
+    ].join("");
+}
+
+
+async function saveOwnerInvite(
+  event
+) {
+  event.preventDefault();
+
+  const brand =
+    getActiveBrand();
+
+  const email =
+    String(
+      $("#ownerInviteEmail")
+        ?.value || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (!brand || !email) {
+    return;
+  }
+
+  const button =
+    $("#ownerInviteButton");
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Adding…";
+  }
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient
+        .from(
+          "brand_owner_invites"
+        )
+        .insert({
+          brand_id:
+            brand.id,
+          email,
+          role:
+            "owner",
+          invited_by:
+            APP_STATE.user.id
+        });
+
+    if (error) {
+      if (
+        String(
+          error.code || ""
+        ) ===
+        "23505"
+      ) {
+        throw new Error(
+          "That email already has a pending owner invite."
+        );
+      }
+
+      throw error;
+    }
+
+    $("#ownerInviteEmail").value =
+      "";
+
+    await renderOwnerInviteList(
+      brand.id
+    );
+
+    showToast(
+      "Owner access prepared for " +
+        email +
+        ".",
+      "success"
+    );
+  } catch (error) {
+    console.error(
+      "Owner invite failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+        "Unable to add that owner.",
+      "error"
+    );
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Add Owner";
+    }
   }
 }
 
