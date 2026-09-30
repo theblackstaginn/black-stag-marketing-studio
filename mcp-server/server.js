@@ -66,7 +66,13 @@ app.set("trust proxy", 1);
    ======================================== */
 
 app.use((req, res, next) => {
-  if (req.path === "/mcp") {
+  const corsEnabledPaths =
+    new Set([
+      "/mcp",
+      "/.well-known/oauth-protected-resource"
+    ]);
+
+  if (corsEnabledPaths.has(req.path)) {
     res.setHeader(
       "Access-Control-Allow-Origin",
       "*"
@@ -89,7 +95,10 @@ app.use((req, res, next) => {
 
     res.setHeader(
       "Access-Control-Expose-Headers",
-      "Mcp-Session-Id"
+      [
+        "Mcp-Session-Id",
+        "WWW-Authenticate"
+      ].join(", ")
     );
 
     if (req.method === "OPTIONS") {
