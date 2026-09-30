@@ -2091,7 +2091,150 @@
       .join("");
   }
 
-  function openInbox() {
+  function inboxFileMeta(item) {
+    try {
+      const parsed =
+        JSON.parse(
+          item?.notes || "{}"
+        );
+
+      return {
+        filename:
+          String(
+            parsed.filename ||
+            ""
+          ).trim(),
+        mimeType:
+          String(
+            parsed.mime_type ||
+            "text/plain"
+          ).trim() ||
+          "text/plain"
+      };
+    } catch {
+      return {
+        filename: "",
+        mimeType:
+          "text/plain"
+      };
+    }
+  }
+
+  async function downloadInboxFile(
+    workItemId
+  ) {
+    if (
+      !workItemId ||
+      !supabaseClient
+    ) {
+      return;
+    }
+
+    const {
+      data: item,
+      error
+    } =
+      await supabaseClient
+        .from("work_items")
+        .select(
+          "id,brand_id,title,description,related_type,notes"
+        )
+        .eq(
+          "id",
+          workItemId
+        )
+        .eq(
+          "related_type",
+          "inbox_download"
+        )
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!item?.description) {
+      throw new Error(
+        "This Inbox file does not contain downloadable content."
+      );
+    }
+
+    const meta =
+      inboxFileMeta(item);
+
+    const fallbackName =
+      (
+        String(
+          item.title ||
+          "bsms-file"
+        )
+          .trim()
+          .replace(
+            /[^a-z0-9._-]+/gi,
+            "-"
+          )
+          .replace(
+            /^-+|-+$/g,
+            ""
+          ) ||
+        "bsms-file"
+      ) + ".txt";
+
+    const filename =
+      meta.filename ||
+      fallbackName;
+
+    const blob =
+      new Blob(
+        [item.description],
+        {
+          type:
+            meta.mimeType ||
+            "text/plain"
+        }
+      );
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+    link.href =
+      url;
+    link.download =
+      filename;
+    link.hidden =
+      true;
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+    link.remove();
+
+    window.setTimeout(
+      () =>
+        URL.revokeObjectURL(
+          url
+        ),
+      1500
+    );
+
+    showToast(
+      "Downloading " +
+        filename +
+        ".",
+      "success"
+    );
+  }
+
+  async function openInbox() {
     const dialog = makeDialog("studioInboxDialog");
     const brand = activeBrand();
     const now = new Date();
@@ -2116,6 +2259,42 @@
       .slice()
       .sort((a, b) => new Date(a.startsAt) - new Date(b.startsAt))
       .slice(0, 8);
+
+    const {
+      data: sharedFiles,
+      error: sharedFileError
+    } =
+      await supabaseClient
+        .from("work_items")
+        .select(
+          "id,title,description,notes,created_at"
+        )
+        .eq(
+          "brand_id",
+          brand.id
+        )
+        .eq(
+          "related_type",
+          "inbox_download"
+        )
+        .not(
+          "status",
+          "in",
+          '("done","cancelled")'
+        )
+        .order(
+          "created_at",
+          {
+            ascending: false
+          }
+        );
+
+    if (sharedFileError) {
+      console.error(
+        "Inbox files failed to load:",
+        sharedFileError
+      );
+    }
 
     const reviewHtml = reviewItems.length
       ? reviewItems
@@ -2148,12 +2327,66 @@
           .join("")
       : "<p class='muted-copy'>Nothing imminent.</p>";
 
+    const files =
+      sharedFileError
+        ? []
+        : (
+            sharedFiles ||
+            []
+          );
+
+    const sharedFilesHtml =
+      sharedFileError
+        ? "<p class='muted-copy'>Shared files could not be loaded.</p>"
+        : files.length
+          ? files
+              .map(item => {
+                const meta =
+                  inboxFileMeta(
+                    item
+                  );
+
+                const label =
+                  meta.filename ||
+                  item.title ||
+                  "Shared file";
+
+                return (
+                  "<div class='studio-inbox-item'>" +
+                    "<div><strong>" +
+                      escapeHtml(
+                        item.title ||
+                        label
+                      ) +
+                    "</strong><small>" +
+                      escapeHtml(
+                        label
+                      ) +
+                    "</small></div>" +
+                    "<button class='secondary-button' type='button' data-inbox-download='" +
+                      escapeHtml(
+                        item.id
+                      ) +
+                    "'>Download</button>" +
+                  "</div>"
+                );
+              })
+              .join("")
+          : "<p class='muted-copy'>No shared files yet.</p>";
+
     dialog.innerHTML =
       "<div class='dialog-header'>" +
         "<div><span class='eyebrow'>Attention</span><h2>Studio Inbox</h2></div>" +
         "<button class='dialog-close' type='button' data-power-close>×</button>" +
       "</div>" +
       "<div class='studio-inbox-body'>" +
+        "<section class='studio-inbox-section'><span class='eyebrow'>Shared Files</span><h3>" +
+          files.length +
+          " file" +
+          (files.length === 1 ? "" : "s") +
+        "</h3>" +
+        sharedFilesHtml +
+        "</section>" +
         "<section class='studio-inbox-section'><span class='eyebrow'>Needs Review</span><h3>" +
           reviewItems.length +
           " content item" +
@@ -3429,6 +3662,34 @@
 
     if (close) {
       closeDialog(close.closest("dialog"));
+      return;
+    }
+
+    const inboxDownload =
+      event.target.closest(
+        "[data-inbox-download]"
+      );
+
+    if (inboxDownload) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      downloadInboxFile(
+        inboxDownload.dataset
+          .inboxDownload
+      ).catch(error => {
+        console.error(
+          "Inbox file download failed:",
+          error
+        );
+
+        showToast(
+          error?.message ||
+            "Unable to download that file.",
+          "error"
+        );
+      });
+
       return;
     }
 
