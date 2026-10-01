@@ -12383,6 +12383,134 @@ async function saveCalendarItemEditor(
    CALENDAR
    ========================================================= */
 
+async function handleCalendarSubscription() {
+  const button =
+    $("#subscribeCalendarButton");
+
+  if (
+    !supabaseClient ||
+    !button
+  ) {
+    return;
+  }
+
+  const originalText =
+    button.textContent;
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "Preparing Calendar…";
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .auth
+        .getSession();
+
+    if (
+      error ||
+      !data?.session?.access_token
+    ) {
+      throw new Error(
+        "Sign in to Marketing Studio before subscribing."
+      );
+    }
+
+    const timeZone =
+      Intl
+        .DateTimeFormat()
+        .resolvedOptions()
+        .timeZone ||
+      "America/New_York";
+
+    const response =
+      await fetch(
+        `${SUPABASE_URL}/functions/v1/bsms-calendar-feed`,
+        {
+          method:
+            "POST",
+
+          headers: {
+            "Authorization":
+              `Bearer ${data.session.access_token}`,
+
+            "apikey":
+              SUPABASE_KEY,
+
+            "Content-Type":
+              "application/json"
+          },
+
+          body:
+            JSON.stringify({
+              action:
+                "subscribe",
+
+              timezone:
+                timeZone
+            })
+        }
+      );
+
+    const payload =
+      await response
+        .json()
+        .catch(
+          () => ({})
+        );
+
+    if (
+      !response.ok ||
+      !payload?.webcal_url
+    ) {
+      throw new Error(
+        payload?.error ||
+        "Unable to create the private calendar feed."
+      );
+    }
+
+    showToast(
+      "Private BSMS calendar feed ready. Opening Calendar…",
+      "success",
+      4200
+    );
+
+    window.setTimeout(
+      () => {
+        window.location.href =
+          payload.webcal_url;
+      },
+      180
+    );
+
+  } catch (error) {
+    console.error(
+      "Calendar subscription failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Unable to connect the calendar.",
+      "error",
+      6000
+    );
+
+  } finally {
+    button.disabled =
+      false;
+
+    button.textContent =
+      originalText;
+  }
+}
+
+
 function renderCalendar() {
   const container =
     $("#calendarShell");
@@ -22918,6 +23046,12 @@ function bindEvents() {
     ?.addEventListener(
       "click",
       handleAddAsset
+    );
+
+  $("#subscribeCalendarButton")
+    ?.addEventListener(
+      "click",
+      handleCalendarSubscription
     );
 
   $("#addCalendarItemButton")
