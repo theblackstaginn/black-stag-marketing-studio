@@ -595,6 +595,18 @@ strong {
   min-width: 0;
 }
 
+.calendar-header-actions {
+  display: flex;
+  width: 100%;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.calendar-header-actions .primary-button,
+.calendar-header-actions .secondary-button {
+  flex: 1 1 180px;
+}
+
 .view-header h1 {
   margin-bottom: 8px;
 
@@ -3437,6 +3449,16 @@ strong {
   }
 
   .view-header .primary-button {
+    flex: 0 0 auto;
+  }
+
+  .calendar-header-actions {
+    width: auto;
+    justify-content: flex-end;
+  }
+
+  .calendar-header-actions .primary-button,
+  .calendar-header-actions .secondary-button {
     flex: 0 0 auto;
   }
 
