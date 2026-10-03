@@ -5294,6 +5294,59 @@ app.delete(
   handleMcpRequest
 );
 /* ========================================
+   BSMS WEB / PASSWORD-RECOVERY BRIDGE
+   ======================================== */
+
+app.get(
+  "/",
+  (_req, res) => {
+    res.set(
+      "Cache-Control",
+      "no-store"
+    );
+
+    res
+      .status(200)
+      .type("html")
+      .send(`<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Opening Black Stag Marketing Studio…</title>
+  <style>
+    html,body{margin:0;min-height:100%;background:#0b0b0d;color:#eee;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    body{display:grid;place-items:center;min-height:100vh;padding:24px;box-sizing:border-box}
+    main{text-align:center;max-width:32rem}
+    a{color:#d6a85f}
+  </style>
+</head>
+<body>
+  <main>
+    <p>Opening Black Stag Marketing Studio…</p>
+    <p><a id="continueLink" href="https://black-stag-marketing-studio-production.up.railway.app/">Continue</a></p>
+  </main>
+  <script>
+    (function () {
+      var base = "https://black-stag-marketing-studio-production.up.railway.app/";
+      var destination = base + window.location.search + window.location.hash;
+      var link = document.getElementById("continueLink");
+
+      if (link) {
+        link.href = destination;
+      }
+
+      window.location.replace(destination);
+    })();
+  </script>
+</body>
+</html>`);
+  }
+);
+
+
+/* ========================================
    FALLBACK
    ======================================== */
 
