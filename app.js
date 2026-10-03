@@ -702,6 +702,14 @@ function ensureAuthDialog() {
         Sign In
       </button>
 
+      <button
+        class="secondary-button full-button"
+        id="authForgotPasswordButton"
+        type="button"
+      >
+        Forgot Password?
+      </button>
+
     </form>
   `;
 
@@ -715,6 +723,13 @@ function ensureAuthDialog() {
     ?.addEventListener(
       "submit",
       handleSignIn
+    );
+
+
+  $("#authForgotPasswordButton")
+    ?.addEventListener(
+      "click",
+      handlePasswordResetRequest
     );
 
 
@@ -762,6 +777,460 @@ function showAuthDialog() {
     100
   );
 }
+
+
+function ensurePasswordRecoveryDialog() {
+  let dialog =
+    $("#passwordRecoveryDialog");
+
+
+  if (dialog) {
+    return dialog;
+  }
+
+
+  dialog =
+    document.createElement(
+      "dialog"
+    );
+
+
+  dialog.id =
+    "passwordRecoveryDialog";
+
+
+  dialog.className =
+    "app-dialog create-dialog";
+
+
+  dialog.innerHTML = `
+    <div class="dialog-header">
+
+      <div>
+        <span class="eyebrow">
+          Account Recovery
+        </span>
+
+        <h2>
+          Set New Password
+        </h2>
+      </div>
+
+    </div>
+
+    <form
+      class="create-form"
+      id="passwordRecoveryForm"
+    >
+
+      <p
+        style="
+          margin:0;
+          color:var(--muted);
+          font-size:.82rem;
+          line-height:1.65;
+        "
+      >
+        Choose a new password for your Black Stag Marketing Studio account.
+      </p>
+
+      <label class="field">
+
+        <span>
+          New Password
+        </span>
+
+        <input
+          id="passwordRecoveryPassword"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+        />
+
+      </label>
+
+      <label class="field">
+
+        <span>
+          Confirm Password
+        </span>
+
+        <input
+          id="passwordRecoveryConfirm"
+          type="password"
+          autocomplete="new-password"
+          minlength="8"
+          required
+        />
+
+      </label>
+
+      <p
+        id="passwordRecoveryError"
+        style="
+          display:none;
+          margin:0;
+          color:#d8a09a;
+          font-size:.78rem;
+          line-height:1.5;
+        "
+      ></p>
+
+      <button
+        class="primary-button full-button"
+        id="passwordRecoverySubmitButton"
+        type="submit"
+      >
+        Update Password
+      </button>
+
+    </form>
+  `;
+
+
+  document.body.appendChild(
+    dialog
+  );
+
+
+  $("#passwordRecoveryForm")
+    ?.addEventListener(
+      "submit",
+      handlePasswordRecoverySubmit
+    );
+
+
+  dialog.addEventListener(
+    "cancel",
+    event => {
+      event.preventDefault();
+    }
+  );
+
+
+  return dialog;
+}
+
+
+function showPasswordRecoveryDialog() {
+  safeDialogClose(
+    $("#authDialog")
+  );
+
+
+  const dialog =
+    ensurePasswordRecoveryDialog();
+
+
+  const error =
+    $("#passwordRecoveryError");
+
+
+  if (error) {
+    error.textContent =
+      "";
+
+    error.style.display =
+      "none";
+  }
+
+
+  safeDialogOpen(
+    dialog
+  );
+
+
+  window.setTimeout(
+    () => {
+      $("#passwordRecoveryPassword")
+        ?.focus();
+    },
+    100
+  );
+}
+
+
+async function handlePasswordResetRequest() {
+  if (!supabaseClient) {
+    return;
+  }
+
+
+  const email =
+    $("#authEmail")
+      ?.value
+      ?.trim();
+
+
+  const button =
+    $("#authForgotPasswordButton");
+
+
+  const errorElement =
+    $("#authError");
+
+
+  if (!email) {
+    if (errorElement) {
+      errorElement.textContent =
+        "Enter your account email first.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Sending Reset Link…";
+  }
+
+
+  if (errorElement) {
+    errorElement.style.display =
+      "none";
+  }
+
+
+  try {
+    const redirectTo =
+      window.location.origin +
+      window.location.pathname;
+
+
+    const {
+      error
+    } =
+      await supabaseClient.auth
+        .resetPasswordForEmail(
+          email,
+          {
+            redirectTo
+          }
+        );
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (errorElement) {
+      errorElement.textContent =
+        "Password reset link sent. Check your email, then open the link to choose a new password.";
+
+      errorElement.style.display =
+        "block";
+
+      errorElement.style.color =
+        "var(--muted)";
+    }
+
+
+    showToast(
+      "Password reset email sent.",
+      "success",
+      5000
+    );
+
+  } catch (error) {
+    console.error(
+      "Password reset request failed:",
+      error
+    );
+
+
+    if (errorElement) {
+      errorElement.textContent =
+        error?.message ||
+        "Unable to send the password reset email.";
+
+      errorElement.style.display =
+        "block";
+
+      errorElement.style.color =
+        "#d8a09a";
+    }
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Forgot Password?";
+    }
+  }
+}
+
+
+async function handlePasswordRecoverySubmit(
+  event
+) {
+  event.preventDefault();
+
+
+  if (!supabaseClient) {
+    return;
+  }
+
+
+  const password =
+    $("#passwordRecoveryPassword")
+      ?.value;
+
+
+  const confirmPassword =
+    $("#passwordRecoveryConfirm")
+      ?.value;
+
+
+  const button =
+    $("#passwordRecoverySubmitButton");
+
+
+  const errorElement =
+    $("#passwordRecoveryError");
+
+
+  if (
+    !password ||
+    password.length < 8
+  ) {
+    if (errorElement) {
+      errorElement.textContent =
+        "Use a password with at least 8 characters.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+
+  if (
+    password !==
+    confirmPassword
+  ) {
+    if (errorElement) {
+      errorElement.textContent =
+        "The passwords do not match.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+    return;
+  }
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Updating Password…";
+  }
+
+
+  if (errorElement) {
+    errorElement.style.display =
+      "none";
+  }
+
+
+  try {
+    const {
+      error
+    } =
+      await supabaseClient.auth
+        .updateUser({
+          password
+        });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    const {
+      data
+    } =
+      await supabaseClient.auth
+        .getSession();
+
+
+    safeDialogClose(
+      $("#passwordRecoveryDialog")
+    );
+
+
+    window.history.replaceState(
+      {},
+      document.title,
+      window.location.pathname
+    );
+
+
+    if (
+      data?.session
+    ) {
+      APP_STATE.session =
+        data.session;
+
+      APP_STATE.user =
+        data.session.user;
+
+      await startAuthenticatedApp(
+        data.session
+      );
+    } else {
+      showAuthDialog();
+    }
+
+
+    showToast(
+      "Password updated. You are back in.",
+      "success",
+      5000
+    );
+
+  } catch (error) {
+    console.error(
+      "Password update failed:",
+      error
+    );
+
+
+    if (errorElement) {
+      errorElement.textContent =
+        error?.message ||
+        "Unable to update the password.";
+
+      errorElement.style.display =
+        "block";
+    }
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Update Password";
+    }
+  }
+}
+
 
 
 async function handleSignIn(
@@ -19476,40 +19945,10 @@ async function initializeAuthentication() {
     return;
   }
 
-  const {
-    data,
-    error
-  } =
-    await supabaseClient
-      .auth
-      .getSession();
 
-  if (error) {
-    console.error(
-      "Unable to read Supabase session:",
-      error
-    );
+  let recoveryMode =
+    false;
 
-    showToast(
-      "Unable to check your login session.",
-      "error",
-      5000
-    );
-
-    return;
-  }
-
-  if (
-    data?.session
-  ) {
-    await startAuthenticatedApp(
-      data.session
-    );
-
-    return;
-  }
-
-  showAuthDialog();
 
   supabaseClient.auth
     .onAuthStateChange(
@@ -19519,8 +19958,29 @@ async function initializeAuthentication() {
       ) => {
         if (
           event ===
-            "SIGNED_IN" &&
+            "PASSWORD_RECOVERY" &&
           session
+        ) {
+          recoveryMode =
+            true;
+
+          APP_STATE.session =
+            session;
+
+          APP_STATE.user =
+            session.user;
+
+          showPasswordRecoveryDialog();
+
+          return;
+        }
+
+
+        if (
+          event ===
+            "SIGNED_IN" &&
+          session &&
+          !recoveryMode
         ) {
           safeDialogClose(
             $("#authDialog")
@@ -19530,6 +19990,7 @@ async function initializeAuthentication() {
             session
           );
         }
+
 
         if (
           event ===
@@ -19562,10 +20023,85 @@ async function initializeAuthentication() {
           APP_STATE.activeAssetFolderId =
             null;
 
+          safeDialogClose(
+            $("#passwordRecoveryDialog")
+          );
+
           showAuthDialog();
         }
       }
     );
+
+
+  const {
+    data,
+    error
+  } =
+    await supabaseClient
+      .auth
+      .getSession();
+
+
+  if (error) {
+    console.error(
+      "Unable to read Supabase session:",
+      error
+    );
+
+    showToast(
+      "Unable to check your login session.",
+      "error",
+      5000
+    );
+
+    return;
+  }
+
+
+  const recoveryUrl =
+    window.location.hash
+      .includes(
+        "type=recovery"
+      ) ||
+    new URLSearchParams(
+      window.location.search
+    ).get(
+      "type"
+    ) ===
+      "recovery";
+
+
+  if (
+    recoveryUrl &&
+    data?.session
+  ) {
+    recoveryMode =
+      true;
+
+    APP_STATE.session =
+      data.session;
+
+    APP_STATE.user =
+      data.session.user;
+
+    showPasswordRecoveryDialog();
+
+    return;
+  }
+
+
+  if (
+    data?.session
+  ) {
+    await startAuthenticatedApp(
+      data.session
+    );
+
+    return;
+  }
+
+
+  showAuthDialog();
 }
 
 
