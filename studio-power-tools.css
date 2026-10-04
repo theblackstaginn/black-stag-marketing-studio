@@ -3259,3 +3259,43 @@
     font-size:1rem!important;
   }
 }
+
+
+/* CALENDAR ENTRY CARDS — unified dark treatment */
+#view-calendar .calendar-item-card{
+  position:relative!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin:0 0 16px!important;
+  padding:20px 18px!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  background:
+    linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,.004)),
+    rgba(8,10,9,.88)!important;
+  border:1px solid rgba(208,177,139,.20)!important;
+  border-radius:18px!important;
+  box-shadow:
+    0 12px 30px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.04)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(108%)!important;
+  backdrop-filter:blur(14px) saturate(108%)!important;
+}
+
+#view-calendar .calendar-item-card::before,
+#view-calendar .calendar-item-card::after{
+  content:none!important;
+  display:none!important;
+}
+
+#view-calendar .calendar-item-card:last-child{
+  margin-bottom:0!important;
+}
+
+@media(max-width:680px){
+  #view-calendar .calendar-item-card{
+    margin-bottom:14px!important;
+    padding:18px 16px!important;
+    border-radius:16px!important;
+  }
+}
