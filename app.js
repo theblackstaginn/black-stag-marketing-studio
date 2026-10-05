@@ -16815,14 +16815,27 @@ function createAssetStoragePath(
     );
 
 
-  const brandSlug =
-    makeSlug(
-      brand.slug ||
-      brand.shortName ||
-      brand.name ||
-      brand.id
-    ) ||
-    "brand";
+  /*
+   * Storage RLS authorizes access from the
+   * second path segment, so it must be the
+   * canonical brand UUID (not the readable
+   * brand slug).
+   *
+   * Path shape:
+   *   user-id / brand-id / unique-id / file
+   */
+  const brandId =
+    String(
+      brand.id ||
+      ""
+    ).trim();
+
+
+  if (!brandId) {
+    throw new Error(
+      "The active brand could not be identified."
+    );
+  }
 
 
   const uniquePart =
@@ -16840,7 +16853,7 @@ function createAssetStoragePath(
 
   return [
     userId,
-    brandSlug,
+    brandId,
     uniquePart,
     safeFileName
   ].join("/");
