@@ -13815,15 +13815,22 @@ function renderAssets() {
       const pinned =
         Boolean(folder.isPinned);
 
+      const addAssetButtonHtml =
+        '<button class="secondary-button" type="button" data-add-asset-to-folder="' +
+          escapeHtml(folder.id) +
+        '">+ Add Asset</button>';
+
       const actionsHtml =
         pinned
           ? (
               '<div class="asset-folder-actions">' +
                 '<span class="eyebrow">Pinned intake folder</span>' +
+                addAssetButtonHtml +
               '</div>'
             )
           : (
               '<div class="asset-folder-actions">' +
+                addAssetButtonHtml +
                 '<button class="secondary-button" type="button" data-rename-current-asset-folder="' +
                   escapeHtml(folder.id) +
                 '">Rename</button>' +
@@ -14515,7 +14522,7 @@ Brand Asset
 <label class="field">
 
 <span>
-Folder
+Folder / Move To
 </span>
 
 <select
@@ -16126,7 +16133,76 @@ async function handleCreateAssetFolder(
    ASSET UPLOAD
    ========================================================= */
 
-function handleAddAsset() {
+function getAssetFolderPathLabel(
+  folder
+) {
+  if (!folder) {
+    return "Asset Vault Root";
+  }
+
+  const path = [];
+  const visited = new Set();
+  let current = folder;
+
+  while (
+    current &&
+    !visited.has(
+      String(current.id)
+    )
+  ) {
+    visited.add(
+      String(current.id)
+    );
+
+    path.unshift(
+      folderName(current)
+    );
+
+    current =
+      (
+        APP_DATA.assetFolders ||
+        []
+      ).find(
+        item =>
+          String(item.id) ===
+          String(
+            current.parentFolderId ||
+            ""
+          )
+      ) ||
+      null;
+  }
+
+  return path.join(" / ");
+}
+
+
+function getAssetUploadFolderOptions(
+  brand
+) {
+  return (
+    APP_DATA.assetFolders ||
+    []
+  )
+    .filter(
+      folder =>
+        String(folder.brandId) ===
+        String(brand.id)
+    )
+    .slice()
+    .sort(
+      (a, b) =>
+        getAssetFolderPathLabel(a)
+          .localeCompare(
+            getAssetFolderPathLabel(b)
+          )
+    );
+}
+
+
+function handleAddAsset(
+  targetFolderId = null
+) {
   const brand =
     getActiveBrand();
 
@@ -16139,7 +16215,22 @@ function handleAddAsset() {
     return;
   }
 
-  openAssetUploadDialog();
+  /*
+   * Static click listeners pass the
+   * browser event as the first argument.
+   * That is not a folder id.
+   */
+  if (
+    targetFolderId &&
+    typeof targetFolderId === "object"
+  ) {
+    targetFolderId =
+      null;
+  }
+
+  openAssetUploadDialog(
+    targetFolderId
+  );
 }
 
 
@@ -16147,7 +16238,9 @@ function handleAddAsset() {
    ASSET UPLOAD DIALOG
    ========================================================= */
 
-function openAssetUploadDialog() {
+function openAssetUploadDialog(
+  targetFolderId = null
+) {
   const brand =
     getActiveBrand();
 
@@ -16159,6 +16252,51 @@ function openAssetUploadDialog() {
 
     return;
   }
+
+
+  const uploadFolders =
+    getAssetUploadFolderOptions(
+      brand
+    );
+
+
+  const requestedFolder =
+    targetFolderId
+      ? uploadFolders.find(
+          folder =>
+            String(folder.id) ===
+            String(targetFolderId)
+        )
+      : null;
+
+
+  const initialFolderId =
+    requestedFolder?.id ||
+    "";
+
+
+  const folderOptionsHtml =
+    uploadFolders
+      .map(
+        folder => `
+          <option
+            value="${
+              escapeHtml(
+                folder.id
+              )
+            }"
+          >
+            ${
+              escapeHtml(
+                getAssetFolderPathLabel(
+                  folder
+                )
+              )
+            }
+          </option>
+        `
+      )
+      .join("");
 
 
   let dialog =
@@ -16335,6 +16473,39 @@ function openAssetUploadDialog() {
             "
           >
             <span>
+              Destination Folder
+            </span>
+
+            <select
+              id="assetUploadFolder"
+              name="assetFolder"
+            >
+              <option value="">
+                Asset Vault Root
+              </option>
+
+              ${folderOptionsHtml}
+            </select>
+
+            <small
+              style="
+                display:block;
+                margin-top:5px;
+                color:var(--muted);
+                font-size:.68rem;
+              "
+            >
+              Choose exactly where this file belongs.
+            </small>
+          </label>
+
+
+          <label
+            style="
+              grid-column:1 / -1;
+            "
+          >
+            <span>
               Description
             </span>
 
@@ -16467,6 +16638,18 @@ function openAssetUploadDialog() {
 
     </div>
   `;
+
+
+  const uploadFolderSelect =
+    dialog.querySelector(
+      "#assetUploadFolder"
+    );
+
+
+  if (uploadFolderSelect) {
+    uploadFolderSelect.value =
+      initialFolderId;
+  }
 
 
   dialog
@@ -16752,6 +16935,40 @@ async function handleAssetUploadSubmit(
     );
 
 
+  const selectedFolderId =
+    $("#assetUploadFolder", dialog)
+      ?.value ||
+    null;
+
+
+  const selectedFolder =
+    selectedFolderId
+      ? (
+          APP_DATA.assetFolders ||
+          []
+        ).find(
+          folder =>
+            String(folder.id) ===
+              String(selectedFolderId) &&
+            String(folder.brandId) ===
+              String(brand.id)
+        )
+      : null;
+
+
+  if (
+    selectedFolderId &&
+    !selectedFolder
+  ) {
+    showToast(
+      "That destination folder is no longer available.",
+      "error"
+    );
+
+    return;
+  }
+
+
   if (!file) {
     showToast(
       "Choose a file to upload.",
@@ -16847,7 +17064,7 @@ async function handleAssetUploadSubmit(
         brand.id,
 
       folder_id:
-        APP_STATE.activeAssetFolderId ||
+        selectedFolder?.id ||
         null,
 
       name,
@@ -16932,7 +17149,9 @@ async function handleAssetUploadSubmit(
 
 
     showToast(
-      `${name} added to the Asset Vault.`,
+      selectedFolder
+        ? `${name} added to ${getAssetFolderPathLabel(selectedFolder)}.`
+        : `${name} added to the Asset Vault root.`,
       "success"
     );
 
@@ -23361,6 +23580,23 @@ if (deleteAssetFolderButton) {
 
   if (createAssetFolder) {
     openCreateAssetFolderDialog();
+    return;
+  }
+
+  const addAssetToFolder =
+    event.target.closest(
+      "[data-add-asset-to-folder]"
+    );
+
+  if (addAssetToFolder) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    handleAddAsset(
+      addAssetToFolder.dataset
+        .addAssetToFolder
+    );
+
     return;
   }
 
