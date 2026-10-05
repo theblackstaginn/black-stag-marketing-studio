@@ -13820,17 +13820,24 @@ function renderAssets() {
           escapeHtml(folder.id) +
         '">+ Add Asset</button>';
 
+      const addFolderButtonHtml =
+        '<button class="secondary-button" type="button" data-add-folder-to-folder="' +
+          escapeHtml(folder.id) +
+        '">+ Add Folder</button>';
+
       const actionsHtml =
         pinned
           ? (
               '<div class="asset-folder-actions">' +
                 '<span class="eyebrow">Pinned intake folder</span>' +
                 addAssetButtonHtml +
+                addFolderButtonHtml +
               '</div>'
             )
           : (
               '<div class="asset-folder-actions">' +
                 addAssetButtonHtml +
+                addFolderButtonHtml +
                 '<button class="secondary-button" type="button" data-rename-current-asset-folder="' +
                   escapeHtml(folder.id) +
                 '">Rename</button>' +
@@ -15862,7 +15869,9 @@ async function deleteAssetFolder(
    CREATE ASSET FOLDER DIALOG
    ========================================================= */
 
-function openCreateAssetFolderDialog() {
+function openCreateAssetFolderDialog(
+  targetParentFolderId = null
+) {
   const brand =
     getActiveBrand();
 
@@ -15874,6 +15883,47 @@ function openCreateAssetFolderDialog() {
 
     return;
   }
+
+  const availableParents =
+    getAssetUploadFolderOptions(
+      brand
+    );
+
+  const requestedParent =
+    targetParentFolderId
+      ? availableParents.find(
+          folder =>
+            String(folder.id) ===
+            String(targetParentFolderId)
+        )
+      : null;
+
+  const initialParentId =
+    requestedParent?.id ||
+    "";
+
+  const parentOptionsHtml =
+    availableParents
+      .map(
+        folder => `
+          <option
+            value="${
+              escapeHtml(
+                folder.id
+              )
+            }"
+          >
+            ${
+              escapeHtml(
+                getAssetFolderPathLabel(
+                  folder
+                )
+              )
+            }
+          </option>
+        `
+      )
+      .join("");
 
   let dialog =
     $("#assetFolderDialog");
@@ -15974,6 +16024,33 @@ function openCreateAssetFolderDialog() {
           />
         </label>
 
+        <label>
+          <span>
+            Inside
+          </span>
+
+          <select
+            id="assetFolderParent"
+          >
+            <option value="">
+              Asset Vault Root
+            </option>
+
+            ${parentOptionsHtml}
+          </select>
+
+          <small
+            style="
+              display:block;
+              margin-top:5px;
+              color:var(--muted);
+              font-size:.68rem;
+            "
+          >
+            Choose a folder to create this folder inside.
+          </small>
+        </label>
+
         <div
           style="
             display:flex;
@@ -16001,6 +16078,14 @@ function openCreateAssetFolderDialog() {
       </form>
     </div>
   `;
+
+  const parentSelect =
+    $("#assetFolderParent");
+
+  if (parentSelect) {
+    parentSelect.value =
+      initialParentId;
+  }
 
   $("#assetFolderForm")
     ?.addEventListener(
@@ -16053,6 +16138,37 @@ async function handleCreateAssetFolder(
     return;
   }
 
+  const parentFolderId =
+    $("#assetFolderParent")
+      ?.value ||
+    null;
+
+  const parentFolder =
+    parentFolderId
+      ? (
+          APP_DATA.assetFolders ||
+          []
+        ).find(
+          folder =>
+            String(folder.id) ===
+              String(parentFolderId) &&
+            String(folder.brandId) ===
+              String(brand.id)
+        )
+      : null;
+
+  if (
+    parentFolderId &&
+    !parentFolder
+  ) {
+    showToast(
+      "That parent folder is no longer available.",
+      "error"
+    );
+
+    return;
+  }
+
   const button =
     $("#saveAssetFolderButton");
 
@@ -16078,7 +16194,7 @@ async function handleCreateAssetFolder(
             brand.id,
 
           parent_folder_id:
-            APP_STATE.activeAssetFolderId ||
+            parentFolder?.id ||
             null,
 
           name
@@ -16103,7 +16219,9 @@ async function handleCreateAssetFolder(
     renderApp();
 
     showToast(
-      "Folder created.",
+      parentFolder
+        ? `${name} created inside ${getAssetFolderPathLabel(parentFolder)}.`
+        : `${name} created in the Asset Vault root.`,
       "success"
     );
 
@@ -23581,6 +23699,23 @@ if (deleteAssetFolderButton) {
   if (closeAssetFolder) {
     safeDialogClose(
       $("#assetFolderDialog")
+    );
+
+    return;
+  }
+
+  const addFolderToFolder =
+    event.target.closest(
+      "[data-add-folder-to-folder]"
+    );
+
+  if (addFolderToFolder) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    openCreateAssetFolderDialog(
+      addFolderToFolder.dataset
+        .addFolderToFolder
     );
 
     return;
