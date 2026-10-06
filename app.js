@@ -2792,6 +2792,57 @@ function renderBrandPicker() {
 function getBrandLogoAsset(
   brandId
 ) {
+  const logoScore =
+    asset => {
+      const tags =
+        Array.isArray(
+          asset.tags
+        )
+          ? asset.tags.map(
+              tag =>
+                String(tag)
+                  .toLowerCase()
+            )
+          : [];
+
+      let score = 0;
+
+      if (
+        asset.approvedForMarketing
+      ) {
+        score += 100;
+      }
+
+      if (
+        tags.includes(
+          "brand-identity"
+        ) ||
+        tags.includes(
+          "primary-logo"
+        ) ||
+        tags.includes(
+          "primary"
+        )
+      ) {
+        score += 60;
+      }
+
+      if (
+        /(^|[\\s/_-])logo([\\s._/-]|$)/i
+          .test(
+            String(
+              asset.name ||
+              ""
+            )
+          )
+      ) {
+        score += 20;
+      }
+
+      return score;
+    };
+
+
   const logos =
     (APP_DATA.assets || [])
       .filter(
@@ -2800,23 +2851,38 @@ function getBrandLogoAsset(
             String(brandId) &&
           asset.category ===
             "logo" &&
+          String(
+            asset.mimeType ||
+            ""
+          ).startsWith(
+            "image/"
+          ) &&
           Boolean(
             asset.signedUrl ||
             asset.externalUrl
           )
       )
       .sort(
-        (a, b) =>
-          Number(
-            Boolean(
-              b.approvedForMarketing
+        (a, b) => {
+          const scoreDifference =
+            logoScore(b) -
+            logoScore(a);
+
+          if (scoreDifference) {
+            return scoreDifference;
+          }
+
+          return (
+            new Date(
+              a.createdAt ||
+              0
+            ) -
+            new Date(
+              b.createdAt ||
+              0
             )
-          ) -
-          Number(
-            Boolean(
-              a.approvedForMarketing
-            )
-          )
+          );
+        }
       );
 
   return logos[0] || null;
@@ -16562,12 +16628,15 @@ function openAssetUploadDialog(
               name="assetCategory"
               required
             >
-              <option value="logo">
-                Logo
+              <option
+                value="photo"
+                selected
+              >
+                Photo
               </option>
 
-              <option value="photo">
-                Photo
+              <option value="logo">
+                Logo
               </option>
 
               <option value="generated_artwork">
@@ -16824,6 +16893,45 @@ function openAssetUploadDialog(
               )
               .trim();
         }
+
+
+        const categoryField =
+          dialog.querySelector(
+            "#assetUploadCategory"
+          );
+
+
+        if (
+          file &&
+          categoryField &&
+          categoryField.dataset
+            .userSelected !==
+            "true"
+        ) {
+          categoryField.value =
+            String(
+              file.type ||
+              ""
+            ).startsWith(
+              "image/"
+            )
+              ? "photo"
+              : "other";
+        }
+      }
+    );
+
+
+  dialog
+    .querySelector(
+      "#assetUploadCategory"
+    )
+    ?.addEventListener(
+      "change",
+      event => {
+        event.currentTarget.dataset
+          .userSelected =
+          "true";
       }
     );
 
