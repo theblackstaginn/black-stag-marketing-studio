@@ -3308,3 +3308,136 @@
     border-radius:16px!important;
   }
 }
+
+
+/* =========================================================
+   ASSET UPLOAD MODAL — CLEAN RESPONSIVE FORM
+   Keep this dialog on the shared Studio modal system while
+   preventing browser-default inline labels from collapsing
+   fields together on mobile.
+   ========================================================= */
+
+#assetUploadDialog{
+  width:min(calc(100% - 22px),620px)!important;
+  max-height:calc(100dvh - 24px)!important;
+  padding:30px 30px 32px!important;
+  overflow:hidden!important;
+}
+
+#assetUploadDialog .asset-upload-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+
+#assetUploadDialog .asset-upload-header{
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+
+#assetUploadDialog .asset-upload-form{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  padding:18px 8px 4px!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch!important;
+  overscroll-behavior:contain!important;
+}
+
+#assetUploadDialog .form-grid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:16px 14px!important;
+  width:100%!important;
+}
+
+#assetUploadDialog .form-grid > label{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:8px!important;
+  min-width:0!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+
+#assetUploadDialog .form-grid > label[style*="grid-column"]{
+  grid-column:1 / -1!important;
+}
+
+#assetUploadDialog .form-grid input:not([type="checkbox"]):not([type="radio"]),
+#assetUploadDialog .form-grid select,
+#assetUploadDialog .form-grid textarea{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+
+#assetUploadDialog #assetUploadFile{
+  padding:9px 10px!important;
+  min-height:46px!important;
+}
+
+#assetUploadDialog .asset-upload-actions{
+  display:flex!important;
+  justify-content:flex-end!important;
+  gap:10px!important;
+  margin-top:22px!important;
+  padding-top:16px!important;
+  border-top:1px solid rgba(185,139,91,.18)!important;
+}
+
+@media(max-width:680px){
+  #assetUploadDialog{
+    width:calc(100% - 18px)!important;
+    max-height:calc(
+      100dvh -
+      max(10px,env(safe-area-inset-top)) -
+      max(10px,env(safe-area-inset-bottom))
+    )!important;
+    padding:24px 22px 26px!important;
+  }
+
+  #assetUploadDialog .asset-upload-header{
+    padding:8px 0 14px!important;
+  }
+
+  #assetUploadDialog .asset-upload-form{
+    padding:14px 2px 2px!important;
+  }
+
+  #assetUploadDialog .form-grid{
+    grid-template-columns:1fr!important;
+    gap:14px!important;
+  }
+
+  #assetUploadDialog .form-grid > label,
+  #assetUploadDialog .form-grid > label[style*="grid-column"]{
+    grid-column:1!important;
+  }
+
+  #assetUploadDialog .form-grid > label[style*="display:flex"][style*="align-items:center"]{
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:10px!important;
+  }
+
+  #assetUploadDialog .asset-upload-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:10px!important;
+    margin-top:18px!important;
+    padding-top:14px!important;
+  }
+
+  #assetUploadDialog .asset-upload-actions button{
+    width:100%!important;
+    min-width:0!important;
+  }
+}
