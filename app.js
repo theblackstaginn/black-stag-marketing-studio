@@ -16504,22 +16504,11 @@ function openAssetUploadDialog(
 
   dialog.innerHTML = `
     <div
-      class="dialog-shell"
-      style="
-        width:min(620px, calc(100vw - 28px));
-        max-height:min(820px, calc(100vh - 28px));
-        overflow:auto;
-      "
+      class="dialog-shell asset-upload-shell"
     >
 
       <div
-        style="
-          display:flex;
-          align-items:flex-start;
-          justify-content:space-between;
-          gap:20px;
-          margin-bottom:22px;
-        "
+        class="dialog-header asset-upload-header"
       >
 
         <div>
@@ -16558,7 +16547,7 @@ function openAssetUploadDialog(
 
         <button
           type="button"
-          class="icon-button"
+          class="dialog-close"
           data-close-asset-upload
           aria-label="Close asset upload"
         >
@@ -16570,6 +16559,7 @@ function openAssetUploadDialog(
 
       <form
         id="assetUploadForm"
+        class="asset-upload-form"
         autocomplete="off"
       >
 
@@ -16793,12 +16783,7 @@ function openAssetUploadDialog(
 
 
         <div
-          style="
-            display:flex;
-            justify-content:flex-end;
-            gap:10px;
-            margin-top:24px;
-          "
+          class="asset-upload-actions"
         >
 
           <button
