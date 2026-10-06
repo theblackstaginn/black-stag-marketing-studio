@@ -13901,6 +13901,9 @@ function renderAssets() {
               '<div class="asset-folder-actions">' +
                 addAssetButtonHtml +
                 addFolderButtonHtml +
+                '<button class="secondary-button" type="button" data-move-asset-folder="' +
+                  escapeHtml(folder.id) +
+                '">Move</button>' +
                 '<button class="secondary-button" type="button" data-rename-current-asset-folder="' +
                   escapeHtml(folder.id) +
                 '">Rename</button>' +
@@ -15718,6 +15721,541 @@ async function renameAssetFolder(
       "error",
       5500
     );
+  }
+}
+
+
+/* =========================================================
+   ASSET FOLDER DESCENDANTS
+   ========================================================= */
+
+function getAssetFolderDescendantIds(
+  folderId
+) {
+  const descendants =
+    new Set();
+
+  const visit =
+    parentId => {
+      (
+        APP_DATA.assetFolders ||
+        []
+      )
+        .filter(
+          folder =>
+            String(
+              folder.parentFolderId ||
+              ""
+            ) ===
+            String(parentId)
+        )
+        .forEach(
+          folder => {
+            const id =
+              String(folder.id);
+
+            if (
+              descendants.has(id)
+            ) {
+              return;
+            }
+
+            descendants.add(id);
+            visit(folder.id);
+          }
+        );
+    };
+
+  visit(folderId);
+
+  return descendants;
+}
+
+
+/* =========================================================
+   MOVE ASSET FOLDER DIALOG
+   ========================================================= */
+
+function openMoveAssetFolderDialog(
+  folderId
+) {
+  const folder =
+    (
+      APP_DATA.assetFolders ||
+      []
+    ).find(
+      item =>
+        String(item.id) ===
+        String(folderId)
+    );
+
+  if (!folder) {
+    showToast(
+      "Asset folder could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (folder.systemKey) {
+    showToast(
+      "Pinned system folders cannot be moved.",
+      "error"
+    );
+
+    return;
+  }
+
+  const brand =
+    getBrandById(
+      folder.brandId
+    ) ||
+    getActiveBrand();
+
+  if (!brand) {
+    showToast(
+      "That folder's brand could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+  const blockedIds =
+    getAssetFolderDescendantIds(
+      folder.id
+    );
+
+  blockedIds.add(
+    String(folder.id)
+  );
+
+  const availableParents =
+    getAssetUploadFolderOptions(
+      brand
+    )
+      .filter(
+        candidate =>
+          !blockedIds.has(
+            String(candidate.id)
+          )
+      );
+
+  const parentOptionsHtml =
+    availableParents
+      .map(
+        candidate => `
+          <option
+            value="${
+              escapeHtml(
+                candidate.id
+              )
+            }"
+          >
+            ${
+              escapeHtml(
+                getAssetFolderPathLabel(
+                  candidate
+                )
+              )
+            }
+          </option>
+        `
+      )
+      .join("");
+
+  let dialog =
+    $("#assetFolderMoveDialog");
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
+      );
+
+    dialog.id =
+      "assetFolderMoveDialog";
+
+    dialog.className =
+      "app-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+  }
+
+  dialog.innerHTML = `
+    <div
+      class="dialog-shell asset-folder-move-shell"
+    >
+      <div
+        class="dialog-header asset-folder-move-header"
+      >
+        <div>
+          <span class="eyebrow">
+            Asset Vault
+          </span>
+
+          <h2>
+            Move Folder
+          </h2>
+
+          <p class="asset-folder-move-copy">
+            Move <strong>${
+              escapeHtml(
+                folderName(folder)
+              )
+            }</strong> into another folder.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="dialog-close"
+          data-close-asset-folder-move
+          aria-label="Close folder move"
+        >
+          ×
+        </button>
+      </div>
+
+      <form
+        id="assetFolderMoveForm"
+        class="create-form asset-folder-move-form"
+      >
+        <input
+          id="assetFolderMoveId"
+          type="hidden"
+          value="${
+            escapeHtml(
+              folder.id
+            )
+          }"
+        />
+
+        <label class="field">
+          <span>
+            Move To
+          </span>
+
+          <select
+            id="assetFolderMoveParent"
+          >
+            <option value="">
+              Asset Vault Root
+            </option>
+
+            ${parentOptionsHtml}
+          </select>
+
+          <small class="asset-folder-move-help">
+            A folder cannot be moved inside itself or one of its own subfolders.
+          </small>
+        </label>
+
+        <div
+          class="asset-folder-move-actions"
+        >
+          <button
+            type="button"
+            class="secondary-button"
+            data-close-asset-folder-move
+          >
+            Cancel
+          </button>
+
+          <button
+            id="saveAssetFolderMoveButton"
+            type="submit"
+            class="primary-button"
+          >
+            Move Folder
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+
+  const parentSelect =
+    $("#assetFolderMoveParent");
+
+  if (parentSelect) {
+    parentSelect.value =
+      folder.parentFolderId ||
+      "";
+  }
+
+  dialog
+    .querySelectorAll(
+      "[data-close-asset-folder-move]"
+    )
+    .forEach(
+      button => {
+        button.addEventListener(
+          "click",
+          () => {
+            safeDialogClose(
+              dialog
+            );
+          }
+        );
+      }
+    );
+
+  dialog
+    .querySelector(
+      "#assetFolderMoveForm"
+    )
+    ?.addEventListener(
+      "submit",
+      handleMoveAssetFolder
+    );
+
+  dialog.addEventListener(
+    "click",
+    event => {
+      if (
+        event.target ===
+        dialog
+      ) {
+        safeDialogClose(
+          dialog
+        );
+      }
+    },
+    {
+      once: true
+    }
+  );
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+/* =========================================================
+   MOVE ASSET FOLDER
+   ========================================================= */
+
+async function handleMoveAssetFolder(
+  event
+) {
+  event.preventDefault();
+
+  const folderId =
+    $("#assetFolderMoveId")
+      ?.value;
+
+  const folder =
+    (
+      APP_DATA.assetFolders ||
+      []
+    ).find(
+      item =>
+        String(item.id) ===
+        String(folderId)
+    );
+
+  if (!folder) {
+    showToast(
+      "Asset folder could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+  if (folder.systemKey) {
+    showToast(
+      "Pinned system folders cannot be moved.",
+      "error"
+    );
+
+    return;
+  }
+
+  const requestedParentId =
+    $("#assetFolderMoveParent")
+      ?.value ||
+    null;
+
+  const requestedParent =
+    requestedParentId
+      ? (
+          APP_DATA.assetFolders ||
+          []
+        ).find(
+          item =>
+            String(item.id) ===
+              String(requestedParentId) &&
+            String(item.brandId) ===
+              String(folder.brandId)
+        )
+      : null;
+
+  if (
+    requestedParentId &&
+    !requestedParent
+  ) {
+    showToast(
+      "That destination folder is no longer available.",
+      "error"
+    );
+
+    return;
+  }
+
+  const blockedIds =
+    getAssetFolderDescendantIds(
+      folder.id
+    );
+
+  blockedIds.add(
+    String(folder.id)
+  );
+
+  if (
+    requestedParentId &&
+    blockedIds.has(
+      String(requestedParentId)
+    )
+  ) {
+    showToast(
+      "A folder cannot be moved inside itself or one of its own subfolders.",
+      "error",
+      5500
+    );
+
+    return;
+  }
+
+  const currentParentId =
+    folder.parentFolderId ||
+    null;
+
+  if (
+    String(
+      currentParentId ||
+      ""
+    ) ===
+    String(
+      requestedParentId ||
+      ""
+    )
+  ) {
+    safeDialogClose(
+      $("#assetFolderMoveDialog")
+    );
+
+    showToast(
+      "That folder is already there.",
+      "success"
+    );
+
+    return;
+  }
+
+  const button =
+    $("#saveAssetFolderMoveButton");
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Moving…";
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "asset_folders"
+        )
+        .update({
+          parent_folder_id:
+            requestedParent?.id ||
+            null
+        })
+        .eq(
+          "id",
+          folder.id
+        )
+        .eq(
+          "brand_id",
+          folder.brandId
+        )
+        .select("*")
+        .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const updatedFolder =
+      normalizeAssetFolder(
+        data
+      );
+
+    APP_DATA.assetFolders =
+      (
+        APP_DATA.assetFolders ||
+        []
+      ).map(
+        item =>
+          String(item.id) ===
+          String(updatedFolder.id)
+            ? updatedFolder
+            : item
+      );
+
+    safeDialogClose(
+      $("#assetFolderMoveDialog")
+    );
+
+    renderApp();
+
+    showToast(
+      requestedParent
+        ? `${
+            folderName(updatedFolder)
+          } moved inside ${
+            getAssetFolderPathLabel(
+              requestedParent
+            )
+          }.`
+        : `${
+            folderName(updatedFolder)
+          } moved to the Asset Vault root.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Folder move failed:",
+      error
+    );
+
+    showToast(
+      error?.message ||
+      "Folder could not be moved.",
+      "error",
+      5500
+    );
+
+  } finally {
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Move Folder";
+    }
   }
 }
 
@@ -23695,6 +24233,28 @@ function handleGlobalClick(
 
     return;
   }
+  const moveAssetFolderButton =
+    event.target.closest(
+      "[data-move-asset-folder]"
+    );
+
+  if (moveAssetFolderButton) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const folderId =
+      moveAssetFolderButton.dataset
+        .moveAssetFolder;
+
+    if (folderId) {
+      openMoveAssetFolderDialog(
+        folderId
+      );
+    }
+
+    return;
+  }
+
   const renameAssetFolderButton =
   event.target.closest(
     "[data-rename-current-asset-folder]"
