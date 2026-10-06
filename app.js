@@ -2792,57 +2792,62 @@ function renderBrandPicker() {
 function getBrandLogoAsset(
   brandId
 ) {
-  const logoScore =
-    asset => {
-      const tags =
-        Array.isArray(
-          asset.tags
-        )
-          ? asset.tags.map(
-              tag =>
-                String(tag)
-                  .toLowerCase()
-            )
-          : [];
+  /*
+   * Brand-card artwork is identity, not gallery content.
+   * Lock the current Studio brands to their canonical logos
+   * so adding or reclassifying Asset Vault files can never
+   * change the artwork shown on the Brands screen.
+   */
+  const canonicalLogoAssetIds = {
+    "d51c76c3-a4a6-4109-99c2-5a4b3cff226b":
+      "d35cd14e-4261-4f32-8218-9f12a6751f36",
 
-      let score = 0;
+    "956b245e-f60f-4e40-9d5b-0246d947ffb2":
+      "2f11fd52-3384-4b7b-89dc-509625bb6518",
 
-      if (
-        asset.approvedForMarketing
-      ) {
-        score += 100;
-      }
+    "f2d4ad11-da97-4ede-bd8c-135150cf9ef6":
+      "151bd5af-327b-4a53-b6e6-8a9d97065762"
+  };
 
-      if (
-        tags.includes(
-          "brand-identity"
-        ) ||
-        tags.includes(
-          "primary-logo"
-        ) ||
-        tags.includes(
-          "primary"
-        )
-      ) {
-        score += 60;
-      }
 
-      if (
-        /(^|[\\s/_-])logo([\\s._/-]|$)/i
-          .test(
+  const canonicalAssetId =
+    canonicalLogoAssetIds[
+      String(brandId)
+    ];
+
+
+  if (canonicalAssetId) {
+    const canonicalLogo =
+      (APP_DATA.assets || [])
+        .find(
+          asset =>
+            String(asset.id) ===
+              String(canonicalAssetId) &&
+            String(asset.brandId) ===
+              String(brandId) &&
             String(
-              asset.name ||
+              asset.mimeType ||
               ""
+            ).startsWith(
+              "image/"
+            ) &&
+            Boolean(
+              asset.signedUrl ||
+              asset.externalUrl
             )
-          )
-      ) {
-        score += 20;
-      }
-
-      return score;
-    };
+        );
 
 
+    if (canonicalLogo) {
+      return canonicalLogo;
+    }
+  }
+
+
+  /*
+   * Fallback for future brands, or if a canonical logo
+   * is intentionally removed from the Asset Vault.
+   */
   const logos =
     (APP_DATA.assets || [])
       .filter(
@@ -2863,27 +2868,19 @@ function getBrandLogoAsset(
           )
       )
       .sort(
-        (a, b) => {
-          const scoreDifference =
-            logoScore(b) -
-            logoScore(a);
-
-          if (scoreDifference) {
-            return scoreDifference;
-          }
-
-          return (
-            new Date(
-              a.createdAt ||
-              0
-            ) -
-            new Date(
-              b.createdAt ||
-              0
+        (a, b) =>
+          Number(
+            Boolean(
+              b.approvedForMarketing
             )
-          );
-        }
+          ) -
+          Number(
+            Boolean(
+              a.approvedForMarketing
+            )
+          )
       );
+
 
   return logos[0] || null;
 }
