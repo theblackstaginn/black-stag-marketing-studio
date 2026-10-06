@@ -3441,3 +3441,78 @@
     min-width:0!important;
   }
 }
+
+
+/* =========================================================
+   ASSET FOLDER MOVE MODAL — CLEAN RESPONSIVE FORM
+   ========================================================= */
+
+#assetFolderMoveDialog{
+  width:min(calc(100% - 22px),560px)!important;
+  max-height:calc(100dvh - 24px)!important;
+  padding:30px 30px 32px!important;
+  overflow:hidden!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-shell{
+  display:flex!important;
+  flex-direction:column!important;
+  width:100%!important;
+  max-width:100%!important;
+  min-height:0!important;
+  overflow:hidden!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-header{
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-copy{
+  margin:8px 0 0!important;
+  color:var(--muted)!important;
+  font-size:.78rem!important;
+  line-height:1.5!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-form{
+  padding:20px 4px 4px!important;
+  gap:18px!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-help{
+  display:block!important;
+  margin-top:2px!important;
+  color:var(--muted)!important;
+  font-size:.68rem!important;
+  line-height:1.45!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-actions{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:10px!important;
+  margin-top:4px!important;
+  padding-top:16px!important;
+  border-top:1px solid rgba(185,139,91,.18)!important;
+}
+
+#assetFolderMoveDialog .asset-folder-move-actions button{
+  width:100%!important;
+  min-width:0!important;
+}
+
+@media(max-width:680px){
+  #assetFolderMoveDialog{
+    width:calc(100% - 18px)!important;
+    padding:24px 22px 26px!important;
+  }
+
+  #assetFolderMoveDialog .asset-folder-move-header{
+    padding:8px 0 14px!important;
+  }
+
+  #assetFolderMoveDialog .asset-folder-move-form{
+    padding:16px 2px 2px!important;
+  }
+}
