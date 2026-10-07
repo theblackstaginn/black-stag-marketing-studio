@@ -12981,6 +12981,30 @@ async function saveCalendarItemEditor(
    CALENDAR
    ========================================================= */
 
+function getCalendarSubscriptionLabel() {
+  return window.matchMedia(
+    "(min-width: 960px)"
+  ).matches
+    ? "Add to Desktop Calendar"
+    : "Add to iPhone Calendar";
+}
+
+
+function syncCalendarSubscriptionLabel() {
+  const button =
+    $("#subscribeCalendarButton");
+
+
+  if (!button) {
+    return;
+  }
+
+
+  button.textContent =
+    getCalendarSubscriptionLabel();
+}
+
+
 async function handleCalendarSubscription() {
   const button =
     $("#subscribeCalendarButton");
@@ -12993,7 +13017,7 @@ async function handleCalendarSubscription() {
   }
 
   const originalText =
-    button.textContent;
+    getCalendarSubscriptionLabel();
 
   button.disabled =
     true;
@@ -13073,7 +13097,11 @@ async function handleCalendarSubscription() {
     }
 
     showToast(
-      "Private BSMS calendar feed ready. Opening Calendar…",
+      window.matchMedia(
+        "(min-width: 960px)"
+      ).matches
+        ? "Private BSMS calendar feed ready. Opening your desktop calendar…"
+        : "Private BSMS calendar feed ready. Opening Calendar…",
       "success",
       4200
     );
@@ -13572,6 +13600,9 @@ function openCalendarDayDialog(
 
 
 function renderCalendar() {
+  syncCalendarSubscriptionLabel();
+
+
   const container =
     $("#calendarShell");
 
