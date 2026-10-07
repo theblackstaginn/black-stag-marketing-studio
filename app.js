@@ -2615,8 +2615,10 @@ function renderActiveBrand() {
 
 
   if (desktopMark) {
-    desktopMark.textContent =
-      brand.mark;
+    setBrandMarkContent(
+      desktopMark,
+      brand
+    );
   }
 
 
@@ -2633,8 +2635,10 @@ function renderActiveBrand() {
 
 
   if (mobileMark) {
-    mobileMark.textContent =
-      brand.mark;
+    setBrandMarkContent(
+      mobileMark,
+      brand
+    );
   }
 
 
@@ -2721,12 +2725,12 @@ function renderBrandPicker() {
             >
 
               <span
-                class="brand-switcher-mark"
+                class="brand-switcher-mark brand-card-logo-shell"
                 aria-hidden="true"
               >
                 ${
-                  escapeHtml(
-                    brand.mark
+                  getBrandLogoMarkup(
+                    brand
                   )
                 }
               </span>
@@ -2886,6 +2890,61 @@ function getBrandLogoAsset(
 
 
   return logos[0] || null;
+}
+
+
+function getBrandLogoMarkup(
+  brand
+) {
+  const logoAsset =
+    brand
+      ? getBrandLogoAsset(
+          brand.id
+        )
+      : null;
+
+
+  const logoUrl =
+    logoAsset?.signedUrl ||
+    logoAsset?.externalUrl ||
+    "";
+
+
+  if (logoUrl) {
+    return `
+      <img
+        class="brand-card-logo"
+        src="${escapeHtml(
+          logoUrl
+        )}"
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
+    `;
+  }
+
+
+  return escapeHtml(
+    brand?.mark ||
+    "◆"
+  );
+}
+
+
+function setBrandMarkContent(
+  element,
+  brand
+) {
+  if (!element) {
+    return;
+  }
+
+
+  element.innerHTML =
+    getBrandLogoMarkup(
+      brand
+    );
 }
 
 
@@ -4238,9 +4297,10 @@ function renderBrandBrainHeader() {
 
 
   if (mark) {
-    mark.textContent =
-      brand.mark ||
-      "◆";
+    setBrandMarkContent(
+      mark,
+      brand
+    );
   }
 
 
