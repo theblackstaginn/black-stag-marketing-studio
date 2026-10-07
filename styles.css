@@ -326,14 +326,14 @@ strong {
 
   flex: 0 0 auto;
 
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
 
   border:
     1px solid
     rgba(195, 154, 112, .30);
 
-  border-radius: 14px;
+  border-radius: 18px;
 
   color:
     var(--bronze-light);
