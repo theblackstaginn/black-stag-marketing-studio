@@ -379,6 +379,19 @@ strong {
   font-size: .72rem;
 }
 
+.studio-mark {
+  overflow: hidden;
+  padding: 0;
+}
+
+.studio-mark-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
 .studio-brand-copy {
   display: flex;
   flex-direction: column;
@@ -4031,13 +4044,17 @@ strong {
 
     color:
       var(--bronze-light);
+  }
 
-    font-family:
-      Georgia,
-      "Times New Roman",
-      serif;
-
-    font-size: .92rem;
+  .nav-icon svg {
+    display: block;
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 
   .sidebar-footer {
