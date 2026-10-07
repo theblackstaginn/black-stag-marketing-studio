@@ -847,6 +847,7 @@ asset_type in (
 'photo',
 'generated_artwork',
 'brand_asset',
+'invoice',
 'document',
 'other'
 )
