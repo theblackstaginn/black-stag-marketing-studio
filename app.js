@@ -14587,6 +14587,10 @@ Generated Artwork
 Brand Asset
 </option>
 
+<option value="invoice">
+Invoice
+</option>
+
 </select>
 
 </label>
@@ -17170,6 +17174,10 @@ function openAssetUploadDialog(
 
               <option value="brand_asset">
                 Brand Asset
+              </option>
+
+              <option value="invoice">
+                Invoice
               </option>
 
               <option value="other">
