@@ -3939,3 +3939,23 @@
     border-radius:12px!important;
   }
 }
+
+
+/* Brand identity marks — use the actual Asset Vault logo everywhere */
+.brand-switcher-mark.brand-card-logo-shell,
+#activeBrandMark,
+#mobileActiveBrandMark,
+#brandBrainMark{
+  overflow:hidden;
+}
+
+.brand-switcher-mark .brand-card-logo,
+#activeBrandMark .brand-card-logo,
+#mobileActiveBrandMark .brand-card-logo,
+#brandBrainMark .brand-card-logo{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  border-radius:inherit;
+}
