@@ -2875,6 +2875,12 @@
 
       card.dataset.powerEnhancedAsset = "1";
 
+      const asset = assetById(id);
+
+      if (asset?.category === "invoice") {
+        return;
+      }
+
       const actions = document.createElement("div");
       actions.className = "power-card-actions";
       actions.innerHTML =
