@@ -372,6 +372,9 @@ const APP_STATE = {
   assetFilter:
   "all",
 
+  calendarMonthAnchor:
+    null,
+
 activeAssetFolderId:
   null,
 
@@ -13046,36 +13049,11 @@ async function handleCalendarSubscription() {
 }
 
 
-function renderCalendar() {
-  const container =
-    $("#calendarShell");
-
-
-  if (!container) {
-    return;
-  }
-
-
-  const brand =
-    getActiveBrand();
-
-
+function getCalendarItemsForBrand(
+  brand
+) {
   if (!brand) {
-    container.innerHTML = `
-      <div class="empty-state">
-
-        <h3>
-          Choose a working brand.
-        </h3>
-
-        <p>
-          Calendar items are organized by brand.
-        </p>
-
-      </div>
-    `;
-
-    return;
+    return [];
   }
 
 
@@ -13083,8 +13061,12 @@ function renderCalendar() {
     APP_DATA.calendar
       .filter(
         item =>
-          item.brandId ===
-          brand.id
+          String(
+            item.brandId
+          ) ===
+          String(
+            brand.id
+          )
       );
 
 
@@ -13092,8 +13074,12 @@ function renderCalendar() {
     APP_DATA.content
       .filter(
         item =>
-          item.brandId ===
-            brand.id &&
+          String(
+            item.brandId
+          ) ===
+            String(
+              brand.id
+            ) &&
           item.status ===
             "scheduled" &&
           item.scheduledFor
@@ -13165,53 +13151,390 @@ function renderCalendar() {
       );
 
 
-  const items =
-    [
-      ...calendarItems,
-      ...scheduledContent
-    ]
-      .sort(
-        (a, b) => {
-          const aTime =
-            a.startsAt
-              ? new Date(
-                  a.startsAt
-                ).getTime()
-              : Number.MAX_SAFE_INTEGER;
+  return [
+    ...calendarItems,
+    ...scheduledContent
+  ]
+    .sort(
+      (a, b) => {
+        const aTime =
+          a.startsAt
+            ? new Date(
+                a.startsAt
+              ).getTime()
+            : Number.MAX_SAFE_INTEGER;
 
 
-          const bTime =
-            b.startsAt
-              ? new Date(
-                  b.startsAt
-                ).getTime()
-              : Number.MAX_SAFE_INTEGER;
+        const bTime =
+          b.startsAt
+            ? new Date(
+                b.startsAt
+              ).getTime()
+            : Number.MAX_SAFE_INTEGER;
 
 
-          return aTime - bTime;
-        }
+        return aTime - bTime;
+      }
+    );
+}
+
+
+function calendarDateKey(
+  value
+) {
+  const date =
+    value instanceof Date
+      ? value
+      : new Date(
+          value
+        );
+
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "";
+  }
+
+
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+
+  return `${year}-${month}-${day}`;
+}
+
+
+function calendarDateFromKey(
+  key
+) {
+  const match =
+    String(
+      key || ""
+    ).match(
+      /^(\d{4})-(\d{2})-(\d{2})$/
+    );
+
+
+  if (!match) {
+    return null;
+  }
+
+
+  const date =
+    new Date(
+      Number(
+        match[1]
+      ),
+      Number(
+        match[2]
+      ) - 1,
+      Number(
+        match[3]
+      ),
+      12,
+      0,
+      0,
+      0
+    );
+
+
+  return Number.isNaN(
+    date.getTime()
+  )
+    ? null
+    : date;
+}
+
+
+function getCalendarMonthAnchor() {
+  const stored =
+    calendarDateFromKey(
+      APP_STATE
+        .calendarMonthAnchor
+    );
+
+
+  const source =
+    stored ||
+    new Date();
+
+
+  return new Date(
+    source.getFullYear(),
+    source.getMonth(),
+    1,
+    12,
+    0,
+    0,
+    0
+  );
+}
+
+
+function setCalendarMonthAnchor(
+  date
+) {
+  const next =
+    new Date(
+      date.getFullYear(),
+      date.getMonth(),
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+
+
+  APP_STATE.calendarMonthAnchor =
+    calendarDateKey(
+      next
+    );
+
+
+  renderCalendar();
+}
+
+
+function shiftCalendarMonth(
+  delta
+) {
+  const anchor =
+    getCalendarMonthAnchor();
+
+
+  anchor.setMonth(
+    anchor.getMonth() +
+      delta
+  );
+
+
+  setCalendarMonthAnchor(
+    anchor
+  );
+}
+
+
+function openCalendarDayDialog(
+  dayKey,
+  items
+) {
+  const date =
+    calendarDateFromKey(
+      dayKey
+    );
+
+
+  if (!date) {
+    return;
+  }
+
+
+  let dialog =
+    $("#calendarDayDialog");
+
+
+  if (!dialog) {
+    dialog =
+      document.createElement(
+        "dialog"
       );
 
+    dialog.id =
+      "calendarDayDialog";
 
-  if (!items.length) {
+    dialog.className =
+      "app-dialog calendar-day-dialog";
+
+    document.body.appendChild(
+      dialog
+    );
+
+    enableBackdropClose(
+      dialog
+    );
+  }
+
+
+  const dayItems =
+    Array.isArray(
+      items
+    )
+      ? items
+      : [];
+
+
+  const dateLabel =
+    new Intl.DateTimeFormat(
+      undefined,
+      {
+        weekday:
+          "long",
+
+        month:
+          "long",
+
+        day:
+          "numeric",
+
+        year:
+          "numeric"
+      }
+    ).format(
+      date
+    );
+
+
+  const countLabel =
+    dayItems.length === 1
+      ? "1 scheduled item"
+      : `${dayItems.length} scheduled items`;
+
+
+  dialog.innerHTML = `
+    <div class="calendar-day-dialog-shell">
+
+      <header class="calendar-day-dialog-header">
+
+        <div>
+          <span class="eyebrow">
+            Calendar
+          </span>
+
+          <h2>
+            ${escapeHtml(
+              dateLabel
+            )}
+          </h2>
+
+          <p>
+            ${escapeHtml(
+              countLabel
+            )}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="dialog-close"
+          data-close-calendar-day
+          aria-label="Close day"
+        >
+          ×
+        </button>
+
+      </header>
+
+
+      <div class="calendar-day-dialog-body">
+
+        ${
+          dayItems.length
+            ? `
+              <div class="calendar-day-item-list">
+                ${
+                  dayItems
+                    .map(
+                      item =>
+                        renderCalendarItem(
+                          item
+                        )
+                    )
+                    .join("")
+                }
+              </div>
+            `
+            : `
+              <div class="calendar-day-empty">
+                <span
+                  class="empty-state-icon"
+                  aria-hidden="true"
+                >
+                  ◇
+                </span>
+
+                <h3>
+                  Nothing scheduled.
+                </h3>
+
+                <p>
+                  This day is open.
+                </p>
+              </div>
+            `
+        }
+
+      </div>
+
+    </div>
+  `;
+
+
+  dialog
+    .querySelectorAll(
+      "[data-close-calendar-day]"
+    )
+    .forEach(
+      button =>
+        button.addEventListener(
+          "click",
+          () =>
+            safeDialogClose(
+              dialog
+            )
+        )
+    );
+
+
+  safeDialogOpen(
+    dialog
+  );
+}
+
+
+function renderCalendar() {
+  const container =
+    $("#calendarShell");
+
+
+  if (!container) {
+    return;
+  }
+
+
+  const brand =
+    getActiveBrand();
+
+
+  if (!brand) {
     container.innerHTML = `
       <div class="empty-state">
 
-        <span
-          class="empty-state-icon"
-          aria-hidden="true"
-        >
-          ◇
-        </span>
-
         <h3>
-          The calendar is clear.
+          Choose a working brand.
         </h3>
 
         <p>
-          Scheduled content, launches, events,
-          holidays, and other marketing-relevant
-          dates will appear here.
+          Calendar items are organized by brand.
         </p>
 
       </div>
@@ -13221,67 +13544,427 @@ function renderCalendar() {
   }
 
 
-  const grouped =
-    groupCalendarItemsByMonth(
-      items
+  const items =
+    getCalendarItemsForBrand(
+      brand
     );
 
 
-  container.innerHTML =
-    Object.entries(
-      grouped
-    )
-      .map(
-        ([month, monthItems]) => `
-          <section
-            style="
-              margin-bottom:26px;
-            "
+  const anchor =
+    getCalendarMonthAnchor();
+
+
+  const monthLabel =
+    new Intl.DateTimeFormat(
+      undefined,
+      {
+        month:
+          "long",
+
+        year:
+          "numeric"
+      }
+    ).format(
+      anchor
+    );
+
+
+  const firstOfMonth =
+    new Date(
+      anchor.getFullYear(),
+      anchor.getMonth(),
+      1,
+      12,
+      0,
+      0,
+      0
+    );
+
+
+  const gridStart =
+    new Date(
+      firstOfMonth
+    );
+
+
+  gridStart.setDate(
+    firstOfMonth.getDate() -
+      firstOfMonth.getDay()
+  );
+
+
+  const itemsByDay =
+    new Map();
+
+
+  items.forEach(
+    item => {
+      const key =
+        calendarDateKey(
+          item.startsAt
+        );
+
+
+      if (!key) {
+        return;
+      }
+
+
+      if (
+        !itemsByDay.has(
+          key
+        )
+      ) {
+        itemsByDay.set(
+          key,
+          []
+        );
+      }
+
+
+      itemsByDay
+        .get(
+          key
+        )
+        .push(
+          item
+        );
+    }
+  );
+
+
+  const todayKey =
+    calendarDateKey(
+      new Date()
+    );
+
+
+  const weekDays =
+    [
+      "Sun",
+      "Mon",
+      "Tue",
+      "Wed",
+      "Thu",
+      "Fri",
+      "Sat"
+    ];
+
+
+  const daysHtml =
+    Array.from(
+      {
+        length:
+          42
+      },
+      (
+        _,
+        index
+      ) => {
+        const date =
+          new Date(
+            gridStart
+          );
+
+
+        date.setDate(
+          gridStart.getDate() +
+            index
+        );
+
+
+        const key =
+          calendarDateKey(
+            date
+          );
+
+
+        const dayItems =
+          itemsByDay.get(
+            key
+          ) ||
+          [];
+
+
+        const isCurrentMonth =
+          date.getMonth() ===
+            anchor.getMonth() &&
+          date.getFullYear() ===
+            anchor.getFullYear();
+
+
+        const isToday =
+          key ===
+          todayKey;
+
+
+        const preview =
+          dayItems
+            .slice(
+              0,
+              3
+            )
+            .map(
+              item => `
+                <span
+                  class="calendar-day-preview-item"
+                  title="${escapeHtml(
+                    item.title ||
+                    "Scheduled item"
+                  )}"
+                >
+                  ${escapeHtml(
+                    item.title ||
+                    "Scheduled item"
+                  )}
+                </span>
+              `
+            )
+            .join("");
+
+
+        const moreCount =
+          Math.max(
+            0,
+            dayItems.length -
+              3
+          );
+
+
+        const ariaLabel =
+          new Intl.DateTimeFormat(
+            undefined,
+            {
+              weekday:
+                "long",
+
+              month:
+                "long",
+
+              day:
+                "numeric",
+
+              year:
+                "numeric"
+            }
+          ).format(
+            date
+          );
+
+
+        return `
+          <button
+            class="calendar-day${isCurrentMonth ? "" : " is-outside-month"}${isToday ? " is-today" : ""}${dayItems.length ? " has-items" : ""}"
+            type="button"
+            data-calendar-day="${escapeHtml(
+              key
+            )}"
+            aria-label="${escapeHtml(
+              `${ariaLabel}. ${dayItems.length} scheduled item${dayItems.length === 1 ? "" : "s"}.`
+            )}"
           >
 
-            <div
-              style="
-                display:flex;
-                align-items:center;
-                gap:12px;
-                margin-bottom:12px;
-              "
-            >
+            <span class="calendar-day-topline">
 
-              <span class="eyebrow">
-                ${escapeHtml(month)}
+              <span class="calendar-day-number">
+                ${date.getDate()}
               </span>
 
-              <div
-                style="
-                  flex:1;
-                  height:1px;
-                  background:var(--line);
-                "
-              ></div>
-
-            </div>
-
-
-            <div>
-
               ${
-                monthItems
-                  .map(
-                    item =>
-                      renderCalendarItem(
-                        item
-                      )
-                  )
-                  .join("")
+                dayItems.length
+                  ? `
+                    <span
+                      class="calendar-day-count"
+                      aria-hidden="true"
+                    >
+                      ${dayItems.length}
+                    </span>
+                  `
+                  : ""
               }
 
-            </div>
+            </span>
 
-          </section>
-        `
-      )
+
+            <span class="calendar-day-preview">
+              ${preview}
+
+              ${
+                moreCount
+                  ? `
+                    <span class="calendar-day-more">
+                      +${moreCount} more
+                    </span>
+                  `
+                  : ""
+              }
+            </span>
+
+          </button>
+        `;
+      }
+    )
       .join("");
+
+
+  container.innerHTML = `
+    <section class="calendar-month-view">
+
+      <div class="calendar-month-toolbar">
+
+        <button
+          class="calendar-month-nav-button"
+          type="button"
+          data-calendar-nav="prev"
+          aria-label="Previous month"
+        >
+          ‹
+        </button>
+
+
+        <div class="calendar-month-title">
+          <span class="eyebrow">
+            Schedule
+          </span>
+
+          <h2>
+            ${escapeHtml(
+              monthLabel
+            )}
+          </h2>
+        </div>
+
+
+        <div class="calendar-month-toolbar-actions">
+
+          <button
+            class="calendar-today-button"
+            type="button"
+            data-calendar-nav="today"
+          >
+            Today
+          </button>
+
+          <button
+            class="calendar-month-nav-button"
+            type="button"
+            data-calendar-nav="next"
+            aria-label="Next month"
+          >
+            ›
+          </button>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="calendar-weekdays"
+        aria-hidden="true"
+      >
+        ${
+          weekDays
+            .map(
+              day => `
+                <span>
+                  ${day}
+                </span>
+              `
+            )
+            .join("")
+        }
+      </div>
+
+
+      <div class="calendar-grid">
+        ${daysHtml}
+      </div>
+
+
+      <p class="calendar-grid-note">
+        Select a day to see everything scheduled for it.
+      </p>
+
+    </section>
+  `;
+
+
+  container
+    .querySelectorAll(
+      "[data-calendar-nav]"
+    )
+    .forEach(
+      button =>
+        button.addEventListener(
+          "click",
+          () => {
+            const action =
+              button.dataset
+                .calendarNav;
+
+
+            if (
+              action ===
+              "prev"
+            ) {
+              shiftCalendarMonth(
+                -1
+              );
+
+              return;
+            }
+
+
+            if (
+              action ===
+              "next"
+            ) {
+              shiftCalendarMonth(
+                1
+              );
+
+              return;
+            }
+
+
+            if (
+              action ===
+              "today"
+            ) {
+              setCalendarMonthAnchor(
+                new Date()
+              );
+            }
+          }
+        )
+    );
+
+
+  container
+    .querySelectorAll(
+      "[data-calendar-day]"
+    )
+    .forEach(
+      button =>
+        button.addEventListener(
+          "click",
+          () => {
+            const key =
+              button.dataset
+                .calendarDay;
+
+
+            openCalendarDayDialog(
+              key,
+              itemsByDay.get(
+                key
+              ) ||
+              []
+            );
+          }
+        )
+    );
 }
 
 
@@ -24164,6 +24847,19 @@ function handleGlobalClick(
     );
 
   if (calendarCard) {
+    const dayDialog =
+      calendarCard.closest(
+        "#calendarDayDialog"
+      );
+
+
+    if (dayDialog) {
+      safeDialogClose(
+        dayDialog
+      );
+    }
+
+
     const action =
       calendarCard.dataset
         .calendarAction;
@@ -24487,6 +25183,20 @@ function bindEvents() {
       if (!calendarCard) {
         return;
       }
+
+
+      const dayDialog =
+        calendarCard.closest(
+          "#calendarDayDialog"
+        );
+
+
+      if (dayDialog) {
+        safeDialogClose(
+          dayDialog
+        );
+      }
+
 
       const action =
         calendarCard.dataset
