@@ -4507,3 +4507,32 @@
     font-size:1.18rem!important;
   }
 }
+
+
+/* ALL PAGE TITLES - centered consistently */
+.view > .view-header{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  text-align:center!important;
+}
+
+.view > .view-header > div:first-child{
+  width:100%!important;
+  min-width:0!important;
+  text-align:center!important;
+}
+
+.view > .view-header h1{
+  width:100%!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+
+.view > .view-header > .primary-button,
+.view > .view-header > .secondary-button,
+.view > .view-header > .calendar-header-actions{
+  align-self:center!important;
+}
