@@ -4198,3 +4198,62 @@
     font-size:1.35rem!important;
   }
 }
+
+
+/* CONTENT EDITOR ACTIONS
+   Share/copy on the first row, cancel/save on the second.
+   Prevent long labels from colliding on phones. */
+#contentEditorDialog .form-actions{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;
+  gap:8px!important;
+  align-items:stretch!important;
+  width:100%!important;
+  margin:14px 0 0!important;
+  padding:10px 0 0!important;
+}
+
+#contentEditorDialog .form-actions > button{
+  width:100%!important;
+  min-width:0!important;
+  min-height:42px!important;
+  margin:0!important;
+  padding:9px 10px!important;
+  white-space:normal!important;
+  text-align:center!important;
+  line-height:1.15!important;
+}
+
+#contentEditorDialog [data-share-content-draft]{
+  grid-column:1!important;
+  grid-row:1!important;
+}
+
+#contentEditorDialog [data-copy-content-caption]{
+  grid-column:2!important;
+  grid-row:1!important;
+}
+
+#contentEditorDialog #cancelContentEditorButton{
+  grid-column:1!important;
+  grid-row:2!important;
+}
+
+#contentEditorDialog #saveContentEditorButton{
+  grid-column:2!important;
+  grid-row:2!important;
+}
+
+@media(max-width:380px){
+  #contentEditorDialog .form-actions{
+    grid-template-columns:1fr!important;
+  }
+
+  #contentEditorDialog [data-share-content-draft],
+  #contentEditorDialog [data-copy-content-caption],
+  #contentEditorDialog #cancelContentEditorButton,
+  #contentEditorDialog #saveContentEditorButton{
+    grid-column:1!important;
+    grid-row:auto!important;
+  }
+}
