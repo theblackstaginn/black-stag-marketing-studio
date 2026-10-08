@@ -2842,9 +2842,34 @@
         }
       }
 
-      const actions = document.createElement("div");
-      actions.className = "power-card-actions";
-      actions.innerHTML =
+      let actions =
+        card.querySelector(
+          ".content-card-actions"
+        );
+
+      if (!actions) {
+        actions =
+          document.createElement(
+            "div"
+          );
+
+        actions.className =
+          "content-card-actions power-card-actions";
+
+        card.appendChild(
+          actions
+        );
+      }
+
+      const aiActions =
+        document.createElement(
+          "div"
+        );
+
+      aiActions.className =
+        "content-ai-actions";
+
+      aiActions.innerHTML =
         "<button class='power-card-button' type='button' data-power-ai-action='rewrite' data-power-content-id='" +
           escapeHtml(id) +
           "'>✦ Rewrite</button>" +
@@ -2855,7 +2880,9 @@
           escapeHtml(id) +
           "'>Turn Into Reel</button>";
 
-      card.appendChild(actions);
+      actions.prepend(
+        aiActions
+      );
     });
   }
 
