@@ -11909,16 +11909,10 @@ function renderContentCard(
           "draft"
           ? `
             <div
-              style="
-                display:flex;
-                justify-content:flex-end;
-                margin-top:12px;
-                padding-top:10px;
-                border-top:1px solid var(--line);
-              "
+              class="content-card-actions power-card-actions"
             >
               <button
-                class="danger-button"
+                class="power-card-button content-delete-button"
                 type="button"
                 data-delete-content-draft="${
                   escapeHtml(
@@ -11934,11 +11928,6 @@ function renderContentCard(
                     )
                   )
                 }"
-                style="
-                  min-height:36px;
-                  padding:8px 12px;
-                  font-size:.7rem;
-                "
               >
                 Delete Draft
               </button>
