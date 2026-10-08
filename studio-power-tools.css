@@ -4137,3 +4137,64 @@
     font-size:.61rem!important;
   }
 }
+
+
+/* =========================================================
+   CALENDAR MONTH NAVIGATION
+   Override legacy calendar-panel rules that hid toolbar divs.
+   Keep a simple, reliable previous / month / next header.
+   ========================================================= */
+
+#view-calendar .calendar-month-toolbar{
+  display:grid!important;
+  grid-template-columns:42px minmax(0,1fr) 42px!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+  margin:0 0 16px!important;
+}
+
+#view-calendar .calendar-month-label{
+  display:block!important;
+  min-width:0!important;
+  margin:0!important;
+  color:#f1e9dc!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(1.35rem,4vw,1.9rem)!important;
+  font-weight:400!important;
+  line-height:1.05!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button{
+  display:inline-grid!important;
+  place-items:center!important;
+  width:42px!important;
+  min-width:42px!important;
+  min-height:40px!important;
+  margin:0!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+  justify-self:end!important;
+}
+
+@media(max-width:680px){
+  #view-calendar .calendar-month-toolbar{
+    grid-template-columns:36px minmax(0,1fr) 36px!important;
+    gap:8px!important;
+    margin-bottom:12px!important;
+  }
+
+  #view-calendar .calendar-month-label{
+    font-size:1.12rem!important;
+  }
+
+  #view-calendar .calendar-month-toolbar > .calendar-month-nav-button{
+    width:36px!important;
+    min-width:36px!important;
+    min-height:36px!important;
+    font-size:1.35rem!important;
+  }
+}
