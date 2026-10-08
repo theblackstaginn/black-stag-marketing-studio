@@ -14113,7 +14113,10 @@ function renderCalendar() {
   container.innerHTML = `
     <section class="calendar-month-view">
 
-      <div class="calendar-month-toolbar">
+      <div
+        class="calendar-month-toolbar"
+        aria-label="Calendar month navigation"
+      >
 
         <button
           class="calendar-month-nav-button"
@@ -14125,39 +14128,24 @@ function renderCalendar() {
         </button>
 
 
-        <div class="calendar-month-title">
-          <span class="eyebrow">
-            Schedule
-          </span>
-
-          <h2>
-            ${escapeHtml(
-              monthLabel
-            )}
-          </h2>
-        </div>
+        <h2
+          class="calendar-month-label"
+          aria-live="polite"
+        >
+          ${escapeHtml(
+            monthLabel
+          )}
+        </h2>
 
 
-        <div class="calendar-month-toolbar-actions">
-
-          <button
-            class="calendar-today-button"
-            type="button"
-            data-calendar-nav="today"
-          >
-            Today
-          </button>
-
-          <button
-            class="calendar-month-nav-button"
-            type="button"
-            data-calendar-nav="next"
-            aria-label="Next month"
-          >
-            ›
-          </button>
-
-        </div>
+        <button
+          class="calendar-month-nav-button"
+          type="button"
+          data-calendar-nav="next"
+          aria-label="Next month"
+        >
+          ›
+        </button>
 
       </div>
 
