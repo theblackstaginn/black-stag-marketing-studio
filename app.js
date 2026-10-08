@@ -14989,7 +14989,7 @@ function getAssetDisplayUrl(
 function renderAssetCard(
   asset
 ) {
-  const imageUrl =
+  const assetUrl =
     getAssetDisplayUrl(
       asset
     );
@@ -15007,6 +15007,19 @@ function renderAssetCard(
       "brand_asset"
     ].includes(
       asset.category
+    );
+
+
+  const isPdf =
+    String(
+      asset.mimeType ||
+      ""
+    ).toLowerCase() ===
+      "application/pdf" ||
+    /\.pdf(?:$|[?#])/i.test(
+      asset.storagePath ||
+      asset.externalUrl ||
+      ""
     );
 
 
@@ -15028,7 +15041,7 @@ function renderAssetCard(
     >
 
       ${
-        imageUrl &&
+        assetUrl &&
         isImage
           ? `
             <div
@@ -15048,7 +15061,7 @@ function renderAssetCard(
               <img
                 src="${
                   escapeHtml(
-                    imageUrl
+                    assetUrl
                   )
                 }"
                 alt="${
@@ -15069,31 +15082,74 @@ function renderAssetCard(
 
             </div>
           `
-          : `
-            <div
-              style="
-                display:grid;
-                place-items:center;
-                aspect-ratio:4 / 3;
-                margin-bottom:12px;
-                border:1px solid var(--line);
-                border-radius:calc(
-                  var(--radius) - 4px
-                );
-                background:
-                  rgba(255,255,255,.018);
-                color:var(--muted);
-                font-family:
-                  Georgia,
-                  'Times New Roman',
-                  serif;
-                font-size:2rem;
-              "
-              aria-hidden="true"
-            >
-              ◇
-            </div>
-          `
+          : assetUrl &&
+            isPdf
+              ? `
+                <div
+                  style="
+                    position:relative;
+                    aspect-ratio:4 / 3;
+                    margin-bottom:12px;
+                    border:1px solid var(--line);
+                    border-radius:calc(
+                      var(--radius) - 4px
+                    );
+                    overflow:hidden;
+                    background:#fff;
+                  "
+                >
+                  <iframe
+                    src="${
+                      escapeHtml(
+                        assetUrl +
+                        "#page=1&view=FitH&toolbar=0&navpanes=0&scrollbar=0"
+                      )
+                    }"
+                    title="${
+                      escapeHtml(
+                        (asset.name || "PDF") +
+                        " preview"
+                      )
+                    }"
+                    loading="lazy"
+                    tabindex="-1"
+                    aria-hidden="true"
+                    style="
+                      display:block;
+                      width:100%;
+                      height:100%;
+                      border:0;
+                      pointer-events:none;
+                      background:#fff;
+                    "
+                  ></iframe>
+                </div>
+              `
+              : `
+                <div
+                  style="
+                    display:grid;
+                    place-items:center;
+                    aspect-ratio:4 / 3;
+                    margin-bottom:12px;
+                    border:1px solid var(--line);
+                    border-radius:calc(
+                      var(--radius) - 4px
+                    );
+                    background:
+                      rgba(255,255,255,.018);
+                    color:var(--muted);
+                    font-family:
+                      Georgia,
+                      'Times New Roman',
+                      serif;
+                    font-size:2rem;
+                  "
+                  aria-hidden="true"
+                >
+                  ◇
+                </div>
+              `
       }
 
 
@@ -15726,7 +15782,7 @@ $("#assetEditorPreview");
 
 
 if (preview) {
-const imageUrl =
+const assetUrl =
 getAssetDisplayUrl(
 asset
 );
@@ -15747,15 +15803,28 @@ asset.category
 );
 
 
+const isPdf =
+String(
+asset.mimeType ||
+""
+).toLowerCase() ===
+"application/pdf" ||
+/\.pdf(?:$|[?#])/i.test(
+asset.storagePath ||
+asset.externalUrl ||
+""
+);
+
+
 if (
-imageUrl &&
+assetUrl &&
 isImage
 ) {
 preview.innerHTML = `
 <img
 src="${
 escapeHtml(
-imageUrl
+assetUrl
 )
 }"
 alt="${
@@ -15765,6 +15834,33 @@ asset.name ||
 ""
 )
 }"
+/>
+`;
+} else if (
+assetUrl &&
+isPdf
+) {
+preview.innerHTML = `
+<iframe
+src="${
+escapeHtml(
+assetUrl +
+"#page=1&view=FitH&toolbar=0&navpanes=0"
+)
+}"
+title="${
+escapeHtml(
+(asset.name || "PDF") +
+" preview"
+)
+}"
+style="
+display:block;
+width:100%;
+height:min(70vh,760px);
+border:0;
+background:#fff;
+"
 />
 `;
 } else {
@@ -15777,7 +15873,7 @@ text-align:center;
 font-size:.8rem;
 "
 >
-No image preview available.
+No preview available.
 </div>
 `;
 }
