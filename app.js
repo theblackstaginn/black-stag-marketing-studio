@@ -12017,7 +12017,7 @@ function openCalendarItemDialog() {
 
         <button
           type="button"
-          class="icon-button"
+          class="icon-button calendar-editor-close"
           data-close-calendar-item
           aria-label="Close calendar item"
         >
