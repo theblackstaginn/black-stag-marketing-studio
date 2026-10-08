@@ -11903,8 +11903,205 @@ function renderContentCard(
 
       </div>
 
+
+      ${
+        item.status ===
+          "draft"
+          ? `
+            <div
+              style="
+                display:flex;
+                justify-content:flex-end;
+                margin-top:12px;
+                padding-top:10px;
+                border-top:1px solid var(--line);
+              "
+            >
+              <button
+                class="danger-button"
+                type="button"
+                data-delete-content-draft="${
+                  escapeHtml(
+                    item.id
+                  )
+                }"
+                aria-label="${
+                  escapeHtml(
+                    "Delete draft " +
+                    (
+                      item.title ||
+                      "Untitled Content"
+                    )
+                  )
+                }"
+                style="
+                  min-height:36px;
+                  padding:8px 12px;
+                  font-size:.7rem;
+                "
+              >
+                Delete Draft
+              </button>
+            </div>
+          `
+          : ""
+      }
+
     </article>
   `;
+}
+
+
+/* =========================================================
+   DELETE DRAFT CONTENT
+   ========================================================= */
+
+async function deleteDraftContent(
+  contentId
+) {
+  const item =
+    APP_DATA.content.find(
+      content =>
+        String(content.id) ===
+        String(contentId)
+    );
+
+
+  if (!item) {
+    showToast(
+      "That draft could not be found.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  if (
+    item.status !==
+    "draft"
+  ) {
+    showToast(
+      "Only draft content can be deleted here.",
+      "error"
+    );
+
+    return;
+  }
+
+
+  const confirmed =
+    window.confirm(
+      `Delete draft "${
+        item.title ||
+        "Untitled Content"
+      }"?\n\nThis permanently removes the draft from the Content Library. Linked Asset Vault files are not deleted.`
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  const button =
+    document.querySelector(
+      `[data-delete-content-draft="${
+        CSS.escape(
+          String(contentId)
+        )
+      }"]`
+    );
+
+
+  if (button) {
+    button.disabled =
+      true;
+
+    button.textContent =
+      "Deleting…";
+  }
+
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await supabaseClient
+        .from(
+          "content_items"
+        )
+        .delete()
+        .eq(
+          "id",
+          contentId
+        )
+        .eq(
+          "status",
+          "draft"
+        )
+        .select(
+          "id"
+        )
+        .maybeSingle();
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (!data?.id) {
+      throw new Error(
+        "That item is no longer available as a draft."
+      );
+    }
+
+
+    APP_DATA.content =
+      APP_DATA.content.filter(
+        content =>
+          String(content.id) !==
+          String(contentId)
+      );
+
+
+    renderDashboard();
+
+    renderContentLibrary();
+
+    renderCalendar();
+
+
+    showToast(
+      "Draft deleted.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "Unable to delete draft:",
+      error
+    );
+
+
+    showToast(
+      error?.message ||
+      "Unable to delete the draft.",
+      "error",
+      5000
+    );
+
+
+    if (button) {
+      button.disabled =
+        false;
+
+      button.textContent =
+        "Delete Draft";
+    }
+  }
 }
 
 
@@ -25040,6 +25237,24 @@ function handleGlobalClick(
     return;
   }
 
+  const deleteDraftButton =
+    event.target.closest(
+      "[data-delete-content-draft]"
+    );
+
+  if (deleteDraftButton) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    deleteDraftContent(
+      deleteDraftButton.dataset
+        .deleteContentDraft
+    );
+
+    return;
+  }
+
+
   const contentCard =
     event.target.closest(
       "[data-open-content]"
@@ -25371,6 +25586,16 @@ function bindEvents() {
       ) {
         return;
       }
+
+      const deleteDraftButton =
+        event.target.closest(
+          "[data-delete-content-draft]"
+        );
+
+      if (deleteDraftButton) {
+        return;
+      }
+
 
       const contentCard =
         event.target.closest(
