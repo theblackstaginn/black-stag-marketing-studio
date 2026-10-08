@@ -4257,3 +4257,51 @@
     grid-row:auto!important;
   }
 }
+
+
+/* CALENDAR CENTERED HEADER + MONTH NAV */
+#view-calendar > .view-header{
+  align-items:center!important;
+  text-align:center!important;
+}
+
+#view-calendar > .view-header > div:first-child{
+  width:100%!important;
+  text-align:center!important;
+}
+
+#view-calendar > .view-header h1,
+#view-calendar > .view-header .view-intro{
+  margin-left:auto!important;
+  margin-right:auto!important;
+  text-align:center!important;
+}
+
+#view-calendar > .view-header .calendar-header-actions{
+  justify-content:center!important;
+}
+
+#view-calendar .calendar-month-toolbar{
+  justify-items:center!important;
+  text-align:center!important;
+}
+
+#view-calendar .calendar-month-label{
+  width:100%!important;
+  text-align:center!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button{
+  align-items:center!important;
+  justify-items:center!important;
+  text-align:center!important;
+  line-height:1!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:first-child{
+  justify-self:end!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+  justify-self:start!important;
+}
