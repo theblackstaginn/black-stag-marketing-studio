@@ -3984,3 +3984,156 @@
   outline-offset:4px;
   border-radius:3px;
 }
+
+
+/* =========================================================
+   COMPACT ACTION SYSTEM
+   Keeps modal controls and Content Library actions tidy,
+   aligned, and shallow on phones without changing workflows.
+   ========================================================= */
+
+.app-dialog .create-form{
+  gap:14px!important;
+}
+
+.app-dialog .field{
+  gap:6px!important;
+}
+
+.app-dialog .form-actions,
+.app-dialog .dialog-actions,
+.app-dialog .asset-editor-actions,
+.app-dialog .calendar-editor-actions,
+.app-dialog .asset-upload-actions,
+.app-dialog .asset-folder-move-actions{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:wrap!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:8px!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:14px 0 0!important;
+  padding:10px 0 0!important;
+  border-top:1px solid rgba(185,139,91,.18)!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.app-dialog .form-actions > button,
+.app-dialog .dialog-actions > button,
+.app-dialog .asset-editor-actions > button,
+.app-dialog .calendar-editor-actions > button,
+.app-dialog .asset-upload-actions > button,
+.app-dialog .asset-folder-move-actions > button{
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:38px!important;
+  margin:0!important;
+  padding:8px 12px!important;
+  font-size:.74rem!important;
+  line-height:1.1!important;
+  white-space:nowrap!important;
+}
+
+#assetEditorDialog #deleteAssetEditorButton{
+  margin-right:auto!important;
+  order:0!important;
+}
+
+.app-dialog .dialog-close,
+.calendar-editor-dialog .calendar-editor-close{
+  width:36px!important;
+  height:36px!important;
+  min-width:36px!important;
+  min-height:36px!important;
+  padding:0!important;
+  flex:0 0 36px!important;
+}
+
+#view-studio .content-card-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:6px!important;
+  width:100%!important;
+  max-width:100%!important;
+  margin:10px 0 0!important;
+  padding:9px 0 0!important;
+  border-top:1px solid var(--line)!important;
+}
+
+#view-studio .content-card-actions .content-ai-actions{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:6px!important;
+  min-width:0!important;
+}
+
+#view-studio .content-card-actions .power-card-button{
+  min-height:30px!important;
+  margin:0!important;
+  padding:6px 8px!important;
+  font-size:.62rem!important;
+  line-height:1.05!important;
+  white-space:nowrap!important;
+}
+
+#view-studio .content-card-actions .content-delete-button{
+  color:#e0adad!important;
+  border-color:rgba(163,95,95,.42)!important;
+  background:rgba(115,48,48,.14)!important;
+}
+
+@media(max-width:680px){
+  .app-dialog .form-actions,
+  .app-dialog .dialog-actions,
+  .app-dialog .calendar-editor-actions,
+  .app-dialog .asset-upload-actions,
+  .app-dialog .asset-folder-move-actions{
+    flex-wrap:nowrap!important;
+  }
+
+  .app-dialog .form-actions > button,
+  .app-dialog .dialog-actions > button,
+  .app-dialog .calendar-editor-actions > button,
+  .app-dialog .asset-upload-actions > button,
+  .app-dialog .asset-folder-move-actions > button{
+    flex:1 1 0!important;
+  }
+
+  .app-dialog .asset-editor-actions{
+    flex-wrap:wrap!important;
+  }
+
+  .app-dialog .asset-editor-actions > button{
+    flex:1 1 calc(50% - 4px)!important;
+  }
+
+  #assetEditorDialog #deleteAssetEditorButton{
+    flex-basis:100%!important;
+    margin-right:0!important;
+    order:3!important;
+  }
+
+  #view-studio .content-card-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:6px!important;
+  }
+
+  #view-studio .content-card-actions .content-ai-actions{
+    display:contents!important;
+  }
+
+  #view-studio .content-card-actions .power-card-button{
+    width:100%!important;
+    min-height:32px!important;
+    padding:6px 7px!important;
+    font-size:.61rem!important;
+  }
+}
