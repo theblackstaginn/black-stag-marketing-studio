@@ -3079,9 +3079,35 @@ function renderBrandGrid() {
                     "
                   >
                     ${
-                      escapeHtml(
-                        brand.shortName
-                      )
+                      brand.website
+                        ? `
+                          <a
+                            class="brand-website-link"
+                            href="${
+                              escapeHtml(
+                                brand.website
+                              )
+                            }"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label="${
+                              escapeHtml(
+                                "Open " +
+                                brand.shortName +
+                                " website"
+                              )
+                            }"
+                          >
+                            ${
+                              escapeHtml(
+                                brand.shortName
+                              )
+                            }
+                          </a>
+                        `
+                        : escapeHtml(
+                            brand.shortName
+                          )
                     }
                   </h3>
 
