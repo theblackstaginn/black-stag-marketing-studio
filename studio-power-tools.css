@@ -3959,3 +3959,28 @@
   object-fit:cover;
   border-radius:inherit;
 }
+
+
+/* BRAND CARD WEBSITE LINKS */
+#view-brands .brand-website-link{
+  color:inherit!important;
+  text-decoration-line:underline;
+  text-decoration-color:rgba(205,158,105,.58);
+  text-decoration-thickness:1px;
+  text-underline-offset:5px;
+  transition:
+    color .18s var(--ease),
+    text-decoration-color .18s var(--ease);
+}
+
+#view-brands .brand-website-link:hover,
+#view-brands .brand-website-link:focus-visible{
+  color:var(--bronze-light)!important;
+  text-decoration-color:currentColor;
+}
+
+#view-brands .brand-website-link:focus-visible{
+  outline:2px solid rgba(205,158,105,.45);
+  outline-offset:4px;
+  border-radius:3px;
+}
