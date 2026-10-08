@@ -4435,3 +4435,75 @@
     min-height:38px!important;
   }
 }
+
+
+/* CALENDAR MONTH NAV - definitive centered override
+   This intentionally outranks the older calendarShell > section > div:first-child rule. */
+#view-calendar #calendarShell > section > .calendar-month-toolbar{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:40px minmax(150px,auto) 40px!important;
+  align-items:center!important;
+  justify-content:center!important;
+  justify-items:center!important;
+  width:max-content!important;
+  max-width:100%!important;
+  min-height:40px!important;
+  margin:0 auto 16px!important;
+  padding:0!important;
+  gap:12px!important;
+  text-align:center!important;
+}
+
+#view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-label{
+  position:static!important;
+  width:auto!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  text-align:center!important;
+  justify-self:center!important;
+  white-space:nowrap!important;
+}
+
+#view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-nav-button,
+#view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-nav-button:first-child,
+#view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+  position:static!important;
+  display:grid!important;
+  place-items:center!important;
+  justify-self:center!important;
+  align-self:center!important;
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  text-align:center!important;
+  line-height:1!important;
+}
+
+@media(max-width:680px){
+  #view-calendar #calendarShell > section > .calendar-month-toolbar{
+    grid-template-columns:38px minmax(145px,auto) 38px!important;
+    min-height:38px!important;
+    gap:10px!important;
+    margin:0 auto 12px!important;
+  }
+
+  #view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-nav-button,
+  #view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-nav-button:first-child,
+  #view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+  }
+
+  #view-calendar #calendarShell > section > .calendar-month-toolbar > .calendar-month-label{
+    font-size:1.18rem!important;
+  }
+}
