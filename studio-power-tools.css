@@ -4367,3 +4367,71 @@
     font-size:1.18rem!important;
   }
 }
+
+
+/* CALENDAR MONTH NAV - hard center month label */
+#view-calendar .calendar-month-toolbar{
+  position:relative!important;
+  display:block!important;
+  width:min(100%,300px)!important;
+  height:40px!important;
+  margin:0 auto 16px!important;
+}
+
+#view-calendar .calendar-month-label{
+  position:absolute!important;
+  top:50%!important;
+  left:50%!important;
+  width:auto!important;
+  max-width:calc(100% - 100px)!important;
+  margin:0!important;
+  padding:0!important;
+  transform:translate(-50%,-50%)!important;
+  text-align:center!important;
+  white-space:nowrap!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button,
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:first-child,
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+  position:absolute!important;
+  top:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  width:40px!important;
+  min-width:40px!important;
+  height:40px!important;
+  min-height:40px!important;
+  margin:0!important;
+  padding:0!important;
+  transform:translateY(-50%)!important;
+  text-align:center!important;
+  line-height:1!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:first-child{
+  left:0!important;
+  right:auto!important;
+}
+
+#view-calendar .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+  right:0!important;
+  left:auto!important;
+}
+
+@media(max-width:680px){
+  #view-calendar .calendar-month-toolbar{
+    width:min(100%,280px)!important;
+    height:38px!important;
+    margin-bottom:12px!important;
+  }
+
+  #view-calendar .calendar-month-toolbar > .calendar-month-nav-button,
+  #view-calendar .calendar-month-toolbar > .calendar-month-nav-button:first-child,
+  #view-calendar .calendar-month-toolbar > .calendar-month-nav-button:last-child{
+    width:38px!important;
+    min-width:38px!important;
+    height:38px!important;
+    min-height:38px!important;
+  }
+}
