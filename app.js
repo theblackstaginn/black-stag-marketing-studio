@@ -1976,6 +1976,10 @@ function normalizeCalendarItem(row) {
       row.description ||
       "",
 
+    imageAssetId:
+      row.image_asset_id ||
+      null,
+
     startsAt:
       row.starts_at,
 
@@ -13988,6 +13992,24 @@ function renderCalendar() {
           ) ||
           [];
 
+        // Display the featured milestone crest in the month grid.
+        const dayEmblemAssetId =
+          dayItems.find(
+            item => item.imageAssetId
+          )?.imageAssetId || null;
+
+        const dayEmblemAsset =
+          dayEmblemAssetId
+            ? (APP_DATA.assets || []).find(
+                asset =>
+                  asset.id === dayEmblemAssetId &&
+                  asset.brandId === brand.id
+              )
+            : null;
+
+        const dayEmblemUrl =
+          getAssetDisplayUrl(dayEmblemAsset);
+
 
         const isCurrentMonth =
           date.getMonth() ===
@@ -14072,6 +14094,24 @@ function renderCalendar() {
               <span class="calendar-day-number">
                 ${date.getDate()}
               </span>
+
+              ${
+                dayEmblemUrl
+                  ? `
+                    <img
+                      src="${escapeHtml(dayEmblemUrl)}"
+                      alt="Milestone emblem"
+                      loading="lazy"
+                      style="
+                        width:28px;
+                        height:28px;
+                        object-fit:contain;
+                        margin:auto;
+                      "
+                    />
+                  `
+                  : ""
+              }
 
               ${
                 dayItems.length
@@ -14386,6 +14426,19 @@ function renderCalendarItem(
       ? "content"
       : "calendar";
 
+  // Private artwork is resolved by its Asset Vault record.
+  const emblemAsset =
+    item.imageAssetId
+      ? (APP_DATA.assets || []).find(
+          asset =>
+            asset.id === item.imageAssetId &&
+            asset.brandId === item.brandId
+        )
+      : null;
+
+  const emblemUrl =
+    getAssetDisplayUrl(emblemAsset);
+
 
   return `
     <article
@@ -14412,6 +14465,25 @@ function renderCalendarItem(
           flex-wrap:wrap;
         "
       >
+
+        ${
+          emblemUrl
+            ? `
+              <img
+                src="${escapeHtml(emblemUrl)}"
+                alt="Commemorative milestone emblem"
+                loading="lazy"
+                style="
+                  width:84px;
+                  height:84px;
+                  object-fit:contain;
+                  flex:0 0 84px;
+                  filter:drop-shadow(0 5px 6px rgba(0,0,0,.3));
+                "
+              />
+            `
+            : ""
+        }
 
         <div
           style="
