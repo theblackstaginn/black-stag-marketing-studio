@@ -712,6 +712,9 @@
       return;
     }
 
+    // Discard references from the previous brand before loading its saved run.
+    window.BlackStagEmberAttachments?.reset?.(brandId);
+
     let savedRunId = null;
     try {
       savedRunId = window.localStorage.getItem(
@@ -733,6 +736,7 @@
     if (!brand) return;
     resetEmberChatForBrand(brand.id);
     saveEmberRunId(brand.id, null);
+    window.BlackStagEmberAttachments?.reset?.(brand.id, true);
     emberChatState.requestText = "";
     emberChatState.responseText = "";
     emberChatState.errorText = "";
@@ -827,6 +831,9 @@
       ">" +
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
+      (window.BlackStagEmberAttachments?.render?.(
+        brand, busy || Boolean(emberChatState.runId)
+      ) || "") +
       "<div class='form-actions' style='flex-wrap:wrap'>" +
       "<span class='muted-copy'>Prepare once, share to ChatGPT, then check for the returned reply here.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
@@ -1389,6 +1396,7 @@
         selected_record: selected
       },
       instruction: String(requestText || "").trim(),
+      reference_images: window.BlackStagEmberAttachments?.references?.(brand) || [],
       writeback: {
         requested: true,
         target: selected
@@ -1421,6 +1429,9 @@
       "then help with my request. Use the supplied record IDs and current live data; " +
       "do not invent facts or claim actions succeeded without confirmed tool results. " +
       "Do not publish or send content without the owner's explicit instruction.\n\n" +
+      (payload.reference_images.length
+        ? "The user attached reference images. Before answering, call Black Stag Marketing Studio get_asset_image for EACH reference_images[].asset_id in the handoff payload to inspect the actual images. Use the image content, not just filenames or descriptions. These references are owner-selected for this request; they do not authorize publishing, modifying, or sharing the original images. If an image cannot be retrieved, clearly disclose that.\n\n"
+        : "") +
       "BSMS_HANDOFF_PAYLOAD\n" +
       JSON.stringify(payload, null, 2) +
       (
@@ -1760,6 +1771,12 @@
     renderEmberChatPanel();
 
     try {
+      // Persist owner-selected device images in the private, brand-scoped
+      // Asset Vault before creating the existing authenticated reply run.
+      // No image bytes or signed storage links go into the shared handoff.
+      await window.BlackStagEmberAttachments?.prepare?.(brand);
+      if (emberChatState.brandId !== brand.id) return;
+
       const { data, error } = await supabaseClient.functions.invoke(
         "prepare-ember-handoff",
         {
