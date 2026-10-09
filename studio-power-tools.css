@@ -4596,3 +4596,66 @@
     overflow-wrap: anywhere;
   }
 }
+
+
+/* MANUAL AI CREATE DIALOG - MOBILE TEXTAREA AND HEADER FIX (2026-10-09) */
+#manualAiDialog > div,
+#manualAiDialog > div > div:nth-child(2),
+#manualAiDialog section {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+#manualAiDialog > div > div:nth-child(2) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* The brief and draft fields do not use the normal .field wrapper. */
+#manualAiDialog #manualAiBrief,
+#manualAiDialog #manualAiResult {
+  display: block;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  padding: 12px 14px;
+  box-sizing: border-box !important;
+  border: 1px solid rgba(190, 145, 96, .24);
+  border-radius: 11px;
+  color: var(--ink);
+  background: rgba(5, 7, 6, .90) !important;
+}
+
+/* Scrolling the AI brief must never display text over the title or close button. */
+#manualAiDialog .dialog-header {
+  position: sticky !important;
+  z-index: 30 !important;
+  top: 0 !important;
+  background: rgba(17, 20, 17, .98) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+#manualAiDialog .dialog-header > div {
+  min-width: 0;
+}
+
+@media (max-width: 680px) {
+  #manualAiDialog > div {
+    max-height: 100% !important;
+  }
+
+  #manualAiDialog #manualAiBrief {
+    height: 170px;
+    min-height: 170px !important;
+  }
+
+  #manualAiDialog .dialog-header h2 {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  #manualAiDialog .form-actions {
+    flex-wrap: wrap !important;
+  }
+}
