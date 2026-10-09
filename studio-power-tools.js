@@ -772,10 +772,11 @@
       statusHtml =
         "<div class='ember-dialog-row' style='display:block;margin-top:10px'>" +
         "<strong>Handoff ready.</strong>" +
-        "<p class='muted-copy'>Tap Share to ChatGPT, choose ChatGPT, and send the prepared message. Then return here to check the reply. The response is stored against this Studio request, not posted publicly.</p>" +
+        "<p class='muted-copy'>Tap Share to ChatGPT, choose ChatGPT and send the message. You can resend if needed, and check here for the reply. This does not publish anything.</p>" +
         "<div class='form-actions' style='flex-wrap:wrap'>" +
         "<button class='primary-button' type='button' data-ember-chat-share>Share to ChatGPT</button>" +
         "<button class='secondary-button' type='button' data-ember-chat-copy>Copy handoff</button>" +
+        "<button class='secondary-button' type='button' data-ember-chat-check>Check for reply</button>" +
         "<button class='text-button' type='button' data-ember-chat-new>Start over</button>" +
         "</div></div>" +
         runInfo;
@@ -829,7 +830,7 @@
       "<div class='form-actions' style='flex-wrap:wrap'>" +
       "<span class='muted-copy'>Prepare once, share to ChatGPT, then check for the returned reply here.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
-      (busy ? " disabled" : "") +
+      ((busy || emberChatState.runId) ? " disabled" : "") +
       ">Prepare handoff</button></div>" +
       statusHtml;
   }
@@ -1667,6 +1668,7 @@
         emberChatState.status = "answered";
         emberChatState.responseText = data.response_text;
         emberChatState.errorText = "";
+        emberChatState.handoffText = "";
       } else if (data.status === "failed" || data.status === "cancelled") {
         emberChatState.status = "error";
         emberChatState.responseText = "";
@@ -1819,8 +1821,8 @@
     if (shared.status === "cancelled") return;
 
     if (shared.status === "shared") {
-      emberChatState.status = "waiting";
-      emberChatState.handoffText = "";
+      // Keep prepared text in memory so the owner may retry sharing.
+      emberChatState.status = "ready";
       renderEmberChatPanel();
       showToast("Now send the handoff in ChatGPT, then return here.", "success", 4000);
       return;
@@ -1828,8 +1830,7 @@
 
     const copied = await copyEmberHandoff(handoff);
     if (copied) {
-      emberChatState.status = "waiting";
-      emberChatState.handoffText = "";
+      emberChatState.status = "ready";
       renderEmberChatPanel();
       showToast("Handoff copied. Paste and send it in ChatGPT.", "success", 4000);
       return;
@@ -1849,8 +1850,7 @@
       showToast("Copy failed. Try the Share to ChatGPT button.", "error");
       return;
     }
-    emberChatState.status = "waiting";
-    emberChatState.handoffText = "";
+    emberChatState.status = "ready";
     renderEmberChatPanel();
     showToast("Handoff copied. Paste and send it in ChatGPT.", "success", 4000);
   }
@@ -1915,7 +1915,7 @@
     );
 
     // Restore the last pending/answered run on return from ChatGPT.
-    if (emberChatState.runId && emberChatState.status !== "ready") {
+    if (emberChatState.runId) {
       checkEmberChatReply();
     }
   }
