@@ -27,7 +27,8 @@
     responseText: "",
     errorText: "",
     status: "idle",
-    runId: null
+    runId: null,
+    handoffText: "" // One-use return capability: keep in memory only.
   };
 
   const emberHandoffState = {
@@ -689,17 +690,57 @@
       .join("");
   }
 
+  function emberRunStorageKey(brandId) {
+    return "bsms.ember.return_run.v1." + String(brandId || "");
+  }
+
+  function saveEmberRunId(brandId, runId) {
+    try {
+      const key = emberRunStorageKey(brandId);
+      if (runId) {
+        window.localStorage.setItem(key, String(runId));
+      } else {
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      // Private browsing may disable storage. Manual check still works until reload.
+    }
+  }
+
   function resetEmberChatForBrand(brandId) {
     if (emberChatState.brandId === brandId) {
       return;
     }
 
+    let savedRunId = null;
+    try {
+      savedRunId = window.localStorage.getItem(
+        emberRunStorageKey(brandId)
+      );
+    } catch {}
+
     emberChatState.brandId = brandId;
     emberChatState.requestText = "";
     emberChatState.responseText = "";
     emberChatState.errorText = "";
-    emberChatState.status = "idle";
+    emberChatState.handoffText = "";
+    emberChatState.runId = savedRunId || null;
+    emberChatState.status = savedRunId ? "waiting" : "idle";
+  }
+
+  function startNewEmberChat() {
+    const brand = activeBrand();
+    if (!brand) return;
+    resetEmberChatForBrand(brand.id);
+    saveEmberRunId(brand.id, null);
+    emberChatState.requestText = "";
+    emberChatState.responseText = "";
+    emberChatState.errorText = "";
+    emberChatState.handoffText = "";
     emberChatState.runId = null;
+    emberChatState.status = "idle";
+    renderEmberChatPanel();
+    byId("emberChatInput")?.focus();
   }
 
   function renderEmberChatPanel() {
@@ -713,51 +754,83 @@
     resetEmberChatForBrand(brand.id);
 
     const busy =
-      emberChatState.status === "sending" ||
-      emberChatState.status === "waiting";
+      emberChatState.status === "preparing" ||
+      emberChatState.status === "checking";
 
     let statusHtml = "";
+    const runInfo = emberChatState.runId
+      ? "<p class='muted-copy' style='margin:8px 0 0'>A Studio return request has been recorded for this brand.</p>"
+      : "";
 
-    if (busy) {
+    if (emberChatState.status === "preparing") {
       statusHtml =
-        "<p class='muted-copy' style='margin:10px 0 0'>Ember is working on this request…</p>";
+        "<p class='muted-copy' style='margin:10px 0 0'>Securing this request and preparing its return path…</p>";
+    } else if (emberChatState.status === "checking") {
+      statusHtml =
+        "<p class='muted-copy' style='margin:10px 0 0'>Checking Studio for Ember's reply…</p>";
+    } else if (emberChatState.status === "ready") {
+      statusHtml =
+        "<div class='ember-dialog-row' style='display:block;margin-top:10px'>" +
+        "<strong>Handoff ready.</strong>" +
+        "<p class='muted-copy'>Tap Share to ChatGPT, choose ChatGPT, and send the prepared message. Then return here to check the reply. The response is stored against this Studio request, not posted publicly.</p>" +
+        "<div class='form-actions' style='flex-wrap:wrap'>" +
+        "<button class='primary-button' type='button' data-ember-chat-share>Share to ChatGPT</button>" +
+        "<button class='secondary-button' type='button' data-ember-chat-copy>Copy handoff</button>" +
+        "<button class='text-button' type='button' data-ember-chat-new>Start over</button>" +
+        "</div></div>" +
+        runInfo;
+    } else if (emberChatState.status === "waiting") {
+      statusHtml =
+        "<div class='ember-dialog-row' style='display:block;margin-top:10px'>" +
+        "<strong>Waiting for the ChatGPT response.</strong>" +
+        "<p class='muted-copy'>If you have not sent the message yet, start a new handoff. Otherwise, return after Ember finishes and check again. Closing Studio will not erase the pending request.</p>" +
+        "<div class='form-actions' style='flex-wrap:wrap'>" +
+        "<button class='secondary-button' type='button' data-ember-chat-check>Check for reply</button>" +
+        "<button class='text-button' type='button' data-ember-chat-new>New request</button>" +
+        "</div></div>" +
+        runInfo;
     } else if (emberChatState.errorText) {
       statusHtml =
-        "<div class='empty-state' style='margin-top:10px'><h3>Ember could not answer yet.</h3><p>" +
+        "<div class='empty-state' style='margin-top:10px'><h3>Handoff needs attention.</h3><p>" +
         escapeHtml(emberChatState.errorText) +
-        "</p><button class='secondary-button' type='button' data-ember-chat-retry>Retry Ember</button></div>";
+        "</p><div class='form-actions' style='flex-wrap:wrap'>" +
+        (emberChatState.runId
+          ? "<button class='secondary-button' type='button' data-ember-chat-check>Check again</button>"
+          : "") +
+        "<button class='text-button' type='button' data-ember-chat-new>Start a new request</button>" +
+        "</div></div>";
     } else if (emberChatState.responseText) {
       statusHtml =
-        "<article class='ember-dialog-row' style='grid-template-columns:1fr;margin-top:10px'><div><span class='eyebrow'>Ember Reply</span><p style='white-space:pre-wrap;margin-top:8px'>" +
+        "<article class='ember-dialog-row' style='display:block;margin-top:10px'>" +
+        "<div><span class='eyebrow'>Ember Reply · Returned to Studio</span>" +
+        "<p style='white-space:pre-wrap;margin-top:8px'>" +
         escapeHtml(emberChatState.responseText) +
-        "</p></div></article>";
+        "</p><button class='text-button' type='button' data-ember-chat-new>New request</button>" +
+        "</div></article>";
     }
 
-    const selected =
-      selectedStudioRecord();
-
-    const contextLabel =
-      selected
-        ? selected.type + ": " + (selected.title || selected.id)
-        : "Current " + currentStudioView() + " view";
+    const selected = selectedStudioRecord();
+    const contextLabel = selected
+      ? selected.type + ": " + (selected.title || selected.id)
+      : "Current " + currentStudioView() + " view";
 
     host.innerHTML =
       "<span class='eyebrow'>Ask Ember</span>" +
-      "<h3 style='margin:4px 0 6px'>Continue in ChatGPT</h3>" +
+      "<h3 style='margin:4px 0 6px'>ChatGPT ↔ Studio Return Bridge</h3>" +
       "<p class='muted-copy' style='margin:0 0 10px'>Context: " +
       escapeHtml(contextLabel) +
       "</p>" +
       "<label class='field'><span>Message</span>" +
-      "<textarea id='emberChatInput' rows='3' maxlength='12000' placeholder='Tell Ember what to do with the current Studio item or view.'" +
+      "<textarea id='emberChatInput' rows='3' maxlength='12000' placeholder='Ask Ember about the current Studio item or view.'" +
       (busy ? " disabled" : "") +
       ">" +
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
-      "<div class='form-actions'>" +
-      "<span class='muted-copy'>Shares this exact BSMS context through your iPhone share sheet. Choose ChatGPT when it appears.</span>" +
+      "<div class='form-actions' style='flex-wrap:wrap'>" +
+      "<span class='muted-copy'>Prepare once, share to ChatGPT, then check for the returned reply here.</span>" +
       "<button class='primary-button' type='button' data-ember-chat-send" +
       (busy ? " disabled" : "") +
-      ">Share to Ember</button></div>" +
+      ">Prepare handoff</button></div>" +
       statusHtml;
   }
 
@@ -1329,23 +1402,38 @@
     };
   }
 
-  function emberHandoffPrompt(brand, requestText) {
-    const payload =
-      emberHandoffPayload(
-        brand,
-        requestText
-      );
+  function emberHandoffPrompt(brand, requestText, returnLane = null) {
+    const payload = emberHandoffPayload(brand, requestText);
+    const delivery = returnLane
+      ? {
+          tool: "Ember Return Lane / submit_ember_response",
+          request_id: returnLane.request_id,
+          return_capability: returnLane.return_capability
+        }
+      : null;
 
     return (
       "@Black Stag Marketing Studio\n\n" +
       "Ember handoff from Black Stag Marketing Studio. " +
-      "Use the connected BSMS tools to fulfill my request. " +
-      "The JSON payload below is Studio context supplied by my app, including the exact modal source when Ember was opened from a dialog. " +
-      "Use the dialog ID, Ember button ID, and record IDs to identify where the request originated, then read the live source of truth before changing anything. " +
-      "If a supported write is requested, save the result back to BSMS and tell me what changed. " +
-      "If there is no matching write tool, tell me clearly and do not pretend it was saved.\n\n" +
+      "This handoff is initiated by the signed-in user through the Studio app. " +
+      "Use connected BSMS tools to inspect the exact originating brand and record, " +
+      "then help with my request. Use the supplied record IDs and current live data; " +
+      "do not invent facts or claim actions succeeded without confirmed tool results. " +
+      "Do not publish or send content without the owner's explicit instruction.\n\n" +
       "BSMS_HANDOFF_PAYLOAD\n" +
-      JSON.stringify(payload, null, 2)
+      JSON.stringify(payload, null, 2) +
+      (
+        delivery
+          ? "\n\nBSMS_RETURN_LANE\n" +
+            JSON.stringify(delivery, null, 2) +
+            "\n\nOnce you have answered, call the connected Ember Return Lane tool " +
+            "submit_ember_response with exactly that request_id and return_capability, " +
+            "and a useful plain-language response_text summarizing the outcome. " +
+            "Only the reply should be written through this return lane. " +
+            "Do not show the return_capability in your conversational answer. " +
+            "If the tool is not connected, explain that the reply could not be returned to Studio."
+          : ""
+      )
     );
   }
 
@@ -1537,42 +1625,68 @@
     return message;
   }
 
-  async function waitForEmberChatReply(runId) {
-    for (let attempt = 0; attempt < 60; attempt += 1) {
-      await new Promise(resolve =>
-        window.setTimeout(resolve, attempt === 0 ? 1200 : 1800)
-      );
+  async function checkEmberChatReply() {
+    const brand = activeBrand();
+    if (!brand) return;
 
-      const { data, error } =
-        await supabaseClient
-          .from("ember_agent_runs")
-          .select("status,response_text,error_text")
-          .eq("id", runId)
-          .single();
+    resetEmberChatForBrand(brand.id);
+    const runId = emberChatState.runId;
 
-      if (error) {
-        throw error;
-      }
+    if (!runId) {
+      showToast("Prepare a request first.", "info");
+      return;
+    }
 
-      if (data?.status === "answered" && data.response_text) {
-        emberChatState.status = "answered";
-        emberChatState.responseText = data.response_text;
-        emberChatState.errorText = "";
-        renderEmberChatPanel();
+    const wasReady = emberChatState.status === "ready";
+    emberChatState.status = "checking";
+    renderEmberChatPanel();
+
+    try {
+      const { data, error } = await supabaseClient
+        .from("ember_agent_runs")
+        .select("id,brand_id,request_text,status,response_text,error_text")
+        .eq("id", runId)
+        .eq("brand_id", brand.id)
+        .single();
+
+      if (error) throw error;
+
+      // Brand switches or a new request must never display an old reply.
+      if (
+        emberChatState.brandId !== brand.id ||
+        emberChatState.runId !== runId
+      ) {
         return;
       }
 
-      if (data?.status === "failed" || data?.status === "cancelled") {
-        throw new Error(
-          data.error_text ||
-          "Ember could not complete the request."
-        );
+      if (typeof data.request_text === "string") {
+        emberChatState.requestText = data.request_text;
       }
-    }
 
-    throw new Error(
-      "Ember is still working. Retry in a moment."
-    );
+      if (data.status === "answered" && data.response_text) {
+        emberChatState.status = "answered";
+        emberChatState.responseText = data.response_text;
+        emberChatState.errorText = "";
+      } else if (data.status === "failed" || data.status === "cancelled") {
+        emberChatState.status = "error";
+        emberChatState.responseText = "";
+        emberChatState.errorText = data.error_text || "This request did not complete.";
+      } else {
+        emberChatState.status = wasReady ? "ready" : "waiting";
+        emberChatState.responseText = "";
+        emberChatState.errorText = "";
+      }
+
+      renderEmberChatPanel();
+    } catch (error) {
+      if (emberChatState.brandId !== brand.id || emberChatState.runId !== runId) {
+        return;
+      }
+      emberChatState.status = "error";
+      emberChatState.errorText =
+        error?.message || "Could not check the Studio return lane.";
+      renderEmberChatPanel();
+    }
   }
 
   async function shareEmberHandoff(text) {
@@ -1615,152 +1729,130 @@
     }
   }
 
-  async function submitEmberChat(retry = false) {
+  async function prepareEmberChat() {
     const brand = activeBrand();
-
-    if (!brand) {
-      return;
-    }
-
+    if (!brand) return;
     resetEmberChatForBrand(brand.id);
 
-    const input = byId("emberChatInput");
-
-    const requestText =
-      retry
-        ? emberChatState.requestText
-        : String(input?.value || "").trim();
-
+    const requestText = String(byId("emberChatInput")?.value || "").trim();
     if (!requestText) {
-      showToast(
-        "Ask Ember something first.",
-        "error"
-      );
-
-      input?.focus();
+      showToast("Ask Ember something first.", "error");
+      byId("emberChatInput")?.focus();
       return;
     }
 
-    emberChatState.requestText =
-      requestText;
+    // Avoid creating a second pending run with the same request.
+    if (
+      emberChatState.status === "ready" &&
+      requestText === emberChatState.requestText &&
+      emberChatState.handoffText
+    ) {
+      showToast("Your prepared handoff is ready below.", "info");
+      return;
+    }
 
+    emberChatState.requestText = requestText;
     emberChatState.responseText = "";
     emberChatState.errorText = "";
-    emberChatState.status = "sending";
+    emberChatState.status = "preparing";
     renderEmberChatPanel();
 
     try {
-      const promptText =
-        emberHandoffPrompt(
-          brand,
-          requestText
-        );
-
-      const shareResult =
-        await shareEmberHandoff(
-          promptText
-        );
-
-      if (
-        shareResult.status === "shared"
-      ) {
-        emberChatState.status =
-          "answered";
-
-        emberChatState.responseText =
-          "Handoff shared. If you chose ChatGPT, continue there with Ember.";
-
-        emberChatState.errorText =
-          "";
-
-        renderEmberChatPanel();
-
-        showToast(
-          "Ember handoff shared.",
-          "success",
-          3200
-        );
-
-        return;
-      }
-
-      if (
-        shareResult.status === "cancelled"
-      ) {
-        emberChatState.status =
-          "idle";
-
-        emberChatState.responseText =
-          "";
-
-        emberChatState.errorText =
-          "";
-
-        renderEmberChatPanel();
-
-        showToast(
-          "Share cancelled.",
-          "info",
-          2200
-        );
-
-        return;
-      }
-
-      const copied =
-        await copyEmberHandoff(
-          promptText
-        );
-
-      emberChatState.status =
-        copied
-          ? "answered"
-          : "error";
-
-      emberChatState.responseText =
-        copied
-          ? "Sharing was unavailable, so the Ember handoff was copied instead. Switch to ChatGPT, paste, and send."
-          : "";
-
-      emberChatState.errorText =
-        copied
-          ? ""
-          : "This browser could neither open the share sheet nor copy the Ember handoff.";
-
-      renderEmberChatPanel();
-
-      showToast(
-        copied
-          ? "Share unavailable — handoff copied."
-          : emberChatState.errorText,
-        copied
-          ? "success"
-          : "error",
-        copied
-          ? 3800
-          : 6000
+      const { data, error } = await supabaseClient.functions.invoke(
+        "prepare-ember-handoff",
+        {
+          body: {
+            brand_id: brand.id,
+            request_text: requestText,
+            request_context: emberHandoffPayload(brand, requestText)
+          }
+        }
       );
+
+      if (error) {
+        throw new Error(await emberFunctionErrorMessage(error));
+      }
+
+      if (
+        !data?.ok ||
+        typeof data.run_id !== "string" ||
+        !/^[0-9a-f-]{36}$/i.test(data.run_id) ||
+        typeof data.return_capability !== "string" ||
+        !/^[0-9a-f]{64}$/i.test(data.return_capability)
+      ) {
+        throw new Error("Studio did not return a valid handoff record.");
+      }
+
+      if (emberChatState.brandId !== brand.id) return;
+
+      emberChatState.runId = data.run_id;
+      emberChatState.handoffText = emberHandoffPrompt(
+        brand,
+        requestText,
+        {
+          request_id: data.run_id,
+          return_capability: data.return_capability
+        }
+      );
+      emberChatState.status = "ready";
+      saveEmberRunId(brand.id, data.run_id);
+      renderEmberChatPanel();
     } catch (error) {
-      console.error(
-        "Ember handoff failed:",
-        error
-      );
-
-      emberChatState.status =
-        "error";
-
+      if (emberChatState.brandId !== brand.id) return;
+      emberChatState.status = "error";
+      emberChatState.handoffText = "";
       emberChatState.errorText =
-        error?.message ||
-        "The Ember handoff could not be prepared.";
-
+        error?.message || "Could not prepare the return handoff.";
       renderEmberChatPanel();
-
-      showToast(
-        emberChatState.errorText,
-        "error",
-        6000
-      );
     }
+  }
+
+  async function sharePreparedEmberChat() {
+    const handoff = emberChatState.handoffText;
+    if (!handoff || emberChatState.status !== "ready") {
+      showToast("Prepare a handoff first.", "error");
+      return;
+    }
+
+    // The share sheet opens directly from this user tap.
+    const shared = await shareEmberHandoff(handoff);
+    if (shared.status === "cancelled") return;
+
+    if (shared.status === "shared") {
+      emberChatState.status = "waiting";
+      emberChatState.handoffText = "";
+      renderEmberChatPanel();
+      showToast("Now send the handoff in ChatGPT, then return here.", "success", 4000);
+      return;
+    }
+
+    const copied = await copyEmberHandoff(handoff);
+    if (copied) {
+      emberChatState.status = "waiting";
+      emberChatState.handoffText = "";
+      renderEmberChatPanel();
+      showToast("Handoff copied. Paste and send it in ChatGPT.", "success", 4000);
+      return;
+    }
+
+    showToast("Sharing unavailable. Try the Copy handoff button.", "error");
+  }
+
+  async function copyPreparedEmberChat() {
+    const handoff = emberChatState.handoffText;
+    if (!handoff || emberChatState.status !== "ready") {
+      showToast("Prepare a handoff first.", "error");
+      return;
+    }
+    const copied = await copyEmberHandoff(handoff);
+    if (!copied) {
+      showToast("Copy failed. Try the Share to ChatGPT button.", "error");
+      return;
+    }
+    emberChatState.status = "waiting";
+    emberChatState.handoffText = "";
+    renderEmberChatPanel();
+    showToast("Handoff copied. Paste and send it in ChatGPT.", "success", 4000);
   }
 
   function openEmberBrief() {
@@ -1821,6 +1913,11 @@
     openDialog(
       dialog
     );
+
+    // Restore the last pending/answered run on return from ChatGPT.
+    if (emberChatState.runId && emberChatState.status !== "ready") {
+      checkEmberChatReply();
+    }
   }
 
   async function markEmberWorkDone(
@@ -3777,12 +3874,27 @@
     }
 
     if (event.target.closest("[data-ember-chat-send]")) {
-      submitEmberChat(false);
+      prepareEmberChat();
       return;
     }
 
-    if (event.target.closest("[data-ember-chat-retry]")) {
-      submitEmberChat(true);
+    if (event.target.closest("[data-ember-chat-share]")) {
+      sharePreparedEmberChat();
+      return;
+    }
+
+    if (event.target.closest("[data-ember-chat-copy]")) {
+      copyPreparedEmberChat();
+      return;
+    }
+
+    if (event.target.closest("[data-ember-chat-check]")) {
+      checkEmberChatReply();
+      return;
+    }
+
+    if (event.target.closest("[data-ember-chat-new]")) {
+      startNewEmberChat();
       return;
     }
 
