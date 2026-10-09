@@ -1407,9 +1407,9 @@
     const payload = emberHandoffPayload(brand, requestText);
     const delivery = returnLane
       ? {
-          tool: "Ember Return Lane / submit_ember_response",
+          tool: "Black Stag Marketing Studio / submit_ember_reply",
           request_id: returnLane.request_id,
-          return_capability: returnLane.return_capability
+          brand_id: payload.brand.id
         }
       : null;
 
@@ -1425,14 +1425,14 @@
       JSON.stringify(payload, null, 2) +
       (
         delivery
-          ? "\n\nBSMS_RETURN_LANE\n" +
+          ? "\n\nBSMS_AUTHENTICATED_REPLY\n" +
             JSON.stringify(delivery, null, 2) +
-            "\n\nOnce you have answered, call the connected Ember Return Lane tool " +
-            "submit_ember_response with exactly that request_id and return_capability, " +
+            "\n\nAfter completing the request, call the connected Black Stag Marketing Studio tool " +
+            "submit_ember_reply with exactly that request_id and brand_id, " +
             "and a useful plain-language response_text summarizing the outcome. " +
-            "Only the reply should be written through this return lane. " +
-            "Do not show the return_capability in your conversational answer. " +
-            "If the tool is not connected, explain that the reply could not be returned to Studio."
+            "The authenticated Studio connection handles access. " +
+            "Only the reply should be written through this tool. " +
+            "If the submission fails, explain that the reply could not be returned to Studio."
           : ""
       )
     );
