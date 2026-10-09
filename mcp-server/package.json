@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Read-write MCP bridge for Black Stag Marketing Studio.",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.30.1",

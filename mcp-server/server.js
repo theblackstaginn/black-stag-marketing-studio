@@ -9,6 +9,7 @@ import {
   RESOURCE_MIME_TYPE
 } from "@modelcontextprotocol/ext-apps/server";
 import { z } from "zod";
+import { submitOAuthEmberReply } from "./ember-return.js";
 
 const required = [
   "SUPABASE_URL",
@@ -4523,6 +4524,37 @@ function buildServer(supabase, authenticatedUser) {
         brands:
           brief
       });
+    }
+  );
+
+
+  /* --------------------------------------
+     RETURN EMBER REPLY (OWNER-SCOPED OAUTH)
+     -------------------------------------- */
+
+  server.registerTool(
+    "submit_ember_reply",
+    {
+      title: "Return Ember Reply to Studio",
+      description:
+        "Store a completed Ember reply in exactly one pending owner-initiated Marketing Studio handoff. Requires the originating request ID, brand ID and plain-language response. Uses the existing authenticated Studio OAuth account and brand access checks. Does not require a return token. Does not publish or modify any other Studio records.",
+      inputSchema: {
+        request_id: z.string().uuid(),
+        brand_id: z.string().uuid(),
+        response_text: z.string().trim().min(1).max(50000)
+      },
+      ...writeToolMetadata
+    },
+    async ({ request_id, brand_id, response_text }) => {
+      const result = await submitOAuthEmberReply({
+        supabase,
+        authenticatedUser,
+        requestId: request_id,
+        brandId: brand_id,
+        responseText: response_text
+      });
+
+      return jsonResult(result);
     }
   );
 
