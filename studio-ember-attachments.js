@@ -33,7 +33,7 @@ window.BlackStagEmberAttachments = (() => {
       source: x.source === "vault" ? "asset_vault" : "device_upload"
     }));
   }
-  function render(brand, locked = false) {
+  function render(brand, locked = false, canStartNew = false) {
     reset(brand.id);
     const disabled = locked || state.busy || state.items.length >= maxFiles;
     const selected = new Set(state.items.map(x => String(x.assetId || "")));
@@ -50,16 +50,24 @@ window.BlackStagEmberAttachments = (() => {
         (!locked && !state.busy ? "<button class='text-button' type='button' data-ember-reference-remove='" +
           escape(x.localId) + "'>Remove</button>" : "") + "</div>";
     }).join("");
+    const pickers = locked
+      ? "<div class='ember-reference-locked'>" +
+        (canStartNew
+          ? "<p class='muted-copy'>This is an existing Ember request. Start a fresh request to attach images.</p>" +
+            "<button class='primary-button' type='button' data-ember-chat-new>+ New request with images</button>"
+          : "<p class='muted-copy'>Please wait while the current request is being prepared or checked.</p>") +
+        "</div>"
+      : "<div class='ember-reference-pickers'>" +
+        "<label class='ember-reference-upload'><span aria-hidden='true'>📎</span> Photos / Files" +
+        "<input id='emberReferenceFiles' type='file' accept='image/*,.heic,.heif' multiple" +
+        (disabled ? " disabled" : "") + "></label>" +
+        "<label class='field'><span>Or choose from Asset Vault</span><select id='emberReferenceVault'" +
+        (disabled ? " disabled" : "") +
+        "><option value=''>Select an image…</option>" + vault + "</select></label></div>";
     return "<section id='emberReferencePanel' class='ember-reference-panel'>" +
       "<div class='ember-reference-heading'><strong>Attach reference images</strong><small>" +
       state.items.length + " / " + maxFiles + "</small></div>" +
-      "<div class='ember-reference-pickers'>" +
-      "<label class='ember-reference-upload'><span aria-hidden='true'>📎</span> Photos / Files" +
-      "<input id='emberReferenceFiles' type='file' accept='image/*,.heic,.heif' multiple" +
-      (disabled ? " disabled" : "") + "></label>" +
-      "<label class='field'><span>Or choose from Asset Vault</span><select id='emberReferenceVault'" +
-      (disabled ? " disabled" : "") +
-      "><option value=''>Select an image…</option>" + vault + "</select></label></div>" +
+      pickers +
       (cards ? "<div class='ember-reference-items'>" + cards + "</div>" : "") +
       "<p class='muted-copy'>Up to 6 photos (12 MB each). Device photos are stored privately in " +
       "this brand's Asset Vault when preparing the request so Ember can actually view them. " +
@@ -70,7 +78,8 @@ window.BlackStagEmberAttachments = (() => {
     const brand = getActiveBrand();
     if (!panel || !brand) return;
     const locked = !!document.querySelector("[data-ember-chat-send]")?.disabled;
-    panel.outerHTML = render(brand, locked);
+    const canStartNew = locked && !!document.querySelector('[data-ember-chat-new]');
+    panel.outerHTML = render(brand, locked, canStartNew);
   }
   function addFiles(files) {
     const brand = getActiveBrand();

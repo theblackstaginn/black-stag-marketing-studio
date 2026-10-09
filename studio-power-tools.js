@@ -832,7 +832,9 @@
       escapeHtml(emberChatState.requestText) +
       "</textarea></label>" +
       (window.BlackStagEmberAttachments?.render?.(
-        brand, busy || Boolean(emberChatState.runId)
+        brand,
+        busy || Boolean(emberChatState.runId),
+        Boolean(emberChatState.runId) && !busy
       ) || "") +
       "<div class='form-actions' style='flex-wrap:wrap'>" +
       "<span class='muted-copy'>Prepare once, share to ChatGPT, then check for the returned reply here.</span>" +
