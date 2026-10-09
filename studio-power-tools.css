@@ -4536,3 +4536,63 @@
 .view > .view-header > .calendar-header-actions{
   align-self:center!important;
 }
+
+
+/* EMBER DAILY BRIEF - MOBILE WIDTH FIX (2026-10-09) */
+@media (max-width: 680px) {
+  /* Auto-sized grid tracks must never grow wider than the dialog. */
+  .ember-brief-dialog .ember-dialog-body,
+  .ember-brief-dialog .ember-dialog-section {
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ember-brief-dialog .ember-dialog-body > *,
+  .ember-brief-dialog .ember-dialog-section > *,
+  .ember-brief-dialog .ember-dialog-row > * {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .ember-brief-dialog #emberChatPanel .field,
+  .ember-brief-dialog #emberChatPanel textarea,
+  .ember-brief-dialog #emberChatPanel .form-actions {
+    min-width: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Override the app-wide mobile nowrap rule for this dialog only. */
+  .ember-brief-dialog #emberChatPanel .form-actions {
+    flex-wrap: wrap !important;
+    justify-content: flex-start !important;
+  }
+
+  /* Instruction text and Prepare handoff get their own full-width rows. */
+  .ember-brief-dialog #emberChatPanel > .form-actions > .muted-copy,
+  .ember-brief-dialog #emberChatPanel > .form-actions > button {
+    flex: 1 1 100% !important;
+  }
+
+  /* Return-bridge actions flow into two columns, then wrap as needed. */
+  .ember-brief-dialog #emberChatPanel .ember-dialog-row .form-actions > button {
+    flex: 1 1 calc(50% - 8px) !important;
+  }
+
+  .ember-brief-dialog #emberChatPanel .form-actions > button {
+    min-width: 0 !important;
+    max-width: 100% !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere;
+  }
+
+  .ember-brief-dialog #emberChatPanel p,
+  .ember-brief-dialog #emberChatPanel .muted-copy {
+    overflow-wrap: anywhere;
+  }
+}
