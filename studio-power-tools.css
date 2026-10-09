@@ -4659,3 +4659,152 @@
     flex-wrap: wrap !important;
   }
 }
+
+
+/* ASK EMBER — PRIVATE REFERENCE IMAGE ATTACHMENTS */
+.ember-brief-dialog #emberReferencePanel {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin: 12px 0 14px;
+  padding: 14px;
+  border: 1px solid rgba(185,139,91,.28);
+  border-radius: 13px;
+  background: rgba(8,12,10,.68);
+  overflow: hidden;
+}
+.ember-reference-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: #f0e7dc;
+}
+.ember-reference-heading strong {
+  font-size: .88rem;
+}
+.ember-reference-heading small {
+  flex: none;
+  font-size: .74rem;
+  color: #cfb28c;
+}
+.ember-reference-pickers {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) minmax(0,1.1fr);
+  gap: 12px;
+  align-items: end;
+}
+.ember-reference-upload {
+  min-height: 44px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 10px 12px;
+  box-sizing: border-box;
+  color: #f6ead8;
+  font-weight: 600;
+  font-size: .82rem;
+  border: 1px solid rgba(189,144,94,.48);
+  border-radius: 10px;
+  background: linear-gradient(130deg,rgba(58,74,47,.85),rgba(23,39,30,.85));
+  cursor: pointer;
+  text-align: center;
+}
+.ember-reference-upload:focus-within {
+  outline: 2px solid #c49865;
+  outline-offset: 3px;
+}
+.ember-reference-upload:has(input:disabled) {
+  opacity: .48;
+  cursor: not-allowed;
+}
+.ember-reference-upload input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+.ember-reference-pickers .field {
+  min-width: 0;
+  margin: 0;
+}
+.ember-reference-pickers .field span {
+  color: #cfc1ae;
+  font-size: .72rem;
+}
+.ember-reference-pickers select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  font-size: .8rem;
+}
+.ember-reference-items {
+  display: grid;
+  grid-template-columns: minmax(0,1fr);
+  gap: 9px;
+}
+.ember-reference-card {
+  display: grid;
+  grid-template-columns: 58px minmax(0,1fr) auto;
+  gap: 10px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid rgba(185,139,91,.18);
+  border-radius: 10px;
+  background: rgba(0,0,0,.26);
+}
+.ember-reference-card > img,
+.ember-reference-card > span {
+  width: 58px;
+  height: 58px;
+  object-fit: cover;
+  border-radius: 7px;
+  background: rgba(70,75,64,.45);
+}
+.ember-reference-card > span {
+  display: grid;
+  place-items: center;
+  font-size: 1.5rem;
+  color: #cfb28c;
+}
+.ember-reference-card > div {
+  min-width: 0;
+}
+.ember-reference-card strong {
+  display: block;
+  color: #f2e8dc;
+  font-size: .8rem;
+  overflow-wrap: anywhere;
+}
+.ember-reference-card small {
+  display: block;
+  margin-top: 3px;
+  color: #c0b2a1;
+  font-size: .7rem;
+}
+.ember-reference-card .text-button {
+  min-width: 0;
+  padding: 8px;
+  font-size: .72rem;
+}
+.ember-reference-panel > .muted-copy {
+  margin: 0;
+  font-size: .72rem;
+  line-height: 1.5;
+}
+@media(max-width:680px) {
+  .ember-brief-dialog #emberReferencePanel { padding: 12px 10px; }
+  .ember-reference-pickers { grid-template-columns: minmax(0,1fr); }
+  .ember-reference-upload { width: 100%; }
+  .ember-reference-card { grid-template-columns: 48px minmax(0,1fr) auto; gap: 8px; }
+  .ember-reference-card > img,
+  .ember-reference-card > span { width: 48px; height: 48px; }
+  .ember-reference-card .text-button { padding: 7px 4px; }
+}
