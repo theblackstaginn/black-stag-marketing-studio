@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#171b18">
+<title>Lace &amp; Leather · Etsy Desk</title>
+<style>
+:root{color-scheme:dark;--bg:#151915;--panel:#232c24;--soft:#2b362d;--brass:#d2b27a;--cream:#f2e9d5;--muted:#bfb8a7;--green:#b5ceaa;--border:#87775477}
+*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at top,#333a2f 0,#171b18 50%,#101311 100%);color:var(--cream);font:15px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+a{color:var(--brass);text-decoration-thickness:1px;text-underline-offset:3px}a:hover{color:#f3d9a8}
+button,input,select{font:inherit}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #e1c48c;outline-offset:3px}
+header{border-bottom:1px solid var(--border);background:#121714aa}
+header .inner{max-width:1240px;margin:auto;padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.brandmark{font:700 11px/1.6 system-ui,sans-serif;letter-spacing:.2em;text-transform:uppercase;color:var(--brass)}
+header nav{display:flex;gap:16px;flex-wrap:wrap;font-size:13px}
+main{max-width:1240px;margin:0 auto;padding:clamp(20px,5vw,48px) 22px 60px}
+h1,h2{font-family:Georgia,Times New Roman,serif;font-weight:normal;line-height:1.13}
+h1{font-size:clamp(36px,6vw,56px);margin:7px 0 16px}h2{font-size:30px;margin:0 0 12px}
+.eyebrow{color:var(--brass);text-transform:uppercase;font-size:11px;letter-spacing:.22em;font-weight:700}
+.intro{max-width:750px;color:var(--muted);font-size:15px;margin:0 0 27px}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:18px}
+button{border:1px solid #c5a474;border-radius:9px;padding:12px 17px;cursor:pointer;background:linear-gradient(155deg,#e1c18a,#b18b55);color:#191c16;font-weight:700}
+button.secondary{background:transparent;color:var(--cream);border-color:var(--border)}
+button:disabled{opacity:.48;cursor:default}
+.status{border:1px solid var(--border);background:#1a211b;border-radius:12px;padding:15px 18px;margin:0 0 24px;min-height:53px;color:var(--cream)}
+.status.ok{border-color:#79936e;color:var(--green)}
+.status.error{border-color:#b27e78;color:#f4bab0}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px}
+.stat,.panel{background:linear-gradient(155deg,#29352c,#202822);border:1px solid var(--border);border-radius:14px;box-shadow:0 12px 28px #0002}
+.stat{padding:22px}
+.stat .label{display:block;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-size:11px;margin-bottom:7px}
+.stat strong{font:normal clamp(25px,3.6vw,37px)/1.2 Georgia,serif;color:var(--cream)}
+.stat small{display:block;color:var(--muted);margin-top:7px;font-size:12px;min-height:1.2em}
+.panel{padding:22px;margin-bottom:20px}
+.note{color:var(--muted);font-size:13px;max-width:900px}
+#warningBlock{border-left:3px solid #d8ac73;padding-left:16px;margin:18px 0}
+#warningBlock ul{margin:6px 0;padding-left:19px}
+#warningBlock li{margin:5px 0;color:#e5cfaa}
+.filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin:18px 0}
+label{font-weight:650;font-size:13px}
+input,select{background:#151c16;border:1px solid #7d806d;color:var(--cream);border-radius:8px;padding:11px 12px}
+input{min-width:190px;max-width:380px;flex:1}
+.tablewrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px}
+table{width:100%;border-collapse:collapse;min-width:650px;text-align:left}
+thead{background:#141a15}th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass)}
+td,th{padding:13px 15px;border-bottom:1px solid #7e775045;vertical-align:top}
+tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:#ffffff08}
+.itemTitle{display:block;font-weight:700;color:var(--cream);max-width:460px}
+.itemTags{font-size:12px;color:var(--muted);max-width:460px;line-height:1.5;margin-top:4px;overflow-wrap:anywhere}
+.mono{font-variant-numeric:tabular-nums;font-feature-settings:"tnum"}
+.empty{padding:22px;text-align:center;color:var(--muted)}
+.ideas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:20px}
+.idea{padding:17px;border-radius:12px;background:#161d17;border:1px solid #8e7c5555}
+.idea strong{font:normal 29px Georgia,serif;color:#e4c68f}
+.idea span{display:block;font-size:12px;color:var(--muted);margin-top:5px}
+footer{max-width:1240px;margin:auto;padding:0 22px 35px;color:var(--muted);font-size:12px}
+[hidden]{display:none!important}
+@media(max-width:760px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ideas{grid-template-columns:1fr}.stat{padding:16px}.panel{padding:17px}header .inner{align-items:flex-start}}
+@media(max-width:430px){.actions button{width:100%}}
+</style>
+</head>
+<body>
+<header><div class="inner">
+<div class="brandmark">✦ Black Stag · E-Shop Bridge</div>
+<nav aria-label="Primary navigation">
+<a href="./">Marketing Studio</a>
+<a href="./etsy-connect.html">Connection Status</a>
+<a href="https://www.etsy.com/shop/laceLeatherArcane" target="_blank" rel="noopener noreferrer">View Etsy Shop ↗</a>
+</nav>
+</div></header>
+<main>
+<div class="eyebrow">Lace &amp; Leather Arcane · Owner dashboard</div>
+<h1>The Etsy Sales Desk</h1>
+<p class="intro">A private, read-only view of your actual shop. Refresh listings and sales without changing your Etsy account. We'll use this information to prioritize improvements that could increase purchases.</p>
+<div class="actions">
+<button id="sync" type="button" disabled>↻ Sync shop data</button>
+<button id="reload" type="button" class="secondary" disabled>View saved report</button>
+<button id="export" type="button" class="secondary" disabled>Export listings CSV</button>
+</div>
+<div class="status" id="status" role="status" aria-live="polite">Checking your Marketing Studio sign-in…</div>
+<section class="kpis" aria-label="Shop metrics">
+<div class="stat"><span class="label">Active listings</span><strong id="count" class="mono">—</strong><small id="countHelp">Awaiting data</small></div>
+<div class="stat"><span class="label">Paid orders · 30 days</span><strong id="orders" class="mono">—</strong><small id="ordersHelp">From Etsy receipts</small></div>
+<div class="stat"><span class="label">Order subtotals · 30 days</span><strong id="sales" class="mono">—</strong><small>Before fees and adjustments</small></div>
+<div class="stat"><span class="label">Last refreshed</span><strong id="refreshed" class="mono">—</strong><small>Read-only snapshot</small></div>
+</section>
+<div id="warningBlock" hidden><strong>Report notes</strong><ul id="warnings"></ul></div>
+<section class="panel" aria-labelledby="listingsHeading">
+<div class="eyebrow">Catalog</div>
+<h2 id="listingsHeading">Live listing analysis</h2>
+<p class="note">Review prices, favorites, tags and listing titles. Prices are shown in the currency returned by Etsy. Favorites are not sales; use them as one possible sign of shopper interest.</p>
+<div class="filters">
+<label for="filter">Find a listing</label>
+<input id="filter" type="search" placeholder="Title, tag, or keyword" disabled>
+<label for="sort">Sort</label>
+<select id="sort" disabled>
+<option value="favorites">Most favorites</option>
+<option value="recent">Recently updated</option>
+<option value="priceHigh">Highest price</option>
+<option value="priceLow">Lowest price</option>
+<option value="title">Title A–Z</option>
+</select>
+</div>
+<div class="tablewrap">
+<table>
+<thead><tr><th>Listing</th><th>Price</th><th>Favorites</th><th>Tags</th><th>Open</th></tr></thead>
+<tbody id="listings"><tr><td colspan="5" class="empty">Sync your shop to see listings.</td></tr></tbody>
+</table>
+</div>
+<div class="ideas" aria-label="Initial listing opportunities">
+<div class="idea"><strong id="untagged">—</strong><span>Listings with fewer than 13 tags</span></div>
+<div class="idea"><strong id="noFaves">—</strong><span>Listings with no recorded favorites</span></div>
+<div class="idea"><strong id="noDescriptions">—</strong><span>Listings with no description in the report</span></div>
+</div>
+<p class="note">These are review prompts, not automatic judgments. A listing with fewer tags or no favorites isn't necessarily performing poorly.</p>
+</section>
+<section class="panel" aria-labelledby="salesHeading">
+<div class="eyebrow">Performance</div>
+<h2 id="salesHeading">What the numbers mean</h2>
+<p class="note">The sales summary reports recent paid receipts from the Etsy API. Any calculated subtotal is a gross merchandise figure, not revenue deposited or profit. It excludes shipping and taxes and is not adjusted for every refund, discount, or Etsy fee. When the report is incomplete or some subtotals are unavailable, you'll see a notice instead of an invented total.</p>
+</section>
+</main>
+<footer>Private Black Stag owner workspace · This page never publishes, edits, or deletes Etsy listings.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+"use strict";
+(async function(){
+ const by=id=>document.getElementById(id);
+ const settings=window.BLACK_STAG_CONFIG?.supabase;
+ const syncButton=by("sync"),reloadButton=by("reload"),exportButton=by("export");
+ const status=by("status"),search=by("filter"),sort=by("sort"),rows=by("listings");
+ let current=null,working=false;
+ function message(text,type){
+  status.textContent=text;
+  status.className="status"+(type?" "+type:"");
+ }
+ function textNode(tag,value,className){
+  const el=document.createElement(tag);
+  el.textContent=value==null?"":String(value);
+  if(className)el.className=className;
+  return el;
+ }
+ function number(n){return typeof n==="number"&&Number.isFinite(n)?n.toLocaleString():"—"}
+ function cash(m){
+  if(!m||typeof m.amount!=="number"||!/^[A-Z]{3}$/.test(m.currency||""))return "—";
+  try{return new Intl.NumberFormat("en-US",{style:"currency",currency:m.currency}).format(m.amount)}catch{return m.currency+" "+m.amount.toFixed(2)}
+ }
+ function dateText(raw){
+  if(!raw)return "—";
+  const d=new Date(raw);
+  return Number.isNaN(d.getTime())?"—":d.toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+ }
+ function items(){return Array.isArray(current?.listings)?current.listings:[]}
+ function showRows(){
+  const term=search.value.trim().toLowerCase();
+  let list=items().filter(item=>!term||String(item.title||"").toLowerCase().includes(term)||(item.tags||[]).some(t=>String(t).toLowerCase().includes(term)));
+  const order=sort.value;
+  list=list.slice().sort((a,b)=>{
+    if(order==="title")return String(a.title||"").localeCompare(String(b.title||""));
+    if(order==="priceHigh"||order==="priceLow"){
+      const aa=typeof a.price?.amount==="number"?a.price.amount:(order==="priceLow"?Infinity:-Infinity);
+      const bb=typeof b.price?.amount==="number"?b.price.amount:(order==="priceLow"?Infinity:-Infinity);
+      return order==="priceLow"?aa-bb:bb-aa;
+    }
+    if(order==="recent")return (b.updated_at||0)-(a.updated_at||0);
+    return (b.favorites||0)-(a.favorites||0);
+  });
+  rows.replaceChildren();
+  if(!list.length){
+    const tr=document.createElement("tr"),td=textNode("td",current?"No matching listings in the saved report.":"Sync your shop to see listings.","empty");
+    td.colSpan=5;tr.append(td);rows.append(tr);return;
+  }
+  for(const item of list){
+    const tr=document.createElement("tr");
+    const details=document.createElement("td");
+    details.append(textNode("span",item.title||"Untitled listing","itemTitle"));
+    const tags=Array.isArray(item.tags)?item.tags:[];
+    details.append(textNode("span",tags.length?tags.slice(0,9).join(" · "):"No tags in report","itemTags"));
+    tr.append(details);
+    tr.append(textNode("td",cash(item.price),"mono"));
+    tr.append(textNode("td",number(item.favorites),"mono"));
+    tr.append(textNode("td",String(tags.length)+"/13","mono"));
+    const cell=document.createElement("td");
+    if(/^[0-9]+$/.test(String(item.id||""))){
+      const a=textNode("a","View ↗");
+      a.href="https://www.etsy.com/listing/"+item.id;
+      a.target="_blank";a.rel="noopener noreferrer";
+      cell.append(a);
+    }else cell.append(textNode("span","—"));
+    tr.append(cell);rows.append(tr);
+  }
+ }
+ function apply(data){
+  current=data;
+  const valid=!!data;
+  const list=items();
+  by("count").textContent=valid?number(data.listings_total):"—";
+  by("countHelp").textContent=valid?(data.listings_complete?"Catalog synced":"Partial or unavailable listing report"):"Awaiting data";
+  const summary=data?.sales_30d;
+  by("orders").textContent=summary?number(summary.paid_orders):"—";
+  by("ordersHelp").textContent=summary?(summary.complete?"Receipt report synced":"Partial receipt report"):"No receipts loaded";
+  by("sales").textContent=summary?.complete?cash(summary.subtotal_amount==null?null:{amount:summary.subtotal_amount,currency:summary.currency}):"—";
+  by("refreshed").textContent=valid?dateText(data.synced_at):"—";
+  by("untagged").textContent=valid?number(list.filter(x=>(x.tags||[]).length<13).length):"—";
+  by("noFaves").textContent=valid?number(list.filter(x=>x.favorites===0).length):"—";
+  by("noDescriptions").textContent=valid?number(list.filter(x=>!String(x.description||"").trim()).length):"—";
+  const warnings=Array.isArray(data?.warnings)?data.warnings:[];
+  by("warnings").replaceChildren();
+  for(const w of warnings)by("warnings").append(textNode("li",w));
+  by("warningBlock").hidden=!warnings.length;
+  search.disabled=!valid;sort.disabled=!valid;exportButton.disabled=!valid||!list.length;
+  showRows();
+ }
+ async function session(){
+  const client=window.__etsySupabaseClient;
+  const {data,error}=await client.auth.getSession();
+  if(error||!data?.session?.access_token)throw Error("Please sign in to Black Stag Marketing Studio, then reopen this page.");
+  return data.session.access_token;
+ }
+ async function load(action){
+  if(working)return;
+  working=true;syncButton.disabled=true;reloadButton.disabled=true;
+  message(action==="sync"?"Contacting Etsy securely. This can take a little while…":"Loading your saved report…");
+  const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),65000);
+  try{
+   const jwt=await session();
+   const response=await fetch(settings.url+"/functions/v1/etsy-shop-insights",{
+    method:"POST",headers:{"Content-Type":"application/json","apikey":settings.publishableKey,"Authorization":"Bearer "+jwt},
+    body:JSON.stringify({action}),signal:controller.signal
+   });
+   const body=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(body.error==="shop_reauthorization_required"?"Etsy needs a fresh approval. Open Connection Status.":body.error==="etsy_data_unavailable"?"Etsy did not return listings or receipts. We'll inspect the bridge logs before retrying.":body.error==="not_authorized"?"This account isn't authorized for the Lace & Leather Etsy Desk.":body.error||"Unable to retrieve shop data.");
+   apply(body.snapshot||null);
+   if(body.snapshot){
+    message(action==="sync"?"Shop data refreshed. "+items().length+" listings loaded.":"Saved report loaded.", "ok");
+   }else message("Shop connected. No snapshot exists yet; click Sync shop data.");
+  }catch(e){
+   message(e?.name==="AbortError"?"The request timed out. Please tell Ember before trying again.":e?.message||"Unable to retrieve Etsy data.","error");
+  }finally{clearTimeout(timeout);working=false;syncButton.disabled=false;reloadButton.disabled=false;}
+ }
+ search.addEventListener("input",showRows);
+ sort.addEventListener("change",showRows);
+ syncButton.addEventListener("click",()=>load("sync"));
+ reloadButton.addEventListener("click",()=>load("cached"));
+ exportButton.addEventListener("click",()=>{
+  const lines=[["Listing ID","Title","Price","Currency","Favorites","Tag count","Tags","Description"].join(",")];
+  function cell(v){let s=String(v??"");if(/^\s*[=+\-@]/.test(s))s="'"+s;return '"'+s.replace(/"/g,'""')+'"';}
+  for(const item of items())lines.push([item.id,item.title,item.price?.amount,item.price?.currency,item.favorites,(item.tags||[]).length,(item.tags||[]).join(" | "),item.description].map(cell).join(","));
+  const blob=new Blob(["\ufeff"+lines.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="lace-leather-etsy-listings.csv";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+ });
+ if(!window.supabase||!settings?.url||!settings?.publishableKey){message("The Studio connection settings could not be loaded.","error");return;}
+ window.__etsySupabaseClient=window.supabase.createClient(settings.url,settings.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+ await load("cached");
+})();
+</script>
+</body>
+</html>
