@@ -12,7 +12,7 @@ h1{font:36px/1.2 Georgia,serif;margin:12px 0}
 small{letter-spacing:.2em;text-transform:uppercase;color:#c8aa76}
 p{color:#bcb5a6}
 button{background:#bd995e;color:#141814;padding:15px 22px;border:0;border-radius:8px;font-weight:700;width:100%;cursor:pointer}
-button:disabled{opacity:.45;cursor:default}
+button:disabled{opacity:.45;cursor:default}#desk{display:block;width:100%;text-align:center;background:#b99766;color:#1c2119;border-radius:9px;padding:14px 18px;text-decoration:none;font-weight:700;margin-top:14px}#desk[hidden]{display:none}#desk:hover{background:#d0b280}
 #status{padding:14px;background:#111712;border-radius:8px;margin:22px 0}
 a{color:#d1b581}
 </style>
@@ -24,6 +24,7 @@ a{color:#d1b581}
 <p>Securely authorize read-only access to your own shop, listings and sales information. This connection cannot edit listings or place orders.</p>
 <div id="status" role="status" aria-live="polite">Checking account...</div>
 <button id="connect" disabled>Connect LaceLeatherArcane</button>
+<a id="desk" href="./etsy-dashboard.html" hidden>Open Etsy Sales Desk &rarr;</a>
 <p><a href="./">Return to Marketing Studio</a></p>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -65,7 +66,7 @@ a{color:#d1b581}
  }
  try{
   const current=await api("status");
-  if(current.connected){ui.textContent="Connected: "+current.shop.shop_name;return}
+  if(current.connected){ui.textContent="Connected: "+current.shop.shop_name;document.getElementById("desk").hidden=false;return}
   if(!current.configured){ui.textContent="Private server credentials are not configured yet.";return}
   ui.textContent="Ready to authorize with Etsy.";
   btn.disabled=false;
