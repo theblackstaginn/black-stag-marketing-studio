@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>E-Shop Bridge | Black Stag</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#171b18;color:#eee4d2;font:16px/1.6 system-ui,sans-serif;padding:20px}
+main{max-width:530px;background:#242c25;border:1px solid #927a50;border-radius:18px;padding:30px}
+h1{font:36px/1.2 Georgia,serif;margin:12px 0}
+small{letter-spacing:.2em;text-transform:uppercase;color:#c8aa76}
+p{color:#bcb5a6}
+button{background:#bd995e;color:#141814;padding:15px 22px;border:0;border-radius:8px;font-weight:700;width:100%;cursor:pointer}
+button:disabled{opacity:.45;cursor:default}
+#status{padding:14px;background:#111712;border-radius:8px;margin:22px 0}
+a{color:#d1b581}
+</style>
+</head>
+<body>
+<main>
+<small>Black Stag E-Shop Bridge</small>
+<h1>Lace &amp; Leather Arcane</h1>
+<p>Securely authorize read-only access to your own shop, listings and sales information. This connection cannot edit listings or place orders.</p>
+<div id="status" role="status" aria-live="polite">Checking account...</div>
+<button id="connect" disabled>Connect LaceLeatherArcane</button>
+<p><a href="./">Return to Marketing Studio</a></p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config.js"></script>
+<script>
+(async()=>{
+ const ui=document.getElementById("status"),btn=document.getElementById("connect");
+ const config=window.BLACK_STAG_CONFIG?.supabase;
+ if(!config?.url||!config?.publishableKey||!window.supabase){ui.textContent="Studio configuration unavailable";return}
+ const client=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+ async function api(action){
+  const {data}=await client.auth.getSession();
+  const jwt=data?.session?.access_token;
+  if(!jwt)throw Error("Sign in to Marketing Studio first, then return here.");
+  const response=await fetch(config.url+"/functions/v1/etsy-oauth-callback",{
+   method:"POST",headers:{"Content-Type":"application/json","apikey":config.publishableKey,"Authorization":"Bearer "+jwt},
+   body:JSON.stringify({action})
+  });
+  const result=await response.json();
+  if(!response.ok)throw Error(result.error||"Unable to reach Etsy bridge");
+  return result;
+ }
+ try{
+  const current=await api("status");
+  if(current.connected){ui.textContent="Connected: "+current.shop.shop_name;return}
+  if(!current.configured){ui.textContent="Private server credentials are not configured yet.";return}
+  ui.textContent="Ready to authorize with Etsy.";
+  btn.disabled=false;
+ }catch(error){ui.textContent=error.message}
+ btn.onclick=async()=>{
+  btn.disabled=true;ui.textContent="Preparing secure authorization...";
+  try{
+   const result=await api("start");
+   if(!result.authorize_url?.startsWith("https://www.etsy.com/oauth/connect?"))throw Error("Invalid Etsy authorization link");
+   location.assign(result.authorize_url);
+  }catch(error){ui.textContent=error.message;btn.disabled=false}
+ };
+})();
+</script>
+</body></html>
