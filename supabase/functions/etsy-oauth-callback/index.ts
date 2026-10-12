@@ -92,7 +92,7 @@ async function finish(url:URL) {
   if(!/^\d+$/.test(userId)) return page(false,"Invalid Etsy account identifier.",502);
   const granted=String(tok.scope||"").split(/\s+/).filter(Boolean);
   if(!scopes.every(s=>granted.includes(s))) return page(false,"Not all requested read-only permissions were granted.",403);
-  const shopResponse=await fetch("https://api.etsy.com/v3/application/users/"+userId+"/shops",{headers:{"x-api-key":conf.id+":"+conf.secret,"authorization":"Bearer "+tok.access_token}});
+  const shopResponse=await fetch("https://openapi.etsy.com/v3/application/users/"+userId+"/shops",{headers:{"x-api-key":conf.id+":"+conf.secret,"authorization":"Bearer "+tok.access_token}});
   if(!shopResponse.ok) return page(false,"Couldn't verify the Etsy shop.",502);
   const shop=await shopResponse.json();
   if(String(shop?.shop_name||"").toLowerCase()!=="laceleatherarcane"||String(shop?.user_id||"")!==userId||!shop?.shop_id) return page(false,"The authorized account does not own LaceLeatherArcane. Nothing was saved.",403);
