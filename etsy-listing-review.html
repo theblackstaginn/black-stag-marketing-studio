@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#171b18">
+<title>Lace &amp; Leather · Listing &amp; Download Audit</title>
+<style>
+:root{color-scheme:dark;--paper:#eee4d0;--muted:#c4b9a5;--gold:#d3af78;--line:#74694d88;--green:#b1ceaa}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#34372e,#171b18 55%,#101410);color:var(--paper);font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+a{color:var(--gold);text-underline-offset:3px}a:hover{color:#f8ddb0}
+a:focus-visible,button:focus-visible{outline:3px solid #f4dcaf;outline-offset:3px}
+header{background:#121714ba;border-bottom:1px solid var(--line)}
+nav,main,footer{max-width:1050px;margin:auto;padding-left:22px;padding-right:22px}
+nav{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;padding-top:17px;padding-bottom:17px}
+.logo{font-size:11px;font-weight:700;letter-spacing:.19em;text-transform:uppercase;color:var(--gold)}
+.links{display:flex;gap:18px;flex-wrap:wrap;font-size:13px}
+main{padding-top:43px;padding-bottom:50px}
+.eyebrow{color:var(--gold);font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase}
+h1,h2{font-family:Georgia,"Times New Roman",serif;font-weight:400}
+h1{font-size:clamp(31px,6vw,49px);line-height:1.15;margin:9px 0 15px}h2{font-size:27px;margin:0 0 13px}
+.intro{color:var(--muted);max-width:760px}
+.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:24px 0 15px}
+button{border:1px solid #c7a370;color:#171b18;background:linear-gradient(145deg,#d8bd8f,#b08a54);border-radius:9px;padding:12px 18px;font:700 14px system-ui,sans-serif;cursor:pointer}
+button.secondary{background:transparent;color:var(--paper);border-color:var(--line)}
+button:disabled{opacity:.5;cursor:default}
+#status{border:1px solid var(--line);background:#181f19;padding:15px 18px;border-radius:10px;min-height:54px}
+#status.ok{border-color:#7a9776;color:var(--green)}#status.error{border-color:#af817a;color:#f5b9ae}
+.summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:20px 0 26px}
+.card{background:#242e26;border:1px solid var(--line);border-radius:13px;padding:17px}
+.label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.metric{display:block;font:30px Georgia,serif;padding:5px 0;color:var(--paper)}
+.list{display:grid;gap:17px}
+.entry{border:1px solid var(--line);background:#242c25;border-radius:15px;padding:clamp(16px,3vw,23px)}
+.entry h2{margin:5px 0 8px;font-size:26px}
+.entry-head{display:flex;justify-content:space-between;gap:13px;flex-wrap:wrap}
+.entry-head strong{font-size:18px;color:#f2d8a9;white-space:nowrap}
+.meta{font-size:12px;color:var(--muted);margin:2px 0 12px}
+details{border-top:1px solid #7569496e;margin-top:16px;padding-top:15px}
+summary{cursor:pointer;color:var(--gold);font-weight:650}
+.files{margin:10px 0 0;padding-left:21px}
+.files li{padding:7px 0;overflow-wrap:anywhere}
+.fileName{font-weight:650}.fileSize{color:var(--muted);font-size:12px;margin-left:6px}
+.note{font-size:13px;color:var(--muted)}
+.warning{color:#ebc4a2;margin:7px 0;font-size:13px}
+.pill{display:inline-block;border:1px solid #7d8e70;border-radius:999px;color:#c4d3b4;padding:3px 9px;font-size:11px;margin-left:8px}
+.empty{border:1px solid var(--line);background:#222a24;border-radius:12px;padding:25px;color:var(--muted)}
+footer{font-size:12px;color:var(--muted);padding-bottom:30px}
+[hidden]{display:none!important}
+@media(max-width:520px){.summary{grid-template-columns:1fr}.actions button{width:100%}}
+</style>
+</head>
+<body>
+<header><nav aria-label="Navigation">
+<div class="logo">✦ Black Stag · E-Shop Bridge</div>
+<div class="links"><a href="./etsy-dashboard.html">Sales Desk</a><a href="./etsy-connect.html">Connection</a><a href="./">Marketing Studio</a></div>
+</nav></header>
+<main>
+<div class="eyebrow">Lace &amp; Leather Arcane · Private owner audit</div>
+<h1>Listing files &amp; pricing review</h1>
+<p class="intro">Check which files Etsy is delivering with each product, their filenames and sizes, and listing versus inventory prices. This audit makes <strong>no changes</strong> to your live products or attachments.</p>
+<div class="actions">
+<button type="button" id="audit" disabled>Inspect files &amp; prices</button>
+<button type="button" class="secondary" id="saved" disabled>View saved audit</button>
+</div>
+<div id="status" role="status" aria-live="polite">Checking Marketing Studio sign-in…</div>
+<div class="summary" aria-label="Audit summary">
+<div class="card"><span class="label">Listings inspected</span><strong id="listingCount" class="metric">—</strong></div>
+<div class="card"><span class="label">Files attached</span><strong id="fileCount" class="metric">—</strong></div>
+<div class="card"><span class="label">Items needing review</span><strong id="issueCount" class="metric">—</strong></div>
+</div>
+<section aria-labelledby="resultTitle">
+<h2 id="resultTitle">Product inspection</h2>
+<div id="results" class="list"><div class="empty">No audit has been loaded. Select Inspect files &amp; prices to begin.</div></div>
+</section>
+<p class="note" style="margin-top:25px">A filename or ZIP size cannot prove that the ZIP contains the correct artwork. We will verify file contents against your product promises before any replacements. We will not delete attachments as part of this audit.</p>
+</main>
+<footer>Private owner workspace · Read-only Etsy file metadata and prices · No customer information retained.</footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+"use strict";
+(async function(){
+ const $=id=>document.getElementById(id);
+ const config=window.BLACK_STAG_CONFIG?.supabase;
+ const go=$("audit"),saved=$("saved"),status=$("status"),results=$("results");
+ function say(msg,type){status.textContent=msg;status.className=type||"";}
+ function elem(tag,value,cls){const e=document.createElement(tag);if(value!==undefined)e.textContent=String(value);if(cls)e.className=cls;return e;}
+ function price(p){
+  if(!p||typeof p.amount!=="number"||!/^[A-Z]{3}$/.test(p.currency||""))return "Unknown";
+  try{return new Intl.NumberFormat("en-US",{style:"currency",currency:p.currency}).format(p.amount)}catch{return p.currency+" "+p.amount;}
+ }
+ function render(rows){
+  results.replaceChildren();
+  if(!Array.isArray(rows)||!rows.length){
+   results.append(elem("div","No saved inspection found. Click Inspect files & prices.","empty"));
+   for(const id of ["listingCount","fileCount","issueCount"])$(id).textContent="—";
+   return;
+  }
+  let fileTotal=0,issueTotal=0;
+  for(const item of rows){
+   const count=Number.isInteger(item.file_count)?item.file_count:0;
+   fileTotal+=count;
+   const warnings=Array.isArray(item.warnings)?item.warnings:[];
+   if(warnings.length)issueTotal++;
+   const card=elem("article",undefined,"entry");
+   const heading=elem("div",undefined,"entry-head");
+   const title=elem("h2",item.title||"Untitled");
+   const anchor=elem("a","Open Etsy listing ↗");
+   if(/^[0-9]+$/.test(String(item.listing_id||""))){
+    anchor.href="https://www.etsy.com/listing/"+item.listing_id;
+    anchor.target="_blank";anchor.rel="noopener noreferrer";
+   }
+   const titleWrap=elem("div");
+   titleWrap.append(title,anchor);
+   heading.append(titleWrap,elem("strong",price(item.advertised_price)));
+   card.append(heading);
+   const details=elem("div","Listing #"+String(item.listing_id||"")+" · "+(item.file_count==null?"Files not verified":count+" file(s) attached"),"meta");
+   card.append(details);
+   const inv=item.inventory_prices;
+   if(inv?.offerings_count){
+    const label="Inventory offering price: "+(inv.min_price===null?"Unavailable":price({amount:inv.min_price,currency:inv.currency}))+((inv.max_price!=null&&inv.max_price!==inv.min_price)?" to "+price({amount:inv.max_price,currency:inv.currency}):"");
+    card.append(elem("p",label,"note"));
+   }else card.append(elem("p","Inventory price not available; Etsy listing price shown above.","note"));
+   const panel=elem("details"); const summary=elem("summary","Attached files and audit notes");panel.append(summary);
+   const files=Array.isArray(item.file_metadata)?item.file_metadata:[];
+   if(!files.length)panel.append(elem("p",item.file_count===0?"Etsy reports no attached download files.":"Attachment details unavailable.","note"));
+   else {
+    const ul=elem("ul",undefined,"files");
+    for(const f of files){
+     const li=elem("li");
+     li.append(elem("span",f.filename||"(unnamed file)","fileName"));
+     const size=typeof f.size_bytes==="number"?((f.size_bytes/1024/1024).toFixed(2)+" MB"):"size unavailable";
+     li.append(elem("span",size+(f.filetype?" · "+f.filetype:""),"fileSize"));
+     ul.append(li);
+    }
+    panel.append(ul);
+   }
+   for(const w of warnings)panel.append(elem("p","⚠ "+w,"warning"));
+   if(!warnings.length)panel.append(elem("p","No metadata or pricing flags in this inspection.","note"));
+   card.append(panel);results.append(card);
+  }
+  $("listingCount").textContent=rows.length.toLocaleString();
+  $("fileCount").textContent=fileTotal.toLocaleString();
+  $("issueCount").textContent=issueTotal.toLocaleString();
+ }
+ if(!window.supabase||!config?.url||!config?.publishableKey){say("Marketing Studio configuration is unavailable.","error");return}
+ const client=window.supabase.createClient(config.url,config.publishableKey,{
+  auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+ });
+ let busy=false;
+ async function call(action){
+  if(busy)return;busy=true;go.disabled=true;saved.disabled=true;
+  say(action==="audit"?"Inspecting listings on Etsy. This can take up to a minute…":"Loading saved inspection…");
+  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),80000);
+  try{
+   const {data,error}=await client.auth.getSession();
+   if(error||!data?.session?.access_token)throw Error("Sign in to Marketing Studio in this browser, then reopen the audit.");
+   const response=await fetch(config.url+"/functions/v1/etsy-listing-audit",{
+    method:"POST",signal:controller.signal,
+    headers:{"Content-Type":"application/json","apikey":config.publishableKey,"Authorization":"Bearer "+data.session.access_token},
+    body:JSON.stringify({action})
+   });
+   const result=await response.json().catch(()=>({}));
+   if(!response.ok)throw Error(result.error||"Unable to retrieve Etsy audit.");
+   render(result.rows);
+   say(action==="audit"?"Inspection saved. Review the attached files and price details below.":"Saved inspection loaded.","ok");
+  }catch(err){
+   say(err?.name==="AbortError"?"The audit timed out. Tell Ember before retrying.":err?.message||"Audit failed.","error");
+  }finally{clearTimeout(timer);busy=false;go.disabled=false;saved.disabled=false}
+ }
+ go.addEventListener("click",()=>call("audit"));
+ saved.addEventListener("click",()=>call("saved"));
+ await call("saved");
+})();
+</script>
+</body></html>
