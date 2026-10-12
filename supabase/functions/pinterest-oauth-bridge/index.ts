@@ -5,7 +5,14 @@ const BRAND_ID="956b245e-f60f-4e40-9d5b-0246d947ffb2";
 const EXPECTED_USERNAME="laceandleather65";
 const ORIGIN="https://theblackstaginn.github.io";
 const CALLBACK="https://theblackstaginn.github.io/black-stag-marketing-studio/pinterest-connect.html";
-const SCOPES=["user_accounts:read","boards:read","pins:read","pins:write"];
+const SCOPES=["user_accounts:read","boards:read","boards:write","pins:read","pins:write"];
+const DEMO_PIN={
+  title:"Printable Tarot Journal Pages | Grimoire Vol. 1",
+  description:"Make room for the meaning behind each draw. Grimoire Journal Pages Vol. 1 brings eight aged-parchment layouts for tarot pulls, intentions and quiet reflection. Digital PNG pages and a print-ready PDF, with space for your own words.",
+  link:"https://www.etsy.com/listing/4433883659/grimoire-journal-pages-8-printable-aged",
+  image:"https://i.etsystatic.com/63811998/r/il/29ed86/7605179291/il_794xN.7605179291_cvmu.jpg",
+  alt:"Collage of eight old-world warm parchment journal-page designs with lined, blank and bordered layouts for Grimoire Journal Pages Vol. 1."
+};
 const PROJECT=Deno.env.get("SUPABASE_URL")||"";
 const PINTEREST_API="https://api.pinterest.com/v5";
 type AdminClient=ReturnType<typeof admin>;
@@ -209,6 +216,8 @@ async function validToken(db:AdminClient){
     .eq("brand_id",BRAND_ID).maybeSingle();
   if(error||!row)throw Error("not_connected");
   if(String(row.username).toLowerCase()!==EXPECTED_USERNAME)throw Error("different_pinterest_account");
+  const granted=Array.isArray(row.scopes)?row.scopes.map(String):[];
+  if(!SCOPES.every(s=>granted.includes(s)))throw Error("reauthorization_required");
   const cfg=config(),key=await encryptionKey(cfg.raw);
   if(new Date(row.access_token_expires_at).getTime()>Date.now()+3*86400000)
     return await openSealed(row.access_token_encrypted,key);
@@ -275,6 +284,51 @@ async function boards(req:Request,db:AdminClient){
   return respond(req,{boards:all,complete,count:all.length,warnings});
 }
 
+async function createDemoPin(req:Request,db:AdminClient,input:any){
+  if(!await owner(req,db))return respond(req,{error:"not_authorized"},403);
+  if(input.confirm!=="CREATE_TRIAL_PIN")return respond(req,{error:"explicit_confirmation_required"},400);
+  const boardId=String(input.board_id||"");
+  if(!/^\d{5,24}$/.test(boardId))return respond(req,{error:"invalid_board"},400);
+  const {data:cache,error:cacheError}=await db.from("pinterest_board_cache")
+    .select("boards").eq("brand_id",BRAND_ID).maybeSingle();
+  if(cacheError||!cache||!Array.isArray(cache.boards))throw Error("board_cache_unavailable");
+  const board=cache.boards.find((b:any)=>String(b?.id||"")===boardId);
+  if(!board)return respond(req,{error:"board_not_authorized"},403);
+  const token=await validToken(db);
+  const r=await fetch(PINTEREST_API+"/pins",{
+    method:"POST",
+    headers:{
+      "Authorization":"Bearer "+token,
+      "Accept":"application/json",
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      board_id:boardId,
+      title:DEMO_PIN.title,
+      description:DEMO_PIN.description,
+      link:DEMO_PIN.link,
+      alt_text:DEMO_PIN.alt,
+      media_source:{source_type:"image_url",url:DEMO_PIN.image}
+    }),
+    signal:AbortSignal.timeout(20000)
+  });
+  if(!r.ok){
+    console.error("Pinterest demo Pin create HTTP",r.status);
+    return respond(req,{error:"pinterest_pin_create_failed",http_status:r.status},502);
+  }
+  const result=await r.json();
+  const pinId=String(result?.id||"");
+  if(!/^\d{5,30}$/.test(pinId))throw Error("pinterest_pin_response_invalid");
+  return respond(req,{
+    created:true,
+    pin_id:pinId,
+    board:{id:boardId,name:String(board.name||"Untitled")},
+    title:DEMO_PIN.title,
+    link:DEMO_PIN.link,
+    trial_notice:"Created through the connected developer app. Under Trial access, Pinterest limits created Pins to creator visibility."
+  },201);
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method==="OPTIONS")return new Response(null,{status:204,headers:originHeaders(req)});
   if(req.method!=="POST")return respond(req,{error:"method_not_allowed"},405);
@@ -289,13 +343,14 @@ Deno.serve(async(req:Request)=>{
     if(body.action==="start")return await start(req,db);
     if(body.action==="finish")return await finish(req,db,body);
     if(body.action==="boards")return await boards(req,db);
+    if(body.action==="create_demo_pin")return await createDemoPin(req,db,body);
     return respond(req,{error:"invalid_action"},400);
   }catch(err){
     const name=err instanceof Error?err.message:"server_error";
     const known=["backend_not_configured","pinterest_secrets_missing","not_connected",
       "different_pinterest_account","reauthorization_required","refresh_unavailable",
       "refresh_storage_failed","pinterest_board_request_failed","board_cache_unavailable",
-      "unexpected_token_expiry","invalid_encrypted_token"];
+      "pinterest_pin_response_invalid","unexpected_token_expiry","invalid_encrypted_token"];
     if(!known.includes(name))console.error("Pinterest bridge error:",name);
     return respond(req,{error:known.includes(name)?name:"server_unavailable"},
       name==="not_connected"?404:name==="reauthorization_required"?403:503);
