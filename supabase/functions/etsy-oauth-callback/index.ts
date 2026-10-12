@@ -38,14 +38,35 @@ async function seal(token:string,bytes:Uint8Array) {
   const sealed=new Uint8Array(await crypto.subtle.encrypt({name:"AES-GCM",iv},cryptoKey,new TextEncoder().encode(token)));
   return "v1."+b64(iv)+"."+b64(sealed);
 }
-async function owner(req:Request,client:ReturnType<typeof db>) {
+function getProjectPublicKey() {
+  const direct=Deno.env.get("SUPABASE_PUBLISHABLE_KEY")||Deno.env.get("SUPABASE_ANON_KEY");
+  if(direct) return direct;
+  const keyJson=Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+  if(!keyJson) return "";
+  try {
+    const keys=JSON.parse(keyJson);
+    return keys.default||Object.values(keys)[0]||"";
+  } catch { return ""; }
+}
+async function owner(req:Request,_adminClient:ReturnType<typeof db>) {
   const token=/^Bearer (\S+)$/i.exec(req.headers.get("authorization")||"")?.[1];
-  if(!token) return null;
-  const {data:{user}}=await client.auth.getUser(token);
-  if(!user) return null;
-  const {data:brand}=await client.from("brands").select("owner_id").eq("id",brandId).single();
-  if(brand?.owner_id===user.id) return user.id;
-  const {data:member}=await client.from("brand_memberships").select("role").eq("brand_id",brandId).eq("user_id",user.id).maybeSingle();
+  const publicKey=getProjectPublicKey();
+  if(!token||!publicKey) return null;
+  // Validate the caller with the same publishable-key method used by
+  // Marketing Studio's existing calendar function, not the service client.
+  const client=createClient(project,publicKey,{
+    global:{headers:{Authorization:"Bearer "+token}},
+    auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false},
+  });
+  const {data:{user},error:userError}=await client.auth.getUser(token);
+  if(userError||!user) return null;
+  // Read ownership through the caller's own RLS-scoped session.
+  const {data:brand,error:brandError}=await client.from("brands")
+    .select("owner_id").eq("id",brandId).maybeSingle();
+  if(brandError||!brand) return null;
+  if(brand.owner_id===user.id) return user.id;
+  const {data:member}=await client.from("brand_memberships").select("role")
+    .eq("brand_id",brandId).eq("user_id",user.id).maybeSingle();
   return member?.role==="owner"?user.id:null;
 }
 async function begin(req:Request) {
