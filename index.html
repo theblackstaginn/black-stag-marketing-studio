@@ -40,6 +40,10 @@
     rel="stylesheet"
     href="styles.css?v=7"
   />
+  <style>
+    #pinterestDeskNav[hidden]{display:none!important}
+    #pinterestDeskNav{color:inherit}
+  </style>
 </head>
 
 <body>
@@ -255,6 +259,18 @@
 
           <span>Asset Vault</span>
         </button>
+
+              <a id="pinterestDeskNav" href="./pinterest-desk.html"
+           class="nav-button pinterest-shortcut" hidden
+           style="text-decoration:none">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z"></path>
+              <path d="M9 17l2-9c2-2 6-1 6 2 0 3-4 4-6 2"></path>
+            </svg>
+          </span>
+          <span>Pinterest Desk</span>
+        </a>
 
       </nav>
 
@@ -1795,5 +1811,25 @@
   <script src="studio-ember-attachments.js?v=2"></script>
   <script src="studio-power-tools.js?v=11"></script>
 
+<script>
+  // Show the Pinterest operations shortcut for Lace & Leather only.
+  // Brand switching is already managed by app.js; do not change it.
+  (function(){
+    const link=document.getElementById("pinterestDeskNav");
+    if(!link)return;
+    const brandId="956b245e-f60f-4e40-9d5b-0246d947ffb2";
+    function showForCurrentBrand(){
+      let selected=null;
+      try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
+      link.hidden=selected!==brandId;
+    }
+    const name=document.getElementById("activeBrandName");
+    if(name&&window.MutationObserver){
+      new MutationObserver(showForCurrentBrand).observe(name,{childList:true,characterData:true,subtree:true});
+    }
+    window.addEventListener("storage",showForCurrentBrand);
+    showForCurrentBrand();
+  })();
+</script>
 </body>
 </html>
