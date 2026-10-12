@@ -43,6 +43,15 @@
   <style>
     #pinterestDeskNav[hidden]{display:none!important}
     #pinterestDeskNav{color:inherit}
+    #pinterestDeskMobileCard[hidden]{display:none!important}
+    .pinterest-studio-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0 24px;padding:20px 22px;border:1px solid rgba(196,161,105,.58);border-radius:15px;background:linear-gradient(125deg,rgba(70,77,59,.55),rgba(32,38,31,.93));box-shadow:0 10px 28px rgba(0,0,0,.13)}
+    .pinterest-studio-banner strong{display:block;margin:7px 0 2px;color:#f0e3cf;font:normal clamp(1.25rem,3vw,1.65rem) Georgia,serif}
+    .pinterest-studio-banner p{margin:0;font-size:.85rem;line-height:1.55;color:#cfc6b7;max-width:480px}
+    .pinterest-studio-open{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 17px;border-radius:10px;background:linear-gradient(135deg,#d6b782,#b58c57);color:#1b2018!important;text-decoration:none;font-weight:700;font-size:.84rem}
+    .pinterest-studio-open:hover{filter:brightness(1.07)}
+    .pinterest-studio-open:focus-visible{outline:3px solid #f7d89d;outline-offset:3px}
+    @media(max-width:580px){.pinterest-studio-banner{padding:16px}.pinterest-studio-open{width:100%}}
+
   </style>
 </head>
 
@@ -446,6 +455,17 @@
             </button>
 
           </header>
+
+
+          <!-- LACE & LEATHER PINTEREST SHORTCUT -->
+          <section id="pinterestDeskMobileCard" class="pinterest-studio-banner" hidden aria-label="Lace and Leather Pinterest tools">
+            <div>
+              <span class="eyebrow">Lace &amp; Leather · Pinterest</span>
+              <strong>Pinterest Growth Desk</strong>
+              <p>Track outbound traffic, review Pin drafts, and reach your Etsy marketing workflow.</p>
+            </div>
+            <a class="pinterest-studio-open" href="./pinterest-desk.html">Open Pinterest Desk ↗</a>
+          </section>
 
 
           <!-- OVERVIEW -->
@@ -1821,7 +1841,10 @@
     function showForCurrentBrand(){
       let selected=null;
       try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
-      link.hidden=selected!==brandId;
+      const active=selected===brandId;
+      link.hidden=!active;
+      const card=document.getElementById("pinterestDeskMobileCard");
+      if(card)card.hidden=!active;
     }
     const name=document.getElementById("activeBrandName");
     if(name&&window.MutationObserver){
