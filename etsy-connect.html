@@ -35,15 +35,32 @@ a{color:#d1b581}
  if(!config?.url||!config?.publishableKey||!window.supabase){ui.textContent="Studio configuration unavailable";return}
  const client=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
  async function api(action){
-  const {data}=await client.auth.getSession();
+  ui.textContent="Checking Marketing Studio sign-in...";
+  let sessionTimer;
+  let data;
+  try{
+   ({data}=await Promise.race([
+    client.auth.getSession(),
+    new Promise((_,reject)=>{sessionTimer=setTimeout(()=>reject(Error("Studio session check timed out. Refresh this page and try again.")),15000)})
+   ]));
+  }finally{clearTimeout(sessionTimer)}
   const jwt=data?.session?.access_token;
   if(!jwt)throw Error("Sign in to Marketing Studio first, then return here.");
-  const response=await fetch(config.url+"/functions/v1/etsy-oauth-callback",{
-   method:"POST",headers:{"Content-Type":"application/json","apikey":config.publishableKey,"Authorization":"Bearer "+jwt},
-   body:JSON.stringify({action})
-  });
+  ui.textContent=action==="start"?"Requesting a fresh authorization link...":"Checking secure bridge...";
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),15000);
+  let response;
+  try{
+   response=await fetch(config.url+"/functions/v1/etsy-oauth-callback",{
+    method:"POST",headers:{"Content-Type":"application/json","apikey":config.publishableKey,"Authorization":"Bearer "+jwt},
+    body:JSON.stringify({action}),signal:controller.signal
+   });
+  }catch(error){
+   if(error?.name==="AbortError")throw Error("Secure bridge took too long to respond.");
+   throw Error("Unable to reach the secure bridge.");
+  }finally{clearTimeout(timeout)}
   const result=await response.json();
-  if(!response.ok)throw Error(result.error||"Unable to reach Etsy bridge");
+  if(!response.ok)throw Error(result.error||"Secure bridge request failed");
   return result;
  }
  try{
