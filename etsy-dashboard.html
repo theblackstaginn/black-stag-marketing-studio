@@ -838,7 +838,9 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
       const body={action:"owner_update",order_id:orderId,operation};
       if(operation==="mark_paid")body.payment_method="Venmo";
       await orderApi(body);
+      ordersWorking=false;
       await loadOrders();
+      orderMessage("Order updated.", "ok");
     }catch(error){
       orderMessage(error?.message||"Order update failed.","error");
     }finally{
