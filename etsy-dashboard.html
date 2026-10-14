@@ -6,7 +6,7 @@
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#171b18">
-<title>Lace &amp; Leather · Owner Desk</title>
+<title>Lace &amp; Leather · Owner Console</title>
 <style>
 :root{
   color-scheme:dark;
@@ -422,9 +422,9 @@ footer{
 
 <main>
 <div class="eyebrow">Lace &amp; Leather Arcane · Private owner workspace</div>
-<h1>Owner Desk</h1>
+<h1>Owner Console</h1>
 <p class="intro">
-One place for direct website orders, payment state, fulfillment tracking, Etsy performance and listing review.
+One place for direct website orders, Stripe payment state, fulfillment tracking, Etsy performance and listing review.
 Customer details stay behind your Marketing Studio sign-in.
 </p>
 
@@ -433,7 +433,7 @@ Customer details stay behind your Marketing Studio sign-in.
     <div>
       <div class="eyebrow">Direct shop</div>
       <h2 id="directOrdersHeading">Website orders</h2>
-      <p class="note">Orders from laceleatherarcane.com appear here. Confirm payment only after you verify it in Venmo. Delivery status is tracked separately so we never pretend a file was sent when it was not.</p>
+      <p class="note">Orders from laceleatherarcane.com appear here. Stripe payments verify automatically from the live checkout webhook; manual controls remain only for legacy exceptions. Delivery status is tracked separately so a file is never shown as sent unless fulfillment actually recorded it.</p>
     </div>
     <div class="actions">
       <button id="refreshOrders" type="button" disabled>↻ Refresh orders</button>
@@ -444,7 +444,7 @@ Customer details stay behind your Marketing Studio sign-in.
 
   <section class="kpis" aria-label="Direct shop metrics">
     <div class="stat"><span class="label">Website orders</span><strong id="directCount" class="mono">—</strong><small>Orders loaded</small></div>
-    <div class="stat"><span class="label">Awaiting payment</span><strong id="awaitingPayment" class="mono">—</strong><small>Payment submitted, not verified</small></div>
+    <div class="stat"><span class="label">Awaiting payment</span><strong id="awaitingPayment" class="mono">—</strong><small>Unpaid direct orders</small></div>
     <div class="stat"><span class="label">Fulfillment queue</span><strong id="fulfillmentQueue" class="mono">—</strong><small>Paid, delivery not recorded</small></div>
     <div class="stat"><span class="label">Paid website sales</span><strong id="directSales" class="mono">—</strong><small>Gross order total</small></div>
   </section>
@@ -455,7 +455,7 @@ Customer details stay behind your Marketing Studio sign-in.
     <label for="orderState">Status</label>
     <select id="orderState" disabled>
       <option value="all">All orders</option>
-      <option value="payment_submitted">Awaiting verification</option>
+      <option value="payment_submitted">Payment submitted</option>
       <option value="paid">Paid</option>
       <option value="new">New</option>
       <option value="cancelled">Cancelled</option>
@@ -524,14 +524,14 @@ Customer details stay behind your Marketing Studio sign-in.
 
 <section class="panel">
   <div class="eyebrow">Next layer</div>
-  <h2>Digital fulfillment</h2>
+  <h2>Automatic fulfillment</h2>
   <p class="note">
-The desk now tracks payment and delivery state. Automatic Resend delivery is the remaining fulfillment layer: once connected, a verified paid order can trigger the thank-you email and the correct purchased files, then record delivery here.
+Stripe payment confirmation and digital delivery are live. Paid orders flow into this console automatically, and successful customer delivery is recorded here so exceptions are easy to spot.
   </p>
 </section>
 </main>
 
-<footer>Private Black Stag owner workspace · Direct-order controls require Marketing Studio authentication · Etsy reporting remains read-only.</footer>
+<footer>Private Black Stag owner workspace · Direct-order controls require Marketing Studio authentication · Stripe payment status is verified server-side · Etsy reporting remains read-only.</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./config.js"></script>
@@ -648,7 +648,7 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
 
   function renderOrderMetrics(){
     const all=websiteOrders;
-    const awaiting=all.filter(o=>o.status==="payment_submitted"&&!o.paid).length;
+    const awaiting=all.filter(o=>!o.paid&&o.status!=="cancelled").length;
     const fulfillment=all.filter(isDeliveryPending).length;
     const gross=all.filter(o=>o.paid).reduce((sum,o)=>sum+Number(o.total||0),0);
 
@@ -715,6 +715,10 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
         top.append(textNode("span","Delivered","pill delivered"));
       }
 
+      if(order.payment_provider){
+        top.append(textNode("span",String(order.payment_provider),"pill"));
+      }
+
       main.append(top);
       main.append(textNode("div",dateText(order.created_at),"order-date"));
 
@@ -749,7 +753,9 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
       const actions=document.createElement("div");
       actions.className="order-actions";
 
-      if(!order.paid&&order.status!=="cancelled"){
+      const stripeManaged=String(order.payment_provider||"").toLowerCase()==="stripe";
+
+      if(!order.paid&&order.status!=="cancelled"&&!stripeManaged){
         const paid=document.createElement("button");
         paid.type="button";
         paid.className="small";
@@ -767,7 +773,7 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
         actions.append(delivered);
       }
 
-      if(order.status==="new"&&!order.paid){
+      if(order.status==="new"&&!order.paid&&!stripeManaged){
         const submitted=document.createElement("button");
         submitted.type="button";
         submitted.className="small secondary";
@@ -776,7 +782,7 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
         actions.append(submitted);
       }
 
-      if(order.status!=="cancelled"&&!order.paid){
+      if(order.status!=="cancelled"&&!order.paid&&!stripeManaged){
         const cancel=document.createElement("button");
         cancel.type="button";
         cancel.className="small danger";
@@ -785,12 +791,22 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
         actions.append(cancel);
       }
 
+      if(stripeManaged&&!order.paid){
+        actions.append(textNode("span","Stripe pending","order-date"));
+      }
+
       side.append(actions);
       if(order.paid_at){
         side.append(textNode("div","Paid "+dateText(order.paid_at),"order-date"));
       }
       if(order.delivery_sent_at){
         side.append(textNode("div","Delivery recorded "+dateText(order.delivery_sent_at),"order-date"));
+      }
+      if(order.payment_provider_order_id){
+        side.append(textNode("div","Stripe session verified","order-date"));
+      }
+      if(order.delivery_error){
+        side.append(textNode("div","Delivery issue: "+order.delivery_error,"order-note"));
       }
 
       card.append(main,side);
@@ -836,7 +852,7 @@ The desk now tracks payment and delivery state. Automatic Resend delivery is the
 
     try{
       const body={action:"owner_update",order_id:orderId,operation};
-      if(operation==="mark_paid")body.payment_method="Venmo";
+      if(operation==="mark_paid")body.payment_method="Manual";
       await orderApi(body);
       ordersWorking=false;
       await loadOrders();
