@@ -51,8 +51,15 @@ button:disabled{opacity:.48;cursor:default}
 .clickmark{height:5px;width:5px;position:absolute;left:63%;border-radius:50%;background:#b5d2ad}
 .chart-labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin:7px 0 3px}
 .insight{border-top:1px solid var(--border);margin:18px 0 0;padding-top:17px;color:var(--cream)}
-.pipeline{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
-.draft{background:#1a211b;border:1px solid var(--border);border-radius:12px;padding:19px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.pipeline{display:grid;gap:10px;margin-top:18px}
+.draft{background:#1a211b;border:1px solid var(--border);border-radius:12px;min-width:0;overflow:hidden}
+.draft summary{list-style:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 18px}
+.draft summary::-webkit-details-marker{display:none}
+.draft summary::after{content:"⌄";flex:none;color:var(--brass);font-size:22px;line-height:1;transition:transform .18s ease}
+.draft[open] summary::after{transform:rotate(180deg)}
+.draft-summary-main{min-width:0}
+.draft-summary-title{margin:6px 0 0;overflow-wrap:anywhere}
+.draft-body{display:flex;flex-direction:column;gap:10px;padding:14px 18px 18px;border-top:1px solid #74614444}
 .draft .state{display:inline-block;width:fit-content;border:1px solid #b79c65;padding:3px 9px;border-radius:99px;color:#e2c89a;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
 .draft h3{margin:0}
 .draft .desc{color:#d6ccba;font-size:13px}
@@ -68,7 +75,7 @@ button:disabled{opacity:.48;cursor:default}
 .empty{padding:20px;border:1px dashed var(--border);border-radius:10px;color:var(--muted)}
 footer{padding-bottom:35px;color:var(--muted);font-size:12px}
 [hidden]{display:none!important}
-@media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.pipeline{grid-template-columns:1fr}.steps{grid-template-columns:1fr}}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.steps{grid-template-columns:1fr}}
 @media(max-width:420px){.stat{padding:14px}.actions button{width:100%}}
 </style>
 </head>
@@ -185,15 +192,23 @@ function renderDrafts(){
  const host=$("drafts");host.replaceChildren();
  if(!drafts.length){host.append(node("div","No Pinterest drafts in this brand yet.","empty"));return}
  for(const item of drafts){
-  const card=node("article",undefined,"draft");
-  card.append(node("span",item.status||"draft","state"),node("h3",item.title||"Untitled"));
+  const card=document.createElement("details");
+  card.className="draft";
+
+  const summary=document.createElement("summary");
+  const summaryMain=node("div",undefined,"draft-summary-main");
+  summaryMain.append(node("span",item.status||"draft","state"),node("h3",item.title||"Untitled","draft-summary-title"));
+  summary.append(summaryMain);
+  card.append(summary);
+
+  const content=node("div",undefined,"draft-body");
   const body=item.body||"",title=getField(body,"Title"),desc=getField(body,"Pin description");
-  if(title)card.append(node("strong",title));
-  if(desc)card.append(node("p",desc,"desc"));
+  if(title)content.append(node("strong",title));
+  if(desc)content.append(node("p",desc,"desc"));
   const art=safeLink(getField(body,"Artwork reference"),"https://raw.githubusercontent.com/theblackstaginn/laceandleather/main/");
-  if(art){const box=node("div",undefined,"art"),img=document.createElement("img");img.loading="lazy";img.src=art;img.alt="Draft artwork reference, not yet approved for publication";box.append(img);card.append(box)}
+  if(art){const box=node("div",undefined,"art"),img=document.createElement("img");img.loading="lazy";img.src=art;img.alt="Draft artwork reference, not yet approved for publication";box.append(img);content.append(box)}
   const link=safeLink(getField(body,"Destination"),"https://www.etsy.com/listing/");
-  if(link){const a=node("a","View destination listing ↗","dest");a.href=link;a.target="_blank";a.rel="noopener noreferrer";card.append(a)}
+  if(link){const a=node("a","View destination listing ↗","dest");a.href=link;a.target="_blank";a.rel="noopener noreferrer";content.append(a)}
   const actions=node("div",undefined,"draft-actions"),copy=node("button","Copy pin copy");
   copy.type="button";copy.className="secondary";
   copy.addEventListener("click",()=>{
@@ -202,7 +217,9 @@ function renderDrafts(){
   });
   actions.append(copy);
   const a=node("a","Open Content Studio ↗");a.href="./";actions.append(a);
-  card.append(actions);host.append(card);
+  content.append(actions);
+  card.append(content);
+  host.append(card);
  }
 }
 async function load(){
