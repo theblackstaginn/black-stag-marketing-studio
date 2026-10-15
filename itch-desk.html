@@ -38,10 +38,16 @@ button:disabled{opacity:.5;cursor:default}
 .stat small{display:block;color:var(--muted);font-size:12px}
 .panel{padding:clamp(18px,3vw,27px);margin-bottom:20px}
 .note{color:var(--muted);font-size:13px}
-.projects{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:18px}
-.project{padding:18px;display:grid;grid-template-columns:92px minmax(0,1fr);gap:16px;background:#171d18}
-.cover{width:92px;height:74px;object-fit:cover;border-radius:9px;border:1px solid #8a78535a;background:#101411}
+.projects{display:grid;gap:12px;margin-top:18px}
+.project{background:#171d18;overflow:hidden}
+.project summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:70px minmax(0,1fr) auto;gap:14px;align-items:center;padding:14px 16px}
+.project summary::-webkit-details-marker{display:none}
+.project summary::after{content:"⌄";color:var(--brass);font-size:22px;line-height:1;transition:transform .18s ease}
+.project[open] summary::after{transform:rotate(180deg)}
+.cover{width:70px;height:56px;object-fit:cover;border-radius:8px;border:1px solid #8a78535a;background:#101411}
+.project-summary-main{min-width:0}
 .project h3{margin:0 0 6px;font-size:21px}
+.project-body{padding:14px 16px 17px;border-top:1px solid #75694955}
 .meta{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 11px}
 .pill{display:inline-flex;padding:3px 8px;border-radius:999px;border:1px solid #ffffff1c;background:#ffffff08;color:#d9d2c2;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
 .pill.live{color:var(--green);border-color:#6f8d6a88}
@@ -52,8 +58,8 @@ button:disabled{opacity:.5;cursor:default}
 .empty{padding:22px;border:1px dashed var(--border);border-radius:10px;color:var(--muted)}
 footer{padding-bottom:34px;color:var(--muted);font-size:12px}
 [hidden]{display:none!important}
-@media(max-width:960px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}.projects{grid-template-columns:1fr}}
-@media(max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.project{grid-template-columns:1fr}.cover{width:100%;height:auto;aspect-ratio:315/250}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:960px){.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:620px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.project summary{grid-template-columns:58px minmax(0,1fr) auto}.cover{width:58px;height:46px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 </head>
 <body>
@@ -128,23 +134,30 @@ function render(data){
  if(!projects.length){host.append(Object.assign(document.createElement("div"),{className:"empty",textContent:"No itch.io projects were returned."}));return}
 
  for(const p of projects){
-  const card=document.createElement("article");card.className="project";
+  const card=document.createElement("details");card.className="project";
+  const summary=document.createElement("summary");
+
   const img=document.createElement("img");img.className="cover";img.loading="lazy";img.alt="";img.src=imageUrl(p.cover_url)||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='315' height='250'%3E%3Crect width='100%25' height='100%25' fill='%23101411'/%3E%3C/svg%3E";
-  const body=document.createElement("div");
-  const title=document.createElement("h3");title.textContent=p.title||"Untitled project";body.append(title);
+
+  const summaryMain=document.createElement("div");summaryMain.className="project-summary-main";
+  const title=document.createElement("h3");title.textContent=p.title||"Untitled project";summaryMain.append(title);
   const meta=document.createElement("div");meta.className="meta";
   const state=document.createElement("span");state.className="pill"+(p.published?" live":"");state.textContent=p.published?"Published":"Draft";
   const type=document.createElement("span");type.className="pill";type.textContent=p.classification||p.type||"project";
   const price=document.createElement("span");price.className="pill";price.textContent=(p.min_price_cents||0)>0?money(p.min_price_cents,"USD"):"Free / no minimum";
-  meta.append(state,type,price);body.append(meta);
+  meta.append(state,type,price);summaryMain.append(meta);
 
+  summary.append(img,summaryMain);
+  card.append(summary);
+
+  const body=document.createElement("div");body.className="project-body";
   const metrics=document.createElement("div");metrics.className="metrics";
   const values=[["Views",p.views_count],["Downloads",p.downloads_count],["Purchases",p.purchases_count],["Earnings",(Array.isArray(p.earnings)&&p.earnings.length)?p.earnings.map(x=>money(x.amount_cents,x.currency)).join(" + "):money(0,"USD")]];
   for(const [label,value] of values){const box=document.createElement("div");box.className="metric";const l=document.createElement("span");l.textContent=label;const strong=document.createElement("strong");strong.textContent=typeof value==="number"?fmt(value):String(value);box.append(l,strong);metrics.append(box)}
   body.append(metrics);
 
   const link=safeUrl(p.url);if(link){const a=document.createElement("a");a.href=link;a.target="_blank";a.rel="noopener noreferrer";a.textContent="Open project ↗";body.append(a)}
-  card.append(img,body);host.append(card);
+  card.append(body);host.append(card);
  }
 }
 
