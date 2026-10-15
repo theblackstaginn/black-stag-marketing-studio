@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#171916">
+<title>ArtStation Desk · Lace &amp; Leather</title>
+<style>
+:root{color-scheme:dark;--bg:#121512;--panel:#242b24;--panel2:#191f1a;--brass:#d5b47f;--cream:#f2e9d8;--muted:#bdb7aa;--sage:#b8d0ae;--amber:#e5ad67;--border:#8a77556d;--danger:#e3aaa1}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#33382f 0,#191d19 48%,#0f120f 100%);color:var(--cream);font:15px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:#e3c48d;text-underline-offset:3px}a:hover{color:#f4ddb1}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #f1ce8d;outline-offset:3px}
+header{position:sticky;top:0;z-index:10;background:#111612d9;border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+nav,main,footer{max-width:1220px;margin:0 auto;padding-left:22px;padding-right:22px}
+nav{padding-top:16px;padding-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.mark,.eyebrow{font-size:11px;font-weight:760;letter-spacing:.18em;text-transform:uppercase;color:var(--brass)}
+.links{display:flex;gap:16px;align-items:center;flex-wrap:wrap;font-size:13px}
+main{padding-top:42px;padding-bottom:58px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:400;line-height:1.14}
+h1{font-size:clamp(38px,6vw,58px);margin:8px 0 15px}
+h2{font-size:30px;margin:0 0 10px}
+h3{font-size:21px;margin:0}
+.intro{max-width:825px;margin:0 0 18px;color:var(--muted)}
+.connection{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#d7c9b5;font-size:13px;margin-bottom:18px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 11px #e5ad6755}
+.pill{display:inline-flex;align-items:center;border:1px solid #8d775573;border-radius:999px;padding:4px 9px;font-size:11px;text-transform:uppercase;letter-spacing:.07em;background:#211e19;color:#dccdaf}
+.pill.ready{color:#dff0d8;border-color:#7b9a7188}.pill.published{color:#cce7bd;border-color:#72906a88}.pill.manual{color:#ffd7a2;border-color:#c68d4a88}.pill.draft{color:#d7d0c4}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+button,.button{cursor:pointer;border:1px solid #b9965f;background:linear-gradient(145deg,#dfc28d,#ae8754);color:#171914;border-radius:10px;padding:11px 17px;font:700 13px system-ui,sans-serif;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button.secondary,.button.secondary{background:transparent;color:var(--cream);border-color:var(--border)}
+button.ghost{background:#161c17;color:#e8dfcf;border-color:#7b6b4f66}
+button:disabled{opacity:.5;cursor:default}
+#status{background:#1a211b;border:1px solid var(--border);border-radius:11px;padding:14px 16px;min-height:49px;margin-bottom:20px}
+#status.ok{border-color:#72876c;color:#cce0c4}#status.error{border-color:#a76662;color:var(--danger)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:20px 0}
+.stat,.panel{background:linear-gradient(155deg,#2a322b,#202620);border:1px solid var(--border);border-radius:14px;box-shadow:0 13px 35px #0002}
+.stat{padding:19px}.stat .label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat strong{display:block;font:normal clamp(27px,4vw,40px)/1.15 Georgia,serif;margin:6px 0;color:var(--cream);font-variant-numeric:tabular-nums}
+.stat small{font-size:12px;color:var(--muted)}
+.panel{padding:clamp(18px,3vw,27px);margin-bottom:19px}
+.section-top{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.note{color:var(--muted);font-size:13px}
+.workflow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:17px}
+.step{padding:13px;border:1px solid #806f5070;background:#171d18;border-radius:10px}.step strong{display:block;font-family:Georgia,serif;font-size:17px;margin-bottom:4px}.step span{color:var(--muted);font-size:12px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:18px}
+.field{display:grid;gap:6px}.field.full{grid-column:1/-1}
+label{font-size:12px;color:#dbcfbb;font-weight:700}
+input,textarea,select{width:100%;border:1px solid #7b6b4f78;border-radius:9px;background:#111612;color:var(--cream);padding:11px 12px;font:inherit}
+textarea{min-height:112px;resize:vertical}
+.form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
+.projects{display:grid;gap:13px;margin-top:18px}
+.project{padding:18px;border:1px solid #7c6a4d66;background:#171d18;border-radius:11px}
+.project-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}
+.project h3{margin-bottom:7px}
+.meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.desc{white-space:pre-wrap;color:#ddd4c5;margin:13px 0}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.detail{padding:12px;border:1px solid #ffffff0d;border-radius:9px;background:#111612}.detail strong{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--brass);margin-bottom:5px}.detail p{margin:0;color:#d5ccbc;font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}.tag{display:inline-flex;align-items:center;border:1px solid #7e6d4f75;border-radius:999px;padding:3px 8px;font-size:11px;color:#dccdaf;background:#211e19}
+.project-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.project-actions input{flex:1 1 260px;min-width:200px}
+.empty{padding:20px;border:1px dashed var(--border);border-radius:10px;color:var(--muted)}
+.checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:16px}.check{padding:13px;border:1px solid #ffffff10;border-radius:9px;background:#151a16;color:#d9d0c1}.check strong{color:#f0e0c6}
+footer{padding-bottom:34px;color:var(--muted);font-size:12px}
+[hidden]{display:none!important}
+@media(max-width:860px){.workflow,.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.form-grid,.detail-grid{grid-template-columns:1fr}.field.full{grid-column:auto}}
+@media(max-width:480px){.workflow,.stats,.checklist{grid-template-columns:1fr}.actions>*{width:100%}.project-actions button,.project-actions a{flex:1 1 100%}}
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <div class="mark">✦ Black Stag · ArtStation Operations</div>
+    <div class="links">
+      <a href="./">Marketing Studio</a>
+      <a href="./etsy-dashboard.html">Owner Console</a>
+      <a href="./pinterest-desk.html">Pinterest Desk</a>
+      <a href="./tumblr-desk.html">Tumblr Desk</a>
+      <a href="./itch-desk.html">itch.io Desk</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="eyebrow">Lace &amp; Leather Arcane · Owner workspace</div>
+  <h1>ArtStation Publishing Desk</h1>
+  <p class="intro">A preparation and handoff desk for curated ArtStation projects. Black Stag Marketing Studio builds and stores the complete project packet, while the final upload and Publish click stay manual inside ArtStation.</p>
+
+  <div class="connection"><span class="dot"></span><strong>Manual final publish</strong><span class="pill manual">No public publishing API</span></div>
+
+  <div class="actions">
+    <button id="reload" type="button" disabled>↻ Refresh packets</button>
+    <a class="button secondary" href="https://www.artstation.com/" target="_blank" rel="noopener noreferrer">Open ArtStation ↗</a>
+    <a class="button secondary" href="https://laceleatherarcane.com/" target="_blank" rel="noopener noreferrer">Website ↗</a>
+  </div>
+
+  <div id="status" role="status" aria-live="polite">Checking Marketing Studio authorization…</div>
+
+  <section class="stats" aria-label="ArtStation workflow totals">
+    <div class="stat"><span class="label">Draft packets</span><strong id="draftCount">—</strong><small>Still being prepared</small></div>
+    <div class="stat"><span class="label">Ready to publish</span><strong id="readyCount">—</strong><small>Prepared for the final upload</small></div>
+    <div class="stat"><span class="label">Published</span><strong id="publishedCount">—</strong><small>Recorded portfolio projects</small></div>
+    <div class="stat"><span class="label">Total packets</span><strong id="totalCount">—</strong><small>Stored in Content Studio</small></div>
+  </section>
+
+  <section class="panel" aria-labelledby="flowHeading">
+    <div class="eyebrow">Workflow</div>
+    <h2 id="flowHeading">Two-minute final-mile publishing</h2>
+    <div class="workflow">
+      <div class="step"><strong>1. Build packet</strong><span>Title, description, visual plan, tags, software, and disclosure.</span></div>
+      <div class="step"><strong>2. Mark ready</strong><span>BSMS holds the approved packet and exact assets to use.</span></div>
+      <div class="step"><strong>3. Upload</strong><span>Copy the packet, add media in ArtStation, review the project.</span></div>
+      <div class="step"><strong>4. Record URL</strong><span>Paste the published project URL here and mark it published.</span></div>
+    </div>
+  </section>
+
+  <section class="panel" aria-labelledby="newHeading">
+    <div class="section-top">
+      <div>
+        <div class="eyebrow">Prep</div>
+        <h2 id="newHeading">New project packet</h2>
+        <p class="note">Create the whole ArtStation handoff in BSMS first. Nothing here publishes externally.</p>
+      </div>
+      <span class="pill manual">Manual handoff</span>
+    </div>
+
+    <form id="packetForm">
+      <div class="form-grid">
+        <div class="field full">
+          <label for="title">Project title</label>
+          <input id="title" name="title" required maxlength="180" placeholder="e.g. Fantasy RPG GUI Pack — Old-World Interface System">
+        </div>
+        <div class="field full">
+          <label for="description">Project description</label>
+          <textarea id="description" name="description" required placeholder="What the work is, how it is used, and what makes this project worth seeing."></textarea>
+        </div>
+        <div class="field">
+          <label for="visualPlan">Visual / media plan</label>
+          <textarea id="visualPlan" name="visualPlan" placeholder="Cover image, atlas, close-ups, use-case mockup, captions…"></textarea>
+        </div>
+        <div class="field">
+          <label for="coverUrl">Primary cover or artwork URL</label>
+          <textarea id="coverUrl" name="coverUrl" placeholder="https://…"></textarea>
+        </div>
+        <div class="field">
+          <label for="tagsInput">Tags</label>
+          <input id="tagsInput" name="tagsInput" placeholder="fantasy ui, rpg ui, game assets">
+        </div>
+        <div class="field">
+          <label for="software">Software / process</label>
+          <input id="software" name="software" placeholder="e.g. Photoshop, Procreate, OpenAI">
+        </div>
+        <div class="field">
+          <label for="disclosure">CreatedWithAI disclosure</label>
+          <select id="disclosure" name="disclosure">
+            <option value="Review before publish">Review before publish</option>
+            <option value="CreatedWithAI: Yes">CreatedWithAI: Yes</option>
+            <option value="CreatedWithAI: No">CreatedWithAI: No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="medium">Medium / subject notes</label>
+          <input id="medium" name="medium" placeholder="e.g. Digital 2D · User Interface (UI) Art">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button id="savePacket" type="submit">Save draft packet</button>
+        <button id="clearForm" class="secondary" type="button">Clear</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel" aria-labelledby="queueHeading">
+    <div class="section-top">
+      <div>
+        <div class="eyebrow">Pipeline</div>
+        <h2 id="queueHeading">Project packets</h2>
+        <p class="note">Drafts, approved handoffs, and published projects stored in the Lace &amp; Leather Content Studio record.</p>
+      </div>
+      <div class="note" id="updatedAt">Not loaded yet</div>
+    </div>
+    <div id="projects" class="projects"><div class="empty">Loading ArtStation packets…</div></div>
+  </section>
+
+  <section class="panel" aria-labelledby="checkHeading">
+    <div class="eyebrow">Final check</div>
+    <h2 id="checkHeading">Before you hit Publish</h2>
+    <div class="checklist">
+      <div class="check"><strong>Hero first.</strong> Lead with the strongest image and make the project readable without opening every frame.</div>
+      <div class="check"><strong>Curate support media.</strong> Use only images that add information, detail, or a useful application example.</div>
+      <div class="check"><strong>Confirm metadata.</strong> Medium, subject, software/process, tags, and any AI disclosure should match the actual work.</div>
+      <div class="check"><strong>Bring the URL home.</strong> Paste the live project URL back into this desk so BSMS remains the source of truth.</div>
+    </div>
+  </section>
+</main>
+
+<footer>Private Black Stag owner workspace · ArtStation remains a curated manual publishing destination; BSMS handles preparation, approval, and recordkeeping.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+"use strict";
+(async()=>{
+  const BRAND="956b245e-f60f-4e40-9d5b-0246d947ffb2";
+  const $=id=>document.getElementById(id);
+  const status=$("status"),reload=$("reload"),form=$("packetForm");
+  const conf=window.BLACK_STAG_CONFIG?.supabase;
+  let client=null,busy=false,rows=[];
+
+  function say(message,type){status.textContent=message;status.className=type||""}
+  function fmt(n){return Number(n||0).toLocaleString()}
+  function node(tag,text,cls){const el=document.createElement(tag);if(text!==undefined)el.textContent=String(text);if(cls)el.className=cls;return el}
+  function validArtStationUrl(raw){
+    if(!raw)return "";
+    try{
+      const u=new URL(raw);
+      return u.protocol==="https:"&&(u.hostname==="artstation.com"||u.hostname==="www.artstation.com"||u.hostname.endsWith(".artstation.com"))?u.href:"";
+    }catch{return ""}
+  }
+  function safeWebUrl(raw){
+    if(!raw)return "";
+    try{const u=new URL(raw);return u.protocol==="https:"?u.href:""}catch{return ""}
+  }
+  function disclosureFrom(row){
+    const value=String(row.alternate_copy||"");
+    return value.split("\n").find(x=>x.toLowerCase().startsWith("createdwithai:"))||"Review before publish";
+  }
+  function softwareFrom(row){
+    const value=String(row.alternate_copy||"");
+    const line=value.split("\n").find(x=>x.toLowerCase().startsWith("software/process:"));
+    return line?line.split(":").slice(1).join(":").trim():"";
+  }
+  function mediumFrom(row){
+    const value=String(row.alternate_copy||"");
+    const line=value.split("\n").find(x=>x.toLowerCase().startsWith("medium/subject:"));
+    return line?line.split(":").slice(1).join(":").trim():"";
+  }
+  function visualFrom(row){
+    const raw=String(row.visual_direction||"");
+    const coverLine=raw.split("\n").find(x=>x.toLowerCase().startsWith("cover:"));
+    const cover=coverLine?safeWebUrl(coverLine.split(":").slice(1).join(":").trim()):"";
+    const plan=raw.split("\n").filter(x=>!x.toLowerCase().startsWith("cover:")).join("\n").trim();
+    return {cover,plan};
+  }
+  function packetText(row){
+    const v=visualFrom(row);
+    return [
+      row.title||"Untitled ArtStation project",
+      "",
+      row.body||"",
+      "",
+      v.plan?"MEDIA PLAN\n"+v.plan:"",
+      v.cover?"PRIMARY ARTWORK\n"+v.cover:"",
+      row.hashtags?.length?"TAGS\n"+row.hashtags.join(", "):"",
+      softwareFrom(row)?"SOFTWARE / PROCESS\n"+softwareFrom(row):"",
+      mediumFrom(row)?"MEDIUM / SUBJECT\n"+mediumFrom(row):"",
+      "AI DISCLOSURE\n"+disclosureFrom(row)
+    ].filter(Boolean).join("\n");
+  }
+  async function copyText(textValue,button){
+    try{
+      await navigator.clipboard.writeText(textValue);
+      const old=button.textContent;button.textContent="Copied ✓";setTimeout(()=>button.textContent=old,1300);
+    }catch{button.textContent="Copy unavailable"}
+  }
+  function counts(){
+    const draft=rows.filter(x=>["idea","draft","review"].includes(x.status)).length;
+    const ready=rows.filter(x=>["approved","scheduled"].includes(x.status)).length;
+    const published=rows.filter(x=>x.status==="published").length;
+    $("draftCount").textContent=fmt(draft);$("readyCount").textContent=fmt(ready);$("publishedCount").textContent=fmt(published);$("totalCount").textContent=fmt(rows.length);
+  }
+  function statusPill(row){
+    const map={approved:["Ready to publish","ready"],scheduled:["Ready to publish","ready"],published:["Published","published"],review:["Review","draft"],idea:["Idea","draft"],draft:["Draft","draft"],rejected:["Rejected","draft"]};
+    const [label,cls]=map[row.status]||[row.status||"Draft","draft"];
+    return node("span",label,"pill "+cls);
+  }
+  async function updateRow(id,patch,message){
+    const {error}=await client.from("content_items").update({...patch,updated_at:new Date().toISOString()}).eq("id",id).eq("brand_id",BRAND);
+    if(error)throw error;
+    say(message,"ok");
+    await load();
+  }
+  function render(){
+    counts();
+    const host=$("projects");host.replaceChildren();
+    if(!rows.length){host.append(node("div","No ArtStation project packets yet. Build the next one above.","empty"));return}
+    for(const row of rows){
+      const card=node("article",undefined,"project");
+      const top=node("div",undefined,"project-top");
+      const head=node("div");head.append(node("h3",row.title||"Untitled ArtStation project"));
+      const meta=node("div",undefined,"meta");
+      meta.append(node("span",new Date(row.updated_at||row.created_at||Date.now()).toLocaleString()));
+      if(row.published_at)meta.append(node("span","Published "+new Date(row.published_at).toLocaleDateString()));
+      head.append(meta);top.append(head,statusPill(row));card.append(top);
+      if(row.body)card.append(node("div",row.body,"desc"));
+
+      const details=node("div",undefined,"detail-grid");
+      const visual=visualFrom(row);
+      const v=node("div",undefined,"detail");v.append(node("strong","Visual plan"),node("p",visual.plan||"Not specified"));
+      const m=node("div",undefined,"detail");m.append(node("strong","Medium / software"),node("p",[mediumFrom(row),softwareFrom(row),disclosureFrom(row)].filter(Boolean).join("\n")||"Not specified"));
+      details.append(v,m);card.append(details);
+
+      if(Array.isArray(row.hashtags)&&row.hashtags.length){
+        const tags=node("div",undefined,"tags");for(const tag of row.hashtags)tags.append(node("span","#"+tag,"tag"));card.append(tags);
+      }
+
+      const actions=node("div",undefined,"project-actions");
+      const copy=node("button","Copy project packet","ghost");copy.type="button";copy.addEventListener("click",()=>copyText(packetText(row),copy));actions.append(copy);
+      if(["idea","draft","review"].includes(row.status)){
+        const ready=node("button","Mark ready");ready.type="button";ready.addEventListener("click",()=>updateRow(row.id,{status:"approved"},"ArtStation packet marked ready to publish."));actions.append(ready);
+      }
+      if(["approved","scheduled"].includes(row.status)){
+        const urlInput=document.createElement("input");urlInput.placeholder="Paste published ArtStation project URL";urlInput.value=validArtStationUrl(row.cta)||"";urlInput.setAttribute("aria-label","Published ArtStation project URL");actions.append(urlInput);
+        const published=node("button","Mark published");published.type="button";published.addEventListener("click",async()=>{
+          const url=validArtStationUrl(urlInput.value.trim());
+          if(!url){say("Paste the live ArtStation project URL before marking it published.","error");urlInput.focus();return}
+          await updateRow(row.id,{status:"published",cta:url,published_at:new Date().toISOString()},"Published project recorded in BSMS.");
+        });actions.append(published);
+      }
+      if(row.status==="published"){
+        const url=validArtStationUrl(row.cta);
+        if(url){const open=node("a","Open project ↗","button secondary");open.href=url;open.target="_blank";open.rel="noopener noreferrer";actions.append(open)}
+      }
+      const edit=node("a","Open Content Studio ↗","button secondary");edit.href="./?view=studio";actions.append(edit);
+      card.append(actions);host.append(card);
+    }
+  }
+  async function load(){
+    if(busy)return;busy=true;reload.disabled=true;say("Loading ArtStation packets from Black Stag Marketing Studio…");
+    try{
+      if(!window.supabase||!conf?.url||!conf?.publishableKey)throw Error("Marketing Studio configuration unavailable.");
+      if(!client)client=window.supabase.createClient(conf.url,conf.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+      const {data:session,error:authError}=await client.auth.getSession();
+      if(authError||!session?.session?.user)throw Error("Sign in to Black Stag Marketing Studio first, then reopen this page.");
+      const {data:brand,error:brandError}=await client.from("brands").select("id").eq("id",BRAND).maybeSingle();
+      if(brandError||!brand)throw Error("This Studio account cannot access Lace & Leather.");
+      const {data,error}=await client.from("content_items").select("id,title,body,alternate_copy,visual_direction,cta,hashtags,status,platform,created_at,updated_at,published_at").eq("brand_id",BRAND).eq("platform","ArtStation").order("updated_at",{ascending:false}).limit(100);
+      if(error)throw error;
+      rows=data||[];render();$("updatedAt").textContent="Refreshed · "+new Date().toLocaleString();
+      say("ArtStation Desk ready. Final publishing remains manual; packets and published URLs stay tracked in BSMS.","ok");
+    }catch(error){say(error?.message||"Unable to load ArtStation Desk.","error");$("projects").innerHTML='<div class="empty">ArtStation packet data unavailable.</div>'}
+    finally{busy=false;reload.disabled=false}
+  }
+
+  form.addEventListener("submit",async event=>{
+    event.preventDefault();
+    if(busy)return;
+    const title=$("title").value.trim(),body=$("description").value.trim();
+    if(!title||!body)return;
+    const cover=safeWebUrl($("coverUrl").value.trim());
+    const visual=[$("visualPlan").value.trim(),cover?"Cover: "+cover:""].filter(Boolean).join("\n");
+    const tags=$("tagsInput").value.split(",").map(x=>x.trim().replace(/^#/,"")).filter(Boolean).slice(0,30);
+    const alt=[
+      "Software/process: "+($("software").value.trim()||"Review before publish"),
+      "Medium/subject: "+($("medium").value.trim()||"Review before publish"),
+      $("disclosure").value
+    ].join("\n");
+    busy=true;$("savePacket").disabled=true;say("Saving ArtStation project packet…");
+    try{
+      const {error}=await client.from("content_items").insert({
+        brand_id:BRAND,
+        content_type:"social_post",
+        status:"draft",
+        title,
+        body,
+        alternate_copy:alt,
+        visual_direction:visual,
+        hashtags:tags,
+        platform:"ArtStation",
+        goal:"Maintain a curated Lace & Leather ArtStation portfolio and route qualified viewers back to the brand.",
+        original_request:"Prepare an ArtStation project packet in the Black Stag Marketing Studio ArtStation Desk.",
+        ai_mode:"chatgpt-mcp"
+      });
+      if(error)throw error;
+      form.reset();say("Draft ArtStation packet saved to Content Studio.","ok");await load();
+    }catch(error){say(error?.message||"Unable to save ArtStation packet.","error")}
+    finally{busy=false;$("savePacket").disabled=false}
+  });
+
+  $("clearForm").addEventListener("click",()=>form.reset());
+  reload.addEventListener("click",load);
+  await load();
+})();
+</script>
+</body>
+</html>
