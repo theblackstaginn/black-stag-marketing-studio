@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#171916">
+<title>Tumblr Desk · Lace &amp; Leather</title>
+<style>
+:root{color-scheme:dark;--bg:#141714;--panel:#242b24;--panel2:#1a201b;--brass:#d5b47f;--cream:#f2e9d8;--muted:#bdb7aa;--sage:#b8d0ae;--border:#8a77556d;--danger:#e3aaa1}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at top,#34382f 0,#1a1e1a 46%,#101311 100%);color:var(--cream);font:15px/1.58 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:#e3c48d;text-underline-offset:3px}a:hover{color:#f4ddb1}
+a:focus-visible,button:focus-visible{outline:3px solid #f1ce8d;outline-offset:3px}
+header{position:sticky;top:0;z-index:10;background:#111612c9;border-bottom:1px solid var(--border);backdrop-filter:blur(12px)}
+nav,main,footer{max-width:1200px;margin:0 auto;padding-left:22px;padding-right:22px}
+nav{padding-top:16px;padding-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.mark,.eyebrow{font-size:11px;font-weight:760;letter-spacing:.18em;text-transform:uppercase;color:var(--brass)}
+.links{display:flex;gap:17px;align-items:center;flex-wrap:wrap;font-size:13px}
+main{padding-top:43px;padding-bottom:56px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;font-weight:400;line-height:1.14}
+h1{font-size:clamp(38px,6vw,59px);margin:8px 0 15px}
+h2{font-size:30px;margin:0 0 10px}
+h3{font-size:21px;margin:0}
+.intro{max-width:790px;margin:0 0 18px;color:var(--muted)}
+.connection{display:flex;align-items:center;gap:10px;flex-wrap:wrap;color:#cbd8c4;font-size:13px;margin-bottom:18px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--sage);box-shadow:0 0 11px #b7d1ae55}
+.actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:18px}
+button,.button{cursor:pointer;border:1px solid #b9965f;background:linear-gradient(145deg,#dfc28d,#ae8754);color:#171914;border-radius:10px;padding:11px 17px;font:700 13px system-ui,sans-serif;text-decoration:none;display:inline-flex;align-items:center;justify-content:center}
+button.secondary,.button.secondary{background:transparent;color:var(--cream);border-color:var(--border)}
+button:disabled{opacity:.5;cursor:default}
+#status{background:#1a211b;border:1px solid var(--border);border-radius:11px;padding:14px 16px;min-height:49px}
+#status.ok{border-color:#72876c;color:#cce0c4}
+#status.error{border-color:#a76662;color:var(--danger)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:20px 0 19px}
+.stat,.panel{background:linear-gradient(155deg,#2a322b,#202620);border:1px solid var(--border);border-radius:14px;box-shadow:0 13px 35px #0002}
+.stat{padding:19px}.stat .label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat strong{display:block;font:normal clamp(27px,4vw,41px)/1.15 Georgia,serif;margin:6px 0;color:var(--cream);font-variant-numeric:tabular-nums}
+.stat small{font-size:12px;color:var(--muted)}
+.panel{padding:clamp(18px,3vw,27px);margin-bottom:19px}
+.section-top{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+.note{color:var(--muted);font-size:13px}
+.signal{padding:16px;border:1px solid #806f5070;background:#171d18;border-radius:11px;margin-top:17px;color:#ded5c6}
+.posts{display:grid;gap:12px;margin-top:18px}
+.post{display:grid;grid-template-columns:1fr auto;gap:14px;padding:17px;border:1px solid #7c6a4d66;background:#171d18;border-radius:11px}
+.post-main{min-width:0}.post h3{font-size:20px;margin-bottom:7px;overflow-wrap:anywhere}
+.meta{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px}
+.tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:11px}
+.tag{display:inline-flex;align-items:center;border:1px solid #7e6d4f75;border-radius:999px;padding:3px 8px;font-size:11px;color:#dccdaf;background:#211e19}
+.note-count{min-width:74px;text-align:center;border-left:1px solid var(--border);padding-left:15px}
+.note-count strong{font:normal 27px Georgia,serif;display:block}.note-count span{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.post-actions{margin-top:12px}
+.post-actions a{font-size:12px}
+.tagcloud{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+.tagcloud .tag{font-size:12px;padding:5px 10px}
+.empty{padding:20px;border:1px dashed var(--border);border-radius:10px;color:var(--muted)}
+footer{padding-bottom:34px;color:var(--muted);font-size:12px}
+[hidden]{display:none!important}
+@media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.post{grid-template-columns:1fr}.note-count{text-align:left;border-left:0;border-top:1px solid var(--border);padding:11px 0 0;display:flex;align-items:baseline;gap:8px}.note-count strong{font-size:23px}}
+@media(max-width:430px){.stats{grid-template-columns:1fr}.actions>*{width:100%}}
+</style>
+</head>
+<body>
+<header>
+  <nav>
+    <div class="mark">✦ Black Stag · Tumblr Operations</div>
+    <div class="links">
+      <a href="./">Marketing Studio</a>
+      <a href="./etsy-dashboard.html">Owner Console</a>
+      <a href="./pinterest-desk.html">Pinterest Desk</a>
+      <a href="./itch-desk.html">itch.io Desk</a>
+    </div>
+  </nav>
+</header>
+
+<main>
+  <div class="eyebrow">Lace &amp; Leather Arcane · Owner workspace</div>
+  <h1>Tumblr Growth Desk</h1>
+  <p class="intro">Live Tumblr health, recent posts, notes, tag mix, and queue state for Lace &amp; Leather Arcane. This page reads through the private Tumblr bridge and never exposes Tumblr credentials in the browser.</p>
+
+  <div class="connection"><span class="dot"></span><strong id="connectionName">@laceleatherarcane</strong> · direct Tumblr bridge</div>
+
+  <div class="actions">
+    <button id="reload" type="button" disabled>↻ Refresh Tumblr</button>
+    <a id="openTumblr" class="button secondary" href="https://www.tumblr.com/blog/view/laceleatherarcane" target="_blank" rel="noopener noreferrer">Open Tumblr ↗</a>
+    <a class="button secondary" href="https://laceleatherarcane.com/" target="_blank" rel="noopener noreferrer">Website ↗</a>
+  </div>
+
+  <div id="status" role="status" aria-live="polite">Checking Marketing Studio authorization…</div>
+
+  <section class="stats" aria-label="Tumblr account metrics">
+    <div class="stat"><span class="label">Followers</span><strong id="followers">—</strong><small>Current Tumblr audience</small></div>
+    <div class="stat"><span class="label">Published posts</span><strong id="postCount">—</strong><small>Blog total</small></div>
+    <div class="stat"><span class="label">Recent notes</span><strong id="recentNotes">—</strong><small>Across latest loaded posts</small></div>
+    <div class="stat"><span class="label">Queue / drafts</span><strong id="queueDrafts">—</strong><small>Waiting inside Tumblr</small></div>
+  </section>
+
+  <section class="panel" aria-labelledby="signalHeading">
+    <div class="eyebrow">Signal</div>
+    <h2 id="signalHeading">What the blog is telling us</h2>
+    <p id="signal" class="signal">Loading the first useful signal from Tumblr…</p>
+  </section>
+
+  <section class="panel" aria-labelledby="postsHeading">
+    <div class="section-top">
+      <div>
+        <div class="eyebrow">Publishing</div>
+        <h2 id="postsHeading">Recent posts</h2>
+        <p class="note">Latest published posts returned by the Tumblr API. Notes are the combined engagement count Tumblr exposes for each post.</p>
+      </div>
+      <div class="note" id="updatedAt">Not loaded yet</div>
+    </div>
+    <div id="posts" class="posts"><div class="empty">Loading Tumblr posts…</div></div>
+  </section>
+
+  <section class="panel" aria-labelledby="tagsHeading">
+    <div class="eyebrow">Discovery</div>
+    <h2 id="tagsHeading">Tag mix</h2>
+    <p class="note">Most frequently used tags across the recent post sample. Useful for spotting whether the feed is repeating itself too heavily.</p>
+    <div id="tags" class="tagcloud"><div class="empty">Loading tags…</div></div>
+  </section>
+</main>
+
+<footer>Private Black Stag owner workspace · Read-only dashboard · Publishing remains handled through the Tumblr Bridge in ChatGPT.</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./config.js"></script>
+<script>
+"use strict";
+(async()=>{
+  const API="https://tumblr-bridge-api-production.up.railway.app/api/dashboard";
+  const $=id=>document.getElementById(id);
+  const status=$("status"),reload=$("reload");
+  let busy=false;
+
+  function fmt(value){
+    const n=Number(value);
+    return Number.isFinite(n)?n.toLocaleString():"—";
+  }
+  function say(message,type){
+    status.textContent=message;
+    status.className=type||"";
+  }
+  function node(tag,text,cls){
+    const el=document.createElement(tag);
+    if(text!==undefined)el.textContent=String(text);
+    if(cls)el.className=cls;
+    return el;
+  }
+  function safeTumblrUrl(raw){
+    if(typeof raw!=="string")return "";
+    try{
+      const u=new URL(raw);
+      return u.protocol==="https:"&&(u.hostname==="www.tumblr.com"||u.hostname.endsWith(".tumblr.com"))?u.href:"";
+    }catch{return ""}
+  }
+  function renderPosts(items){
+    const host=$("posts");
+    host.replaceChildren();
+    if(!Array.isArray(items)||!items.length){
+      host.append(node("div","No published Tumblr posts returned.","empty"));
+      return;
+    }
+    for(const item of items){
+      const card=node("article",undefined,"post");
+      const main=node("div",undefined,"post-main");
+      const title=node("h3",item.summary||"Untitled Tumblr post");
+      main.append(title);
+
+      const meta=node("div",undefined,"meta");
+      if(item.date)meta.append(node("span",new Date(item.date.replace(" GMT","Z")).toLocaleString()));
+      if(item.state)meta.append(node("span",item.state));
+      main.append(meta);
+
+      if(Array.isArray(item.tags)&&item.tags.length){
+        const tags=node("div",undefined,"tags");
+        for(const tag of item.tags.slice(0,8))tags.append(node("span","#"+tag,"tag"));
+        main.append(tags);
+      }
+
+      const url=safeTumblrUrl(item.post_url);
+      if(url){
+        const actions=node("div",undefined,"post-actions");
+        const link=node("a","Open post ↗");
+        link.href=url;link.target="_blank";link.rel="noopener noreferrer";
+        actions.append(link);main.append(actions);
+      }
+
+      const notes=node("div",undefined,"note-count");
+      notes.append(node("strong",fmt(item.note_count||0)),node("span","notes"));
+      card.append(main,notes);
+      host.append(card);
+    }
+  }
+  function renderTags(items){
+    const host=$("tags");
+    host.replaceChildren();
+    if(!Array.isArray(items)||!items.length){
+      host.append(node("div","No tags in the recent post sample.","empty"));
+      return;
+    }
+    for(const item of items){
+      host.append(node("span","#"+item.tag+" · "+item.count,"tag"));
+    }
+  }
+  function renderSignal(data){
+    const followers=Number(data.blog?.followers||0);
+    const posts=Number(data.blog?.posts||0);
+    const notes=Number(data.metrics?.recent_notes||0);
+    const sample=Number(data.metrics?.recent_posts||0);
+    let message="";
+    if(posts===0){
+      message="The account is connected but empty. The priority is a small launch library of visual posts before worrying about follower growth.";
+    }else if(followers===0&&notes===0){
+      message="The launch library is live, but Tumblr has not produced engagement yet. Keep the next posts visual, product-specific, and spaced out rather than sending another large burst today.";
+    }else if(notes===0){
+      message="Posts are live and the audience is beginning to exist, but the recent sample has no notes yet. Give the feed time to circulate and keep using strong product imagery plus specific discovery tags.";
+    }else{
+      const avg=sample?notes/sample:0;
+      message="The recent sample has "+fmt(notes)+" notes across "+fmt(sample)+" posts, averaging "+avg.toFixed(1)+" notes per post. Use the strongest-performing post as the next template for image choice, caption length, and tags.";
+    }
+    $("signal").textContent=message;
+  }
+
+  async function load(){
+    if(busy)return;
+    busy=true;reload.disabled=true;
+    say("Loading live Tumblr data through the private bridge…");
+    try{
+      const conf=window.BLACK_STAG_CONFIG?.supabase;
+      if(!window.supabase||!conf?.url||!conf?.publishableKey)throw Error("Marketing Studio configuration unavailable.");
+      const client=window.supabase.createClient(conf.url,conf.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+      const {data,error}=await client.auth.getSession();
+      if(error||!data?.session?.access_token)throw Error("Sign in to Black Stag Marketing Studio first, then reopen this page.");
+
+      const response=await fetch(API,{
+        method:"GET",
+        headers:{authorization:"Bearer "+data.session.access_token},
+        cache:"no-store"
+      });
+      const payload=await response.json().catch(()=>({}));
+      if(!response.ok)throw Error(payload?.error||"Unable to load Tumblr dashboard.");
+
+      $("followers").textContent=fmt(payload.blog?.followers);
+      $("postCount").textContent=fmt(payload.blog?.posts);
+      $("recentNotes").textContent=fmt(payload.metrics?.recent_notes);
+      $("queueDrafts").textContent=fmt(payload.blog?.queue)+" / "+fmt(payload.blog?.drafts);
+      $("connectionName").textContent="@"+(payload.blog?.name||"laceleatherarcane");
+      const tumblrUrl=safeTumblrUrl(payload.blog?.url);
+      if(tumblrUrl)$("openTumblr").href=tumblrUrl;
+      $("updatedAt").textContent="Live refresh · "+new Date(payload.generated_at||Date.now()).toLocaleString();
+
+      renderPosts(payload.posts);
+      renderTags(payload.metrics?.top_tags);
+      renderSignal(payload);
+      say("Tumblr connected. Live dashboard refreshed successfully.","ok");
+    }catch(error){
+      say(error?.message||"Unable to load Tumblr dashboard.","error");
+      $("posts").innerHTML='<div class="empty">Tumblr data unavailable.</div>';
+      $("tags").innerHTML='<div class="empty">Tag data unavailable.</div>';
+      $("signal").textContent="Dashboard data could not be loaded.";
+    }finally{
+      busy=false;reload.disabled=false;
+    }
+  }
+
+  reload.addEventListener("click",load);
+  await load();
+})();
+</script>
+</body>
+</html>
