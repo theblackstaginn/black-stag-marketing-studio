@@ -41,10 +41,13 @@
     href="styles.css?v=7"
   />
   <style>
-    #pinterestDeskNav[hidden]{display:none!important}
-    #pinterestDeskNav{color:inherit}
+    #pinterestDeskNav[hidden],
+    #itchDeskNav[hidden]{display:none!important}
+    #pinterestDeskNav,
+    #itchDeskNav{color:inherit}
     #ownerDeskMobileCard[hidden],
-    #pinterestDeskMobileCard[hidden]{display:none!important}
+    #pinterestDeskMobileCard[hidden],
+    #itchDeskMobileCard[hidden]{display:none!important}
     .lace-studio-banner{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0 18px;padding:20px 22px;border:1px solid rgba(196,161,105,.58);border-radius:15px;background:linear-gradient(125deg,rgba(70,77,59,.55),rgba(32,38,31,.93));box-shadow:0 10px 28px rgba(0,0,0,.13)}
     .lace-studio-banner + .lace-studio-banner{margin-top:0;margin-bottom:24px}
     .lace-studio-banner strong{display:block;margin:7px 0 2px;color:#f0e3cf;font:normal clamp(1.25rem,3vw,1.65rem) Georgia,serif}
@@ -283,6 +286,18 @@
           <span>Pinterest Desk</span>
         </a>
 
+        <a id="itchDeskNav" href="./itch-desk.html"
+           class="nav-button itch-shortcut" hidden
+           style="text-decoration:none">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M5 5h14l1 4-2 2v8H6v-8L4 9l1-4Z"></path>
+              <path d="M8 11v3M12 11v3M16 11v3"></path>
+            </svg>
+          </span>
+          <span>itch.io Desk</span>
+        </a>
+
       </nav>
 
 
@@ -477,6 +492,16 @@
               <p>Track outbound traffic, review Pin drafts, and reach your Etsy marketing workflow.</p>
             </div>
             <a class="lace-studio-open" href="./pinterest-desk.html">Open Pinterest Desk ↗</a>
+          </section>
+
+          <!-- LACE & LEATHER ITCH.IO SHORTCUT -->
+          <section id="itchDeskMobileCard" class="lace-studio-banner" hidden aria-label="Lace and Leather itch.io tools">
+            <div>
+              <span class="eyebrow">Lace &amp; Leather · itch.io</span>
+              <strong>itch.io Sales Desk</strong>
+              <p>See live project status, views, downloads, purchases, and gross earnings from your itch.io catalog.</p>
+            </div>
+            <a class="lace-studio-open" href="./itch-desk.html">Open itch.io Desk ↗</a>
           </section>
 
 
@@ -1844,21 +1869,19 @@
   <script src="studio-power-tools.js?v=11"></script>
 
 <script>
-  // Show the Pinterest operations shortcut for Lace & Leather only.
+  // Show Lace & Leather operations shortcuts only while that brand is active.
   // Brand switching is already managed by app.js; do not change it.
   (function(){
-    const link=document.getElementById("pinterestDeskNav");
-    if(!link)return;
     const brandId="956b245e-f60f-4e40-9d5b-0246d947ffb2";
     function showForCurrentBrand(){
       let selected=null;
       try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
       const active=selected===brandId;
-      link.hidden=!active;
-      const ownerDesk=document.getElementById("ownerDeskMobileCard");
-      if(ownerDesk)ownerDesk.hidden=!active;
-      const card=document.getElementById("pinterestDeskMobileCard");
-      if(card)card.hidden=!active;
+      const ids=["pinterestDeskNav","itchDeskNav","ownerDeskMobileCard","pinterestDeskMobileCard","itchDeskMobileCard"];
+      for(const id of ids){
+        const el=document.getElementById(id);
+        if(el)el.hidden=!active;
+      }
     }
     const name=document.getElementById("activeBrandName");
     if(name&&window.MutationObserver){
