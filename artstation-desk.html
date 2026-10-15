@@ -52,7 +52,13 @@ input,textarea,select{width:100%;border:1px solid #7b6b4f78;border-radius:9px;ba
 textarea{min-height:112px;resize:vertical}
 .form-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:15px}
 .projects{display:grid;gap:13px;margin-top:18px}
-.project{padding:18px;border:1px solid #7c6a4d66;background:#171d18;border-radius:11px}
+.project{border:1px solid #7c6a4d66;background:#171d18;border-radius:11px;overflow:hidden}
+.project summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;gap:15px;align-items:center;padding:16px 18px}
+.project summary::-webkit-details-marker{display:none}
+.project summary::after{content:"⌄";flex:none;color:var(--brass);font-size:22px;line-height:1;transition:transform .18s ease}
+.project[open] summary::after{transform:rotate(180deg)}
+.project-summary{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex:1;min-width:0;flex-wrap:wrap}
+.project-body{padding:16px 18px 18px;border-top:1px solid #75694955}
 .project-top{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;flex-wrap:wrap}
 .project h3{margin-bottom:7px}
 .meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:12px}
@@ -288,23 +294,32 @@ footer{padding-bottom:34px;color:var(--muted);font-size:12px}
     const host=$("projects");host.replaceChildren();
     if(!rows.length){host.append(node("div","No ArtStation project packets yet. Build the next one above.","empty"));return}
     for(const row of rows){
-      const card=node("article",undefined,"project");
-      const top=node("div",undefined,"project-top");
-      const head=node("div");head.append(node("h3",row.title||"Untitled ArtStation project"));
+      const card=document.createElement("details");
+      card.className="project";
+
+      const summary=document.createElement("summary");
+      const summaryWrap=node("div",undefined,"project-summary");
+      const head=node("div");
+      head.append(node("h3",row.title||"Untitled ArtStation project"));
       const meta=node("div",undefined,"meta");
       meta.append(node("span",new Date(row.updated_at||row.created_at||Date.now()).toLocaleString()));
       if(row.published_at)meta.append(node("span","Published "+new Date(row.published_at).toLocaleDateString()));
-      head.append(meta);top.append(head,statusPill(row));card.append(top);
-      if(row.body)card.append(node("div",row.body,"desc"));
+      head.append(meta);
+      summaryWrap.append(head,statusPill(row));
+      summary.append(summaryWrap);
+      card.append(summary);
+
+      const body=node("div",undefined,"project-body");
+      if(row.body)body.append(node("div",row.body,"desc"));
 
       const details=node("div",undefined,"detail-grid");
       const visual=visualFrom(row);
       const v=node("div",undefined,"detail");v.append(node("strong","Visual plan"),node("p",visual.plan||"Not specified"));
       const m=node("div",undefined,"detail");m.append(node("strong","Medium / software"),node("p",[mediumFrom(row),softwareFrom(row),disclosureFrom(row)].filter(Boolean).join("\n")||"Not specified"));
-      details.append(v,m);card.append(details);
+      details.append(v,m);body.append(details);
 
       if(Array.isArray(row.hashtags)&&row.hashtags.length){
-        const tags=node("div",undefined,"tags");for(const tag of row.hashtags)tags.append(node("span","#"+tag,"tag"));card.append(tags);
+        const tags=node("div",undefined,"tags");for(const tag of row.hashtags)tags.append(node("span","#"+tag,"tag"));body.append(tags);
       }
 
       const actions=node("div",undefined,"project-actions");
@@ -317,15 +332,14 @@ footer{padding-bottom:34px;color:var(--muted);font-size:12px}
         const published=node("button","Mark published");published.type="button";published.addEventListener("click",async()=>{
           const url=validArtStationUrl(urlInput.value.trim());
           if(!url){say("Paste the live ArtStation project URL before marking it published.","error");urlInput.focus();return}
-          await updateRow(row.id,{status:"published",cta:url,published_at:new Date().toISOString()},"Published project recorded in BSMS.");
+          await updateRow(row.id,{status:"published",cta:url},"Published ArtStation URL recorded.");
         });actions.append(published);
       }
-      if(row.status==="published"){
-        const url=validArtStationUrl(row.cta);
-        if(url){const open=node("a","Open project ↗","button secondary");open.href=url;open.target="_blank";open.rel="noopener noreferrer";actions.append(open)}
-      }
-      const edit=node("a","Open Content Studio ↗","button secondary");edit.href="./?view=studio";actions.append(edit);
-      card.append(actions);host.append(card);
+      const live=validArtStationUrl(row.cta);
+      if(live){const a=node("a","Open project ↗","button secondary");a.href=live;a.target="_blank";a.rel="noopener noreferrer";actions.append(a)}
+      body.append(actions);
+      card.append(body);
+      host.append(card);
     }
   }
   async function load(){
