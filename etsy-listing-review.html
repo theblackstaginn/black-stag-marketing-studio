@@ -32,14 +32,19 @@ button:disabled{opacity:.5;cursor:default}
 .card{background:#242e26;border:1px solid var(--line);border-radius:13px;padding:17px}
 .label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
 .metric{display:block;font:30px Georgia,serif;padding:5px 0;color:var(--paper)}
-.list{display:grid;gap:17px}
-.entry{border:1px solid var(--line);background:#242c25;border-radius:15px;padding:clamp(16px,3vw,23px)}
-.entry h2{margin:5px 0 8px;font-size:26px}
-.entry-head{display:flex;justify-content:space-between;gap:13px;flex-wrap:wrap}
-.entry-head strong{font-size:18px;color:#f2d8a9;white-space:nowrap}
+.list{display:grid;gap:12px}
+.entry{border:1px solid var(--line);background:#242c25;border-radius:15px;overflow:hidden}
+.entry>summary{list-style:none;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:13px;align-items:center;padding:16px 18px;color:var(--paper)}
+.entry>summary::-webkit-details-marker{display:none}
+.entry>summary::after{content:"⌄";color:var(--gold);font-size:22px;line-height:1;transition:transform .18s ease}
+.entry[open]>summary::after{transform:rotate(180deg)}
+.entry-summary-main{min-width:0}
+.entry h2{margin:0 0 5px;font-size:24px}
+.entry-price{font-size:18px;color:#f2d8a9;white-space:nowrap}
+.entry-body{padding:15px 18px 18px;border-top:1px solid #75694955}
 .meta{font-size:12px;color:var(--muted);margin:2px 0 12px}
-details{border-top:1px solid #7569496e;margin-top:16px;padding-top:15px}
-summary{cursor:pointer;color:var(--gold);font-weight:650}
+.entry-body details{border-top:1px solid #7569496e;margin-top:16px;padding-top:15px}
+.entry-body summary{cursor:pointer;color:var(--gold);font-weight:650}
 .files{margin:10px 0 0;padding-left:21px}
 .files li{padding:7px 0;overflow-wrap:anywhere}
 .fileName{font-weight:650}.fileSize{color:var(--muted);font-size:12px;margin-left:6px}
@@ -49,7 +54,7 @@ summary{cursor:pointer;color:var(--gold);font-weight:650}
 .empty{border:1px solid var(--line);background:#222a24;border-radius:12px;padding:25px;color:var(--muted)}
 footer{font-size:12px;color:var(--muted);padding-bottom:30px}
 [hidden]{display:none!important}
-@media(max-width:520px){.summary{grid-template-columns:1fr}.actions button{width:100%}}
+@media(max-width:520px){.summary{grid-template-columns:1fr}.actions button{width:100%}.entry>summary{grid-template-columns:minmax(0,1fr) auto}.entry>summary::after{grid-column:2;grid-row:1}.entry-price{grid-column:1;grid-row:2}}
 </style>
 </head>
 <body>
@@ -105,26 +110,29 @@ footer{font-size:12px;color:var(--muted);padding-bottom:30px}
    fileTotal+=count;
    const warnings=Array.isArray(item.warnings)?item.warnings:[];
    if(warnings.length)issueTotal++;
-   const card=elem("article",undefined,"entry");
-   const heading=elem("div",undefined,"entry-head");
-   const title=elem("h2",item.title||"Untitled");
+   const card=elem("details",undefined,"entry");
+   const heading=elem("summary");
+   const summaryMain=elem("div",undefined,"entry-summary-main");
+   summaryMain.append(elem("h2",item.title||"Untitled"));
+   summaryMain.append(elem("div","Listing #"+String(item.listing_id||"")+" · "+(item.file_count==null?"Files not verified":count+" file(s) attached")+(warnings.length?" · "+warnings.length+" review flag"+(warnings.length===1?"":"s"):""),"meta"));
+   heading.append(summaryMain,elem("strong",price(item.advertised_price),"entry-price"));
+   card.append(heading);
+
+   const body=elem("div",undefined,"entry-body");
    const anchor=elem("a","Open Etsy listing ↗");
    if(/^[0-9]+$/.test(String(item.listing_id||""))){
     anchor.href="https://www.etsy.com/listing/"+item.listing_id;
     anchor.target="_blank";anchor.rel="noopener noreferrer";
    }
-   const titleWrap=elem("div");
-   titleWrap.append(title,anchor);
-   heading.append(titleWrap,elem("strong",price(item.advertised_price)));
-   card.append(heading);
-   const details=elem("div","Listing #"+String(item.listing_id||"")+" · "+(item.file_count==null?"Files not verified":count+" file(s) attached"),"meta");
-   card.append(details);
+   body.append(anchor);
+
    const inv=item.inventory_prices;
    if(inv?.offerings_count){
     const label="Inventory offering price: "+(inv.min_price===null?"Unavailable":price({amount:inv.min_price,currency:inv.currency}))+((inv.max_price!=null&&inv.max_price!==inv.min_price)?" to "+price({amount:inv.max_price,currency:inv.currency}):"");
-    card.append(elem("p",label,"note"));
-   }else card.append(elem("p","Inventory price not available; Etsy listing price shown above.","note"));
-   const panel=elem("details"); const summary=elem("summary","Attached files and audit notes");panel.append(summary);
+    body.append(elem("p",label,"note"));
+   }else body.append(elem("p","Inventory price not available; Etsy listing price shown above.","note"));
+
+   const panel=elem("details"); const innerSummary=elem("summary","Attached files and audit notes");panel.append(innerSummary);
    const files=Array.isArray(item.file_metadata)?item.file_metadata:[];
    if(!files.length)panel.append(elem("p",item.file_count===0?"Etsy reports no attached download files.":"Attachment details unavailable.","note"));
    else {
@@ -140,7 +148,9 @@ footer{font-size:12px;color:var(--muted);padding-bottom:30px}
    }
    for(const w of warnings)panel.append(elem("p","⚠ "+w,"warning"));
    if(!warnings.length)panel.append(elem("p","No metadata or pricing flags in this inspection.","note"));
-   card.append(panel);results.append(card);
+   body.append(panel);
+   card.append(body);
+   results.append(card);
   }
   $("listingCount").textContent=rows.length.toLocaleString();
   $("fileCount").textContent=fileTotal.toLocaleString();
