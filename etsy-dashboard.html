@@ -288,17 +288,52 @@ tbody tr:hover{background:#ffffff08}
   gap:13px
 }
 .order-card{
-  padding:17px;
+  padding:0;
+  overflow:hidden
+}
+.order-card summary{
+  list-style:none;
+  cursor:pointer;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px;
+  align-items:center;
+  padding:15px 17px
+}
+.order-card summary::-webkit-details-marker{display:none}
+.order-card summary::after{
+  content:"⌄";
+  grid-column:2;
+  grid-row:1 / span 2;
+  align-self:center;
+  color:var(--brass);
+  font-size:22px;
+  line-height:1;
+  transition:transform .18s ease
+}
+.order-card[open] summary::after{transform:rotate(180deg)}
+.order-summary-main{min-width:0}
+.order-summary-side{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+  padding-right:28px
+}
+.order-body{
   display:grid;
   grid-template-columns:minmax(0,1.5fr) minmax(220px,.7fr);
-  gap:18px
+  gap:18px;
+  padding:16px 17px 17px;
+  border-top:1px solid #ffffff0c
 }
 .order-top{
   display:flex;
   gap:10px;
   align-items:center;
   flex-wrap:wrap;
-  margin-bottom:8px
+  margin-bottom:6px
 }
 .order-id{
   font:normal 21px Georgia,serif;
@@ -385,7 +420,7 @@ footer{
 }
 [hidden]{display:none!important}
 @media(max-width:900px){
-  .order-card{grid-template-columns:1fr}
+  .order-body{grid-template-columns:1fr}
   .order-side{align-items:flex-start}
   .order-actions{justify-content:flex-start}
 }
@@ -398,7 +433,9 @@ footer{
 }
 @media(max-width:520px){
   header nav{gap:11px;font-size:12px}
-  .order-card{padding:14px}
+  .order-card summary{padding:13px 14px}
+  .order-summary-side{justify-content:flex-start;padding-right:24px}
+  .order-body{padding:14px}
   .order-total{font-size:25px}
   .order-actions button{flex:1 1 auto}
 }
@@ -702,8 +739,37 @@ Stripe payment confirmation and digital delivery are live. Paid orders flow into
     }
 
     for(const order of list){
-      const card=document.createElement("article");
+      const card=document.createElement("details");
       card.className="order-card";
+
+      const summary=document.createElement("summary");
+      const summaryMain=document.createElement("div");
+      summaryMain.className="order-summary-main";
+
+      const summaryTop=document.createElement("div");
+      summaryTop.className="order-top";
+      summaryTop.append(textNode("span",order.order_id||"Order","order-id"));
+      summaryTop.append(textNode("span",String(order.status||"new").replaceAll("_"," "),"pill "+String(order.status||"new")));
+      if(order.delivery_sent_at)summaryTop.append(textNode("span","Delivered","pill delivered"));
+      if(order.payment_provider)summaryTop.append(textNode("span",String(order.payment_provider),"pill"));
+      summaryMain.append(summaryTop);
+
+      const items=normalizedItems(order);
+      const preview=[
+        dateText(order.created_at),
+        order.customer_name||"Customer",
+        items.length ? items.map(item=>Math.max(1,Number(item?.qty||1))+"× "+String(item?.name||"Item")).slice(0,2).join(" · ") : ""
+      ].filter(Boolean).join(" · ");
+      summaryMain.append(textNode("div",preview,"order-date"));
+
+      const summarySide=document.createElement("div");
+      summarySide.className="order-summary-side";
+      summarySide.append(textNode("div",cashNumber(order.total,order.currency||"USD"),"order-total"));
+      summary.append(summaryMain,summarySide);
+      card.append(summary);
+
+      const body=document.createElement("div");
+      body.className="order-body";
 
       const main=document.createElement("div");
       const top=document.createElement("div");
@@ -738,7 +804,7 @@ Stripe payment confirmation and digital delivery are live. Paid orders flow into
 
       const itemsWrap=document.createElement("div");
       itemsWrap.className="order-items";
-      for(const item of normalizedItems(order)){
+      for(const item of items){
         const qty=Math.max(1,Number(item?.qty||1));
         itemsWrap.append(textNode("span",qty+"× "+String(item?.name||"Item"),"order-item"));
       }
@@ -811,7 +877,8 @@ Stripe payment confirmation and digital delivery are live. Paid orders flow into
         side.append(textNode("div","Delivery issue: "+order.delivery_error,"order-note"));
       }
 
-      card.append(main,side);
+      body.append(main,side);
+      card.append(body);
       orderList.append(card);
     }
   }
