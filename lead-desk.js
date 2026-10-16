@@ -75,8 +75,7 @@
     return {
       byStage,
       action: actionCount,
-      active: ACTIVE.has("contacted") ?
-        byStage.contacted + byStage.qualified + byStage.quoted : 0
+      active: byStage.contacted + byStage.qualified + byStage.quoted
     };
   }
 
@@ -121,15 +120,12 @@
       holder.append(a);
       return;
     }
-    if (kind === "phone") {
+    if (kind === "phone" || kind === "text") {
       const phone = value.replace(/[^0-9+]/g, "").slice(0, 25);
       if (phone.replace(/\D/g, "").length < 7) return;
-      const a = element("a", "contact-link", "☎ Call");
-      a.href = "tel:" + phone;
-      holder.append(a);
-      const sms = element("a", "contact-link", "✎ Text");
-      sms.href = "sms:" + phone;
-      holder.append(sms);
+      const link = element("a", "contact-link", kind === "text" ? "✎ Text" : "☎ Call");
+      link.href = (kind === "text" ? "sms:" : "tel:") + phone;
+      holder.append(link);
       return;
     }
     if (kind === "website") {
@@ -191,6 +187,7 @@
     const age = daysOld(lead.created_at);
     if (age !== null) notes.append(element("span", "", age + " day" + (age === 1 ? "" : "s") + " old"));
     if (lead.primary_need) notes.append(element("span", "", "Need: " + lead.primary_need));
+    if (lead.contact_preference) notes.append(element("span", "", "Preferred contact: " + lead.contact_preference));
     if (lead.utm_source || lead.utm_campaign) {
       notes.append(element("span", "", "Source: " +
         [lead.utm_source, lead.utm_campaign].filter(Boolean).join(" / ")));
@@ -207,8 +204,17 @@
     }
 
     const actions = element("div", "contact-actions");
-    appendContactLink(actions, "email", lead.email);
-    appendContactLink(actions, "phone", lead.phone);
+    // Honor the contact preference chosen in the original consented request.
+    const preference = lead.contact_preference || "either";
+    if (preference === "email" || preference === "either") {
+      appendContactLink(actions, "email", lead.email);
+    }
+    if (preference === "phone" || preference === "either") {
+      appendContactLink(actions, "phone", lead.phone);
+    }
+    if (preference === "text") {
+      appendContactLink(actions, "text", lead.phone);
+    }
     appendContactLink(actions, "website", lead.website_url);
     if (actions.children.length) card.append(actions);
 
