@@ -22,7 +22,7 @@ const stub = [
   " const leads=[",
   " {...base,id:'11111111-1111-4111-8111-111111111111',name:'Alex Sample',business_name:'Hearth Bakery',email:'alex@example.test',phone:'5555550161',website_url:'https://example.test',primary_need:'Mobile problems',message:'Website is awkward on phones.',source:'website_checkup',status:'new',utm_source:'facebook',utm_campaign:'qualified_local_leads',created_at:past(0),updated_at:past(0)},",
   " {...base,id:'22222222-2222-4222-8222-222222222222',name:'Jordan Sample',business_name:'North Georgia Trades',email:'jordan@example.test',phone:null,primary_need:'New website',source:'website_checkup',status:'contacted',utm_source:null,utm_campaign:null,created_at:past(5),updated_at:past(4)},",
-  " {...base,id:'33333333-3333-4333-8333-333333333333',name:'Taylor Sample',business_name:'Pine Ridge Farm',email:null,phone:'5555550144',primary_need:null,source:'website_checkup',status:'won',utm_source:null,utm_campaign:null,created_at:past(7),updated_at:past(2)}",
+  " {...base,id:'33333333-3333-4333-8333-333333333333',name:'Taylor Sample',business_name:'Pine Ridge Farm',email:null,phone:'5555550144',contact_preference:'phone',primary_need:null,source:'website_checkup',status:'won',utm_source:null,utm_campaign:null,created_at:past(7),updated_at:past(2)}",
   " ];",
   " window.supabase={createClient:()=>({",
   " auth:{getUser:async()=>({data:{user:{id:window.__QA_NOT_OWNER?'other':'qa-owner'}},error:null})},",
@@ -67,6 +67,11 @@ try {
     assert.equal(await page.locator("#statDue").textContent(),"1",label+" save stage action count");
     await page.locator("#filter").selectOption("all");
     assert.equal(await page.locator(".lead-card").count(),3,label+" full queue count");
+    const owned=page.locator(".lead-card").filter({hasText:"Pine Ridge Farm"});
+    assert.equal(await owned.locator('a[href^="tel:"]').count(),1,label+" phone preference missing call action");
+    assert.equal(await owned.locator('a[href^="sms:"]').count(),0,label+" ignored phone preference");
+    const emailOnly=page.locator(".lead-card").filter({hasText:"Hearth Bakery"});
+    assert.equal(await emailOnly.locator('a[href^="tel:"]').count(),0,label+" ignored email preference");
     await page.locator("#filter").selectOption("spam");
     assert(await page.locator("#queueEmpty").isVisible(),label+" empty state");
     assert.deepEqual(errors,[],label+" browser errors "+errors.join(", "));
