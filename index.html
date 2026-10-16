@@ -283,6 +283,16 @@
           <span>Asset Vault</span>
         </button>
 
+        <a id="leadDeskNav" href="./lead-desk.html" class="nav-button" hidden
+           style="text-decoration:none" aria-label="Open Black Stag Lead to Revenue Desk">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M4 19V5h16v14ZM8 10h8M8 14h5M14 14l2 2 4-4"></path>
+            </svg>
+          </span>
+          <span>Revenue Desk</span>
+        </a>
+
         <a id="metaAdsNav" href="./meta-connect.html"
            class="nav-button" hidden
            style="text-decoration:none">
@@ -517,6 +527,16 @@
 
           </header>
 
+
+          <!-- BLACK STAG WEB DESIGN PRIVATE SALES PIPELINE -->
+          <section id="leadDeskMobileCard" class="lace-studio-banner" hidden aria-label="Black Stag private lead to revenue desk">
+            <div>
+              <span class="eyebrow">Black Stag Web Design · Revenue Operations</span>
+              <strong>Lead to Revenue Desk</strong>
+              <p>Review new inquiries, follow up on prospects, and track conversations from checkup to closed work.</p>
+            </div>
+            <a class="lace-studio-open" href="./lead-desk.html">Open Revenue Desk ↗</a>
+          </section>
 
           <!-- BLACK STAG WEB DESIGN META ADS SHORTCUT -->
           <section id="metaAdsMobileCard" class="lace-studio-banner" hidden aria-label="Black Stag Web Design Meta Ads connection">
@@ -1975,7 +1995,7 @@
       let selected=null;
       try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
       const active=selected===brandId;
-      for(const id of ["metaAdsNav","metaAdsMobileCard"]){
+      for(const id of ["metaAdsNav","metaAdsMobileCard","leadDeskNav","leadDeskMobileCard"]){
         const el=document.getElementById(id);
         if(el)el.hidden=!active;
       }
