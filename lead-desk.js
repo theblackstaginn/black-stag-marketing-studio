@@ -204,18 +204,24 @@
     }
 
     const actions = element("div", "contact-actions");
-    // Honor the contact preference chosen in the original consented request.
-    const preference = lead.contact_preference || "either";
-    if (preference === "email" || preference === "either") {
-      appendContactLink(actions, "email", lead.email);
-    }
-    if (preference === "phone" || preference === "either") {
-      appendContactLink(actions, "phone", lead.phone);
-    }
-    if (preference === "text") {
-      appendContactLink(actions, "text", lead.phone);
+    // Honor the exact contact permission and preferred channel supplied by the lead.
+    // Contact links must not be exposed when permission is missing or withdrawn.
+    if (lead.consent_to_contact === true) {
+      const preference = lead.contact_preference || "either";
+      if (preference === "email" || preference === "either") {
+        appendContactLink(actions, "email", lead.email);
+      }
+      if (preference === "phone" || preference === "either") {
+        appendContactLink(actions, "phone", lead.phone);
+      }
+      if (preference === "text") {
+        appendContactLink(actions, "text", lead.phone);
+      }
     }
     appendContactLink(actions, "website", lead.website_url);
+    if (lead.consent_to_contact !== true) {
+      card.append(element("p", "lead-flag", "No contact permission is recorded; do not contact this prospect."));
+    }
     if (actions.children.length) card.append(actions);
 
     const flag = element("p", "lead-flag", lead.status === "new" ?
