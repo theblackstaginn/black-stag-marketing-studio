@@ -1,0 +1,52 @@
+name: Verify Lead to Revenue Desk
+on:
+  push:
+    branches:
+      - feat/lead-to-revenue-desk-20261016
+      - main
+    paths:
+      - index.html
+      - lead-desk.html
+      - lead-desk.js
+      - lead-desk.css
+      - scripts/verify-lead-desk.mjs
+      - .github/workflows/verify-lead-desk.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  revenue-qa:
+    name: Browser QA with synthetic test leads only
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: |
+          node --check lead-desk.js
+          node --check scripts/verify-lead-desk.mjs
+      - name: Set up isolated Playwright
+        run: |
+          npm install --no-save --no-package-lock playwright
+          npx playwright install --with-deps chromium
+      - name: Verify authenticating, owner gate, counts and manual stage updates
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/bsms-lead-qa.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID" || true' EXIT
+          node scripts/verify-lead-desk.mjs
+      - name: Upload synthetic-data screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lead-to-revenue-preview
+          path: lead-desk-qa/
+          retention-days: 7
+          if-no-files-found: warn
