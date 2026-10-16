@@ -24,6 +24,7 @@ const stub = [
   " {...base,id:'22222222-2222-4222-8222-222222222222',name:'Jordan Sample',business_name:'North Georgia Trades',email:'jordan@example.test',phone:null,primary_need:'New website',source:'website_checkup',status:'contacted',utm_source:null,utm_campaign:null,created_at:past(5),updated_at:past(4)},",
   " {...base,id:'33333333-3333-4333-8333-333333333333',name:'Taylor Sample',business_name:'Pine Ridge Farm',email:null,phone:'5555550144',contact_preference:'phone',primary_need:null,source:'website_checkup',status:'won',utm_source:null,utm_campaign:null,created_at:past(7),updated_at:past(2)}",
   " ];",
+  " window.__QA_LEADS=leads;",
   " window.supabase={createClient:()=>({",
   " auth:{getUser:async()=>({data:{user:{id:window.__QA_NOT_OWNER?'other':'qa-owner'}},error:null})},",
   " from:table=>{const q={filter:{},values:null}; const chain={",
@@ -72,6 +73,15 @@ try {
     assert.equal(await owned.locator('a[href^="sms:"]').count(),0,label+" ignored phone preference");
     const emailOnly=page.locator(".lead-card").filter({hasText:"Hearth Bakery"});
     assert.equal(await emailOnly.locator('a[href^="tel:"]').count(),0,label+" ignored email preference");
+    // Privacy: if consent is withdrawn, manual contact buttons vanish on refresh.
+    await page.evaluate(() => {
+      window.__QA_LEADS.find(x => x.business_name === "North Georgia Trades").consent_to_contact = false;
+    });
+    await page.locator("#refresh").click();
+    const withdrawn=page.locator(".lead-card").filter({hasText:"North Georgia Trades"});
+    assert.equal(await withdrawn.locator('a[href^="mailto:"]').count(),0,label+" missing consent exposed email action");
+    assert(await withdrawn.getByText(/No contact permission is recorded/).isVisible(),
+      label+" missing privacy warning");
     await page.locator("#filter").selectOption("spam");
     assert(await page.locator("#queueEmpty").isVisible(),label+" empty state");
     assert.deepEqual(errors,[],label+" browser errors "+errors.join(", "));
