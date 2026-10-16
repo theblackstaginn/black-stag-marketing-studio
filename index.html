@@ -41,14 +41,17 @@
     href="styles.css?v=7"
   />
   <style>
+    #metaAdsNav[hidden],
     #pinterestDeskNav[hidden],
     #itchDeskNav[hidden],
     #tumblrDeskNav[hidden],
     #artstationDeskNav[hidden]{display:none!important}
+    #metaAdsNav,
     #pinterestDeskNav,
     #itchDeskNav,
     #tumblrDeskNav,
     #artstationDeskNav{color:inherit}
+    #metaAdsMobileCard[hidden],
     #ownerDeskMobileCard[hidden],
     #pinterestDeskMobileCard[hidden],
     #itchDeskMobileCard[hidden],
@@ -280,6 +283,18 @@
           <span>Asset Vault</span>
         </button>
 
+        <a id="metaAdsNav" href="./meta-connect.html"
+           class="nav-button" hidden
+           style="text-decoration:none">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M4 19V9M10 19V5M16 19v-8M22 19V3"></path>
+              <path d="M3 19h20"></path>
+            </svg>
+          </span>
+          <span>Meta Ads</span>
+        </a>
+
               <a id="pinterestDeskNav" href="./pinterest-desk.html"
            class="nav-button pinterest-shortcut" hidden
            style="text-decoration:none">
@@ -502,6 +517,16 @@
 
           </header>
 
+
+          <!-- BLACK STAG WEB DESIGN META ADS SHORTCUT -->
+          <section id="metaAdsMobileCard" class="lace-studio-banner" hidden aria-label="Black Stag Web Design Meta Ads connection">
+            <div>
+              <span class="eyebrow">Black Stag Web Design · Acquisition</span>
+              <strong>Meta Ads Connection</strong>
+              <p>Connect Facebook and Meta Ads securely, discover accessible ad accounts, and keep the first integration read-only.</p>
+            </div>
+            <a class="lace-studio-open" href="./meta-connect.html">Open Meta Connection ↗</a>
+          </section>
 
           <!-- LACE & LEATHER OWNER DESK SHORTCUT -->
           <section id="ownerDeskMobileCard" class="lace-studio-banner" hidden aria-label="Lace and Leather owner dashboard">
@@ -1930,6 +1955,27 @@
       const active=selected===brandId;
       const ids=["pinterestDeskNav","itchDeskNav","tumblrDeskNav","artstationDeskNav","ownerDeskMobileCard","pinterestDeskMobileCard","itchDeskMobileCard","tumblrDeskMobileCard","artstationDeskMobileCard"];
       for(const id of ids){
+        const el=document.getElementById(id);
+        if(el)el.hidden=!active;
+      }
+    }
+    const name=document.getElementById("activeBrandName");
+    if(name&&window.MutationObserver){
+      new MutationObserver(showForCurrentBrand).observe(name,{childList:true,characterData:true,subtree:true});
+    }
+    window.addEventListener("storage",showForCurrentBrand);
+    showForCurrentBrand();
+  })();
+</script>
+<script>
+  // Show Black Stag Web Design Meta Ads setup only while that brand is active.
+  (function(){
+    const brandId="d51c76c3-a4a6-4109-99c2-5a4b3cff226b";
+    function showForCurrentBrand(){
+      let selected=null;
+      try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
+      const active=selected===brandId;
+      for(const id of ["metaAdsNav","metaAdsMobileCard"]){
         const el=document.getElementById(id);
         if(el)el.hidden=!active;
       }
