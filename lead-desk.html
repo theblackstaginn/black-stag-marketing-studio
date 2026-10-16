@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#101612">
+  <title>Lead to Revenue Desk | Black Stag Marketing Studio</title>
+  <meta name="description" content="Private Black Stag website lead follow-up and conversion desk.">
+  <link rel="stylesheet" href="./lead-desk.css?v=1">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to lead desk</a>
+  <header class="masthead">
+    <a class="return-link" href="./?view=dashboard">← Back to Studio</a>
+    <span class="masthead-name">BLACK STAG <small>MARKETING STUDIO</small></span>
+    <span class="security-mark">PRIVATE · OWNER WORKSPACE</span>
+  </header>
+  <main id="main" class="shell">
+    <div class="eyebrow">REVENUE OPERATIONS · BLACK STAG WEB DESIGN</div>
+    <h1>Lead <span>to Revenue</span></h1>
+    <p class="intro">Capture → respond → qualify → quote → win. A practical desk for following up with real inquiries, not just accumulating marketing impressions.</p>
+    <div id="gate" class="notice" role="status" aria-live="polite">Checking your secure Studio session…</div>
+    <div id="workspace" hidden>
+      <div class="status-row">
+        <p id="syncStatus" role="status" aria-live="polite">Loading recent leads…</p>
+        <button type="button" id="refresh" class="quiet-button">↻ Refresh leads</button>
+      </div>
+      <section aria-labelledby="snapshotTitle" class="snapshot">
+        <div class="heading-row"><h2 id="snapshotTitle">Today's conversion desk</h2><span class="muted">Recent 200 inquiries, owner-access only</span></div>
+        <div class="metric-grid">
+          <div class="metric"><strong id="statNew">0</strong><span>New inquiries</span></div>
+          <div class="metric"><strong id="statDue">0</strong><span>Follow-up candidates</span></div>
+          <div class="metric"><strong id="statActive">0</strong><span>In progress</span></div>
+          <div class="metric"><strong id="statWon">0</strong><span>Marked won</span></div>
+        </div>
+      </section>
+      <section aria-labelledby="funnelTitle" class="funnel-wrap">
+        <div class="heading-row"><h2 id="funnelTitle">Pipeline stages</h2><span class="muted">Counts, not invoiced revenue</span></div>
+        <div id="funnel" class="funnel" aria-label="Lead count by stage"></div>
+      </section>
+      <section aria-labelledby="queueTitle" class="queue-section">
+        <div class="heading-row">
+          <div>
+            <h2 id="queueTitle">Follow-up queue</h2>
+            <p class="muted">New leads come first. Older unclosed conversations appear as suggested follow-ups.</p>
+          </div>
+          <div class="controls">
+            <label for="filter" class="sr-only">Filter leads</label>
+            <select id="filter" aria-label="Filter leads">
+              <option value="action">Action suggested</option>
+              <option value="all">All leads</option>
+              <option value="new">New</option>
+              <option value="contacted">Contacted</option>
+              <option value="qualified">Qualified</option>
+              <option value="quoted">Quoted</option>
+              <option value="won">Won</option>
+              <option value="lost">Lost</option>
+              <option value="spam">Spam / test</option>
+            </select>
+          </div>
+        </div>
+        <p id="queueCount" class="muted" aria-live="polite"></p>
+        <div id="leadQueue" class="lead-queue" role="list"></div>
+        <p id="queueEmpty" class="notice" hidden>No leads match this filter. Select “All leads” to review everything.</p>
+      </section>
+      <section class="operations-note" aria-label="Revenue tracking limitations">
+        <h2>What makes this useful</h2>
+        <p><strong>Contact promptly.</strong> New inquiries are highlighted. Email and phone actions open your device's apps, but nothing is sent automatically.</p>
+        <p><strong>Update the stage.</strong> Use each lead's Save stage control after a real conversation. We keep test and spam submissions separate from genuine prospects.</p>
+        <p><strong>Count wins accurately.</strong> “Won” currently means a manually selected pipeline status. We do not invent invoice totals, profit, or ad return on spend. Cash-collected and quote-value reporting are the next layer.</p>
+      </section>
+    </div>
+    <footer class="footer">
+      <a href="./?view=dashboard">Studio Dashboard</a>
+      <span>Private customer information is shown only to authenticated brand users.</span>
+    </footer>
+  </main>
+  <script src="./config.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./lead-desk.js?v=1"></script>
+</body>
+</html>
