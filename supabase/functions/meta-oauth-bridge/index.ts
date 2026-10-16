@@ -177,12 +177,12 @@ async function validToken(db:AdminClient){
 function sanitizeAdAccount(item:Record<string,unknown>){
   const id=String(item.id||""),accountId=String(item.account_id||"");
   if(!/^act_\d{5,30}$/.test(id)||!/^\d{5,30}$/.test(accountId))return null;
-  return {id,account_id:accountId,name:String(item.name||"Untitled ad account").slice(0,160),business_name:item.business_name?String(item.business_name).slice(0,160):null,currency:item.currency?String(item.currency).slice(0,8):null,timezone_name:item.timezone_name?String(item.timezone_name).slice(0,80):null,account_status:Number.isFinite(Number(item.account_status))?Number(item.account_status):null};
+  return {id,account_id:accountId,name:String(item.name||"Untitled ad account").slice(0,160),currency:item.currency?String(item.currency).slice(0,8):null,timezone_name:item.timezone_name?String(item.timezone_name).slice(0,80):null,account_status:Number.isFinite(Number(item.account_status))?Number(item.account_status):null};
 }
 async function accounts(req:Request,db:AdminClient){
   if(!await owner(req,db))return respond(req,{error:"not_authorized"},403);
   const {token,cfg}=await validToken(db),proof=await appSecretProof(token,cfg.secret);
-  let url=new URL(graph(cfg,"/me/adaccounts")); url.searchParams.set("fields","id,account_id,name,business_name,currency,timezone_name,account_status"); url.searchParams.set("limit","100"); url.searchParams.set("access_token",token); url.searchParams.set("appsecret_proof",proof);
+  let url=new URL(graph(cfg,"/me/adaccounts")); url.searchParams.set("fields","id,account_id,name,currency,timezone_name,account_status"); url.searchParams.set("limit","100"); url.searchParams.set("access_token",token); url.searchParams.set("appsecret_proof",proof);
   const all:Record<string,unknown>[] = [],warnings:string[]=[]; let complete=false;
   for(let page=0;page<10;page++){
     const r=await fetch(url,{headers:{Accept:"application/json"},signal:AbortSignal.timeout(15000)});
