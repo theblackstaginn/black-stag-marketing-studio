@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#151915">
+<title>Connect Meta Ads · Black Stag</title>
+<style>
+:root{color-scheme:dark;--cream:#f0e7d5;--brass:#d6b37b;--muted:#bcb7a8;--sage:#bfceb7}
+*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:24px;background:radial-gradient(ellipse at 50% 0,#35392f,#161b17 65%,#101310);color:var(--cream);font:15px/1.7 system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center}
+main{max-width:720px;width:100%;padding:clamp(21px,5vw,42px);border:1px solid #9c83565e;border-radius:18px;background:#222922ed;box-shadow:0 18px 70px #0006}
+.eyebrow{color:var(--brass);font-size:11px;font-weight:750;letter-spacing:.19em;text-transform:uppercase}h1,h2{font-family:Georgia,serif;font-weight:400;line-height:1.16}h1{font-size:clamp(35px,7vw,48px);margin:8px 0 18px}h2{font-size:22px;margin:13px 0 8px}
+p{color:var(--muted);margin:10px 0 20px}a{color:#e4c493;text-underline-offset:3px}code{color:#ead1a7}button,a:focus-visible{outline-offset:3px}button:focus-visible,a:focus-visible{outline:3px solid #e8c98f}
+button{display:block;width:100%;border:1px solid #cfad77;background:linear-gradient(125deg,#e1c590,#b08c56);color:#1b1d18;padding:14px 17px;border-radius:10px;font:700 15px system-ui,sans-serif;cursor:pointer}button:disabled{opacity:.48;cursor:default}
+button.secondary{background:transparent;color:var(--cream);border-color:#9c835674;margin-top:10px}button.danger{background:transparent;color:#efc0b5;border-color:#9f655c;margin-top:10px}
+#status{border:1px solid #79674c88;background:#111812;border-radius:10px;min-height:52px;padding:13px 16px;margin:20px 0}#status.ok{border-color:#779174;color:var(--sage)}#status.error{border-color:#b98577;color:#ebbbaf}
+.panel{margin-top:22px;border-top:1px solid #78694976;padding-top:18px}.small{font-size:13px;color:var(--muted)}ul{padding-left:21px;margin:8px 0 14px;color:var(--muted)}
+#accountList{border:1px solid #83734b8c;border-radius:9px;padding:12px 16px;background:#171e18}.account{padding:10px 0;border-bottom:1px solid #ffffff12}.account:last-child{border-bottom:0}.account strong{display:block;color:var(--cream)}
+pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101712;padding:13px;border:1px solid #716849;border-radius:8px;color:var(--cream)}[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">Black Stag · Private Meta Ads Bridge</div>
+<h1>Connect Meta Ads</h1>
+<p>Authorize your Meta account for <strong style="color:var(--cream)">Black Stag Web Design</strong>. This first connection is deliberately read-only: it requests <code>ads_read</code> so Black Stag Marketing Studio can discover the ad accounts you can access. It cannot create, edit, publish, pause, or fund ads.</p>
+<div id="status" role="status" aria-live="polite">Checking your Marketing Studio sign-in…</div>
+<button id="connect" type="button" disabled>Connect Meta account</button>
+<button id="accounts" class="secondary" type="button" hidden>Refresh ad accounts (read only)</button>
+<button id="disconnect" class="danger" type="button" hidden>Disconnect Meta</button>
+<div id="accountPanel" class="panel" hidden><h2>Accessible ad accounts</h2><div id="accountList" class="small">No ad accounts synced yet.</div></div>
+<div id="instructions" class="panel" hidden>
+<h2>Meta developer app setup</h2>
+<p class="small">The secure BSMS bridge is deployed, but Meta still needs an app owned by you. Keep the app secret in Supabase only. Never paste it into ChatGPT or commit it to GitHub.</p>
+<ul>
+<li>Create or open a Meta developer app and add the products needed for Facebook Login and the Marketing API.</li>
+<li>Add the exact callback URL below to the app's allowed OAuth redirect URIs.</li>
+<li>Use the app dashboard's currently supported Graph API version.</li>
+<li>Store the values in Supabase Edge Function secrets as <code>META_APP_ID</code>, <code>META_APP_SECRET</code>, and <code>META_GRAPH_VERSION</code>.</li>
+</ul>
+<p class="small">Callback URL:</p><pre id="callback">https://theblackstaginn.github.io/black-stag-marketing-studio/meta-connect.html</pre>
+<button id="copy" type="button" class="secondary">Copy callback URL</button>
+<p class="small">The Meta token is encrypted with AES-256-GCM before storage. Browser code receives only sanitized connection and ad-account metadata. The OAuth token itself never returns to this page.</p>
+<a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer">Open Meta Developer Apps ↗</a>
+</div>
+<div class="panel small"><a href="./">Marketing Studio</a></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
+<script>
+"use strict";
+(async()=>{
+  const qs=new URLSearchParams(location.search),code=qs.get("code")||"",state=qs.get("state")||"",err=qs.get("error")||"";
+  if(code||state||err)history.replaceState({},document.title,location.pathname);
+  const $=id=>document.getElementById(id),ui=$("status"),btn=$("connect"),accountsBtn=$("accounts"),disconnectBtn=$("disconnect");
+  const callback="https://theblackstaginn.github.io/black-stag-marketing-studio/meta-connect.html";
+  const say=(text,style="")=>{ui.textContent=text;ui.className=style};
+  $("copy").addEventListener("click",()=>navigator.clipboard?.writeText(callback).then(()=>{$("copy").textContent="Copied!"},()=>{$("copy").textContent="Please select and copy the callback above."}));
+  const config=window.BLACK_STAG_CONFIG?.supabase;
+  if(!window.supabase||!config?.url||!config?.publishableKey){say("Marketing Studio configuration did not load.","error");return}
+  const client=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+  async function api(action,payload={}){
+    let timer,session;
+    try{session=await Promise.race([client.auth.getSession(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error("Studio sign-in timed out.")),15000)})])}finally{clearTimeout(timer)}
+    if(session.error||!session.data?.session?.access_token)throw Error("Sign in to Black Stag Marketing Studio first, then reopen this page.");
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),35000);let response;
+    try{response=await fetch(config.url+"/functions/v1/meta-oauth-bridge",{method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","apikey":config.publishableKey,"Authorization":"Bearer "+session.data.session.access_token},body:JSON.stringify({action,...payload})})}finally{clearTimeout(timeout)}
+    const result=await response.json().catch(()=>({error:"invalid_server_response"}));if(!response.ok)throw Error(result.error||"meta_connection_failed");return result
+  }
+  function renderAccounts(items){const list=$("accountList");list.replaceChildren();if(!items?.length){list.textContent="No accessible Meta ad accounts were returned for this authorization.";return}
+    for(const item of items){const row=document.createElement("div");row.className="account";const title=document.createElement("strong");title.textContent=item.name||"Untitled ad account";row.append(title);
+      const details=[];if(item.business_name)details.push(item.business_name);if(item.currency)details.push(item.currency);if(item.timezone_name)details.push(item.timezone_name);const meta=document.createElement("span");meta.textContent=details.join(" · ")||"Accessible Meta ad account";row.append(meta);list.append(row)}
+  }
+  function showConnected(result){const connected=result?.connected===true;accountsBtn.hidden=!connected;disconnectBtn.hidden=!connected;$("accountPanel").hidden=!connected;
+    if(connected){const name=result.account?.facebook_name||"Meta account";say("Connected to "+name+" with read-only ads access.","ok");btn.disabled=true;btn.textContent="Meta connected · read only";if(result.ad_accounts?.count!=null)$("accountList").textContent=result.ad_accounts.count+" saved ad account(s). Select Refresh ad accounts to update."}
+    else if(result?.configured){say("The secure bridge is configured. You can authorize your Meta account.");btn.disabled=false}else{$("instructions").hidden=false;say("The BSMS Meta bridge is deployed but not configured yet. Create the Meta developer app and add its secrets in Supabase.");btn.disabled=true}}
+  btn.addEventListener("click",async()=>{btn.disabled=true;say("Creating a one-time Meta authorization link…");try{const result=await api("start");if(typeof result.authorize_url!=="string"||!result.authorize_url.startsWith("https://www.facebook.com/"))throw Error("invalid_authorization_url");location.assign(result.authorize_url)}catch(e){say(e?.message||"Could not start Meta authorization.","error");btn.disabled=false}});
+  accountsBtn.addEventListener("click",async()=>{accountsBtn.disabled=true;say("Reading accessible ad accounts from Meta. No ads will be changed.");try{const result=await api("accounts");renderAccounts(result.ad_accounts);say("Ad-account list updated: "+result.count+" account(s). No ads changed.","ok")}catch(e){say(e?.message||"Ad-account sync failed.","error")}finally{accountsBtn.disabled=false}});
+  disconnectBtn.addEventListener("click",async()=>{if(disconnectBtn.dataset.confirm!=="yes"){disconnectBtn.dataset.confirm="yes";disconnectBtn.textContent="Tap again to confirm disconnect";return}disconnectBtn.disabled=true;say("Disconnecting Meta and removing the stored credential…");try{await api("disconnect",{confirm:"DISCONNECT_META"});say("Meta disconnected from Black Stag Marketing Studio.","ok");accountsBtn.hidden=true;disconnectBtn.hidden=true;$("accountPanel").hidden=true;btn.disabled=false;btn.textContent="Connect Meta account"}catch(e){say(e?.message||"Disconnect failed.","error");disconnectBtn.disabled=false}});
+  if(code||state||err){if(!state){say("Meta did not return the expected authorization state. Restart the connection.","error");return}say("Verifying Meta authorization. Do not refresh this page…");try{const result=await api("finish",{code,state,error:err});if(result.connected){showConnected(await api("status"));return}}catch(e){say("Meta authorization did not finish: "+(e?.message||"unknown error")+". Please start a new authorization if needed.","error");return}}
+  try{showConnected(await api("status"))}catch(e){say(e?.message||"Unable to verify your Studio account.","error")}
+})();
+</script>
+</body></html>
