@@ -4,31 +4,114 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
 <meta name="theme-color" content="#151915">
-<title>Connect Meta Ads · Black Stag</title>
+<title>Meta Ads Command Deck · Black Stag</title>
 <style>
-:root{color-scheme:dark;--cream:#f0e7d5;--brass:#d6b37b;--muted:#bcb7a8;--sage:#bfceb7}
-*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:24px;background:radial-gradient(ellipse at 50% 0,#35392f,#161b17 65%,#101310);color:var(--cream);font:15px/1.7 system-ui,-apple-system,Segoe UI,sans-serif;display:grid;place-items:center}
-main{max-width:720px;width:100%;padding:clamp(21px,5vw,42px);border:1px solid #9c83565e;border-radius:18px;background:#222922ed;box-shadow:0 18px 70px #0006}
-.eyebrow{color:var(--brass);font-size:11px;font-weight:750;letter-spacing:.19em;text-transform:uppercase}h1,h2{font-family:Georgia,serif;font-weight:400;line-height:1.16}h1{font-size:clamp(35px,7vw,48px);margin:8px 0 18px}h2{font-size:22px;margin:13px 0 8px}
-p{color:var(--muted);margin:10px 0 20px}a{color:#e4c493;text-underline-offset:3px}code{color:#ead1a7}button,a:focus-visible{outline-offset:3px}button:focus-visible,a:focus-visible{outline:3px solid #e8c98f}
-button{display:block;width:100%;border:1px solid #cfad77;background:linear-gradient(125deg,#e1c590,#b08c56);color:#1b1d18;padding:14px 17px;border-radius:10px;font:700 15px system-ui,sans-serif;cursor:pointer}button:disabled{opacity:.48;cursor:default}
-button.secondary{background:transparent;color:var(--cream);border-color:#9c835674;margin-top:10px}button.danger{background:transparent;color:#efc0b5;border-color:#9f655c;margin-top:10px}
-#status{border:1px solid #79674c88;background:#111812;border-radius:10px;min-height:52px;padding:13px 16px;margin:20px 0}#status.ok{border-color:#779174;color:var(--sage)}#status.error{border-color:#b98577;color:#ebbbaf}
-.panel{margin-top:22px;border-top:1px solid #78694976;padding-top:18px}.small{font-size:13px;color:var(--muted)}ul{padding-left:21px;margin:8px 0 14px;color:var(--muted)}
-#accountList{border:1px solid #83734b8c;border-radius:9px;padding:12px 16px;background:#171e18}.account{padding:10px 0;border-bottom:1px solid #ffffff12}.account:last-child{border-bottom:0}.account strong{display:block;color:var(--cream)}
+:root{color-scheme:dark;--cream:#f0e7d5;--brass:#d6b37b;--muted:#bcb7a8;--sage:#bfceb7;--panel:#222922ed;--panel2:#171e18;--line:#9c83565e;--good:#9fc69b;--warn:#e1c590;--bad:#efb0a2}
+*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:18px;background:radial-gradient(ellipse at 50% 0,#35392f,#161b17 65%,#101310);color:var(--cream);font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:1120px;width:100%;margin:0 auto;padding:clamp(18px,4vw,38px);border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 18px 70px #0006}
+.eyebrow{color:var(--brass);font-size:11px;font-weight:750;letter-spacing:.19em;text-transform:uppercase}h1,h2,h3{font-family:Georgia,serif;font-weight:400;line-height:1.16}h1{font-size:clamp(34px,7vw,50px);margin:7px 0 12px}h2{font-size:24px;margin:0 0 8px}h3{font-size:19px;margin:0}
+p{color:var(--muted);margin:8px 0 16px}a{color:#e4c493;text-underline-offset:3px}code{color:#ead1a7}
+button,a:focus-visible{outline-offset:3px}button:focus-visible,a:focus-visible{outline:3px solid #e8c98f}
+button{border:1px solid #cfad77;background:linear-gradient(125deg,#e1c590,#b08c56);color:#1b1d18;padding:12px 15px;border-radius:10px;font:700 14px system-ui,sans-serif;cursor:pointer}
+button:disabled{opacity:.48;cursor:default}.secondary{background:transparent;color:var(--cream);border-color:#9c835674}.danger{background:transparent;color:#efc0b5;border-color:#9f655c}
+.actions{display:flex;gap:9px;flex-wrap:wrap}.actions button{flex:1 1 190px}
+#status{border:1px solid #79674c88;background:#111812;border-radius:10px;min-height:52px;padding:13px 16px;margin:18px 0}#status.ok{border-color:#779174;color:var(--sage)}#status.error{border-color:#b98577;color:#ebbbaf}
+.panel{margin-top:24px;border-top:1px solid #78694976;padding-top:20px}.small{font-size:13px;color:var(--muted)}ul{padding-left:21px;margin:8px 0 14px;color:var(--muted)}
+#accountList{border:1px solid #83734b8c;border-radius:9px;padding:12px 16px;background:var(--panel2)}.account{padding:10px 0;border-bottom:1px solid #ffffff12}.account:last-child{border-bottom:0}.account strong{display:block;color:var(--cream)}
 pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101712;padding:13px;border:1px solid #716849;border-radius:8px;color:var(--cream)}[hidden]{display:none!important}
+.deck-head{display:flex;justify-content:space-between;align-items:flex-end;gap:15px;flex-wrap:wrap;margin-bottom:13px}.deck-head p{margin:5px 0 0}.sync-line{font-size:12px;color:var(--muted)}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px;margin:15px 0}.kpi{border:1px solid #8a754c66;background:linear-gradient(160deg,#1d251e,#141a15);border-radius:12px;padding:14px;min-height:102px}.kpi span{display:block;color:var(--muted);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.kpi strong{display:block;margin-top:8px;font-family:Georgia,serif;font-size:27px;font-weight:400}.kpi small{display:block;color:#9f9b90;margin-top:4px}
+.budget{margin:12px 0 18px}.budget-line{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:13px}.meter{height:10px;background:#101410;border:1px solid #6f6248;border-radius:999px;overflow:hidden;margin-top:7px}.meter>span{display:block;height:100%;width:0;background:linear-gradient(90deg,#85653c,#d6b37b);transition:width .25s ease}
+.campaign-card,.lead-card{border:1px solid #83734b74;background:#171e18;border-radius:12px;padding:15px;margin-top:12px}.campaign-row{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}.badge{display:inline-flex;align-items:center;border:1px solid #77705b;border-radius:999px;padding:4px 9px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase}.badge.active{color:#bfe0bb;border-color:#5e805b}.badge.pending,.badge.in_process,.badge.pending_review{color:#e7cf9d;border-color:#8e7848}.badge.paused,.badge.off{color:#c9c6bc;border-color:#65645c}.badge.disapproved,.badge.with_issues,.badge.error{color:#f1b8aa;border-color:#9d6558}
+.ads{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:13px}.ad-card{border:1px solid #83734b74;background:#151c16;border-radius:13px;overflow:hidden;min-width:0}.ad-media{aspect-ratio:4/3;background:#0f140f;display:grid;place-items:center;border-bottom:1px solid #ffffff12;overflow:hidden}.ad-media img{width:100%;height:100%;object-fit:cover;display:block}.ad-media span{font-size:12px;color:#8d8a80}.ad-body{padding:14px}.ad-title{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.ad-title h3{font-size:18px;overflow-wrap:anywhere}.headline{color:#e2c28c;margin:8px 0 5px;font-weight:700}.primary{font-size:13px;color:var(--muted);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden;min-height:83px}.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:12px}.mini div{background:#101510;border:1px solid #ffffff10;border-radius:8px;padding:8px}.mini span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#918e84}.mini strong{display:block;margin-top:3px;font-size:14px}
+.lead-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:12px}.lead-breakdown{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.lead-chip{border:1px solid #75654a70;border-radius:999px;padding:5px 9px;font-size:12px;color:var(--muted)}.lead-chip strong{color:var(--cream)}
+.note{border-left:3px solid #9f8255;padding:9px 12px;background:#181d18;color:var(--muted);font-size:13px;margin-top:12px}.warn{border-left-color:#aa755a}
+.footer{margin-top:24px;padding-top:17px;border-top:1px solid #78694976;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media(max-width:860px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}.ads{grid-template-columns:1fr}.lead-grid{grid-template-columns:1fr}.kpi:last-child{grid-column:1/-1}}
+@media(max-width:520px){body{padding:0}main{border-radius:0;border-left:0;border-right:0;min-height:100vh}.kpis{grid-template-columns:1fr 1fr}.kpi{min-height:92px;padding:12px}.kpi strong{font-size:23px}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
 </style>
 </head>
 <body>
 <main>
-<div class="eyebrow">Black Stag · Private Meta Ads Bridge</div>
-<h1>Connect Meta Ads</h1>
-<p>Authorize your Meta account for <strong style="color:var(--cream)">Black Stag Web Design</strong>. This first connection is deliberately read-only: it requests <code>ads_read</code> so Black Stag Marketing Studio can discover the ad accounts you can access. It cannot create, edit, publish, pause, or fund ads.</p>
+<div class="eyebrow">Black Stag Web Design · Acquisition</div>
+<h1>Meta Ads Command Deck</h1>
+<p>Live, read-only campaign performance for Black Stag Web Design. The Studio can inspect delivery and results here, but it cannot change ads or spend from this page.</p>
+
 <div id="status" role="status" aria-live="polite">Checking your Marketing Studio sign-in…</div>
-<button id="connect" type="button" disabled>Connect Meta account</button>
-<button id="accounts" class="secondary" type="button" hidden>Refresh ad accounts (read only)</button>
-<button id="disconnect" class="danger" type="button" hidden>Disconnect Meta</button>
+
+<div class="actions">
+  <button id="connect" type="button" disabled>Connect Meta account</button>
+  <button id="refreshDashboard" class="secondary" type="button" hidden>Refresh live campaign</button>
+  <button id="accounts" class="secondary" type="button" hidden>Refresh ad accounts</button>
+  <button id="disconnect" class="danger" type="button" hidden>Disconnect Meta</button>
+</div>
+
+<section id="dashboard" class="panel" hidden>
+  <div class="deck-head">
+    <div>
+      <div class="eyebrow">Live campaign</div>
+      <h2 id="campaignName">Meta campaign</h2>
+      <p id="campaignMeta" class="small"></p>
+    </div>
+    <div id="dashboardSync" class="sync-line"></div>
+  </div>
+
+  <div class="kpis">
+    <div class="kpi"><span>Spend</span><strong id="kpiSpend">$0.00</strong><small id="kpiBudget">Budget unavailable</small></div>
+    <div class="kpi"><span>Impressions</span><strong id="kpiImpressions">0</strong><small id="kpiReach">0 reach</small></div>
+    <div class="kpi"><span>Link clicks</span><strong id="kpiClicks">0</strong><small id="kpiCtr">0% link CTR</small></div>
+    <div class="kpi"><span>Meta results</span><strong id="kpiResults">0</strong><small id="kpiCpr">No cost/result yet</small></div>
+    <div class="kpi"><span>BSMS leads</span><strong id="kpiLeads">0</strong><small id="kpiAttributed">0 ad-attributed</small></div>
+  </div>
+
+  <div class="budget" id="budgetPanel">
+    <div class="budget-line"><span id="budgetText">Campaign budget</span><span id="budgetPct">0%</span></div>
+    <div class="meter" aria-hidden="true"><span id="budgetFill"></span></div>
+  </div>
+
+  <div class="campaign-card">
+    <div class="campaign-row">
+      <div>
+        <div class="eyebrow">Campaign state</div>
+        <h3 id="campaignObjective">Lead generation</h3>
+      </div>
+      <span id="campaignStatus" class="badge">Unknown</span>
+    </div>
+  </div>
+
+  <div class="deck-head" style="margin-top:22px">
+    <div>
+      <div class="eyebrow">Creative test</div>
+      <h2>Ad performance</h2>
+      <p class="small">Side-by-side view of the live ads in this campaign.</p>
+    </div>
+  </div>
+  <div id="adsGrid" class="ads"></div>
+
+  <div class="deck-head" style="margin-top:24px">
+    <div>
+      <div class="eyebrow">Lead attribution</div>
+      <h2>Website checkup pipeline</h2>
+    </div>
+  </div>
+  <div class="lead-grid">
+    <div class="lead-card">
+      <div class="campaign-row">
+        <div><h3>Leads since campaign launch</h3><p class="small">Pulled from the private BSMS Website Checkup pipeline.</p></div>
+        <strong id="leadTotal" style="font:34px Georgia,serif">0</strong>
+      </div>
+      <div id="leadBreakdown" class="lead-breakdown"></div>
+    </div>
+    <div class="lead-card">
+      <h3>Attribution health</h3>
+      <p id="attributionSummary" class="small">Checking tracking…</p>
+      <div id="attributionNote" class="note"></div>
+    </div>
+  </div>
+</section>
+
 <div id="accountPanel" class="panel" hidden><h2>Accessible ad accounts</h2><div id="accountList" class="small">No ad accounts synced yet.</div></div>
+
 <div id="instructions" class="panel" hidden>
 <h2>Meta developer app setup</h2>
 <p class="small">The secure BSMS bridge is deployed, but Meta still needs an app owned by you. Keep the app secret in Supabase only. Never paste it into ChatGPT or commit it to GitHub.</p>
@@ -40,42 +123,144 @@ pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101712;padding:13px;
 </ul>
 <p class="small">Callback URL:</p><pre id="callback">https://theblackstaginn.github.io/black-stag-marketing-studio/meta-connect.html</pre>
 <button id="copy" type="button" class="secondary">Copy callback URL</button>
-<p class="small">The Meta token is encrypted with AES-256-GCM before storage. Browser code receives only sanitized connection and ad-account metadata. The OAuth token itself never returns to this page.</p>
+<p class="small">The Meta token is encrypted with AES-256-GCM before storage. Browser code receives only sanitized connection, ad-account, campaign, and performance data. The OAuth token itself never returns to this page.</p>
 <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer">Open Meta Developer Apps ↗</a>
 </div>
-<div class="panel small"><a href="./">Marketing Studio</a></div>
+
+<div class="footer small">
+  <a href="./">← Marketing Studio</a>
+  <a href="./lead-desk.html">Revenue Desk ↗</a>
+</div>
 </main>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
 <script>
 "use strict";
 (async()=>{
   const qs=new URLSearchParams(location.search),code=qs.get("code")||"",state=qs.get("state")||"",err=qs.get("error")||"";
   if(code||state||err)history.replaceState({},document.title,location.pathname);
-  const $=id=>document.getElementById(id),ui=$("status"),btn=$("connect"),accountsBtn=$("accounts"),disconnectBtn=$("disconnect");
+  const $=id=>document.getElementById(id),ui=$("status"),btn=$("connect"),accountsBtn=$("accounts"),disconnectBtn=$("disconnect"),dashboardBtn=$("refreshDashboard");
   const callback="https://theblackstaginn.github.io/black-stag-marketing-studio/meta-connect.html";
   const say=(text,style="")=>{ui.textContent=text;ui.className=style};
-  $("copy").addEventListener("click",()=>navigator.clipboard?.writeText(callback).then(()=>{$("copy").textContent="Copied!"},()=>{$("copy").textContent="Please select and copy the callback above."}));
   const config=window.BLACK_STAG_CONFIG?.supabase;
   if(!window.supabase||!config?.url||!config?.publishableKey){say("Marketing Studio configuration did not load.","error");return}
   const client=window.supabase.createClient(config.url,config.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+
   async function api(action,payload={}){
     let timer,session;
     try{session=await Promise.race([client.auth.getSession(),new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error("Studio sign-in timed out.")),15000)})])}finally{clearTimeout(timer)}
     if(session.error||!session.data?.session?.access_token)throw Error("Sign in to Black Stag Marketing Studio first, then reopen this page.");
-    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),35000);let response;
+    const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),45000);let response;
     try{response=await fetch(config.url+"/functions/v1/meta-oauth-bridge",{method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","apikey":config.publishableKey,"Authorization":"Bearer "+session.data.session.access_token},body:JSON.stringify({action,...payload})})}finally{clearTimeout(timeout)}
     const result=await response.json().catch(()=>({error:"invalid_server_response"}));if(!response.ok)throw Error(result.error||"meta_connection_failed");return result
   }
-  function renderAccounts(items){const list=$("accountList");list.replaceChildren();if(!items?.length){list.textContent="No accessible Meta ad accounts were returned for this authorization.";return}
-    for(const item of items){const row=document.createElement("div");row.className="account";const title=document.createElement("strong");title.textContent=item.name||"Untitled ad account";row.append(title);
-      const details=[];if(item.business_name)details.push(item.business_name);if(item.currency)details.push(item.currency);if(item.timezone_name)details.push(item.timezone_name);const meta=document.createElement("span");meta.textContent=details.join(" · ")||"Accessible Meta ad account";row.append(meta);list.append(row)}
+
+  const money=(value,currency="USD")=>new Intl.NumberFormat(undefined,{style:"currency",currency,maximumFractionDigits:2}).format(Number(value)||0);
+  const integer=value=>new Intl.NumberFormat().format(Number(value)||0);
+  const pct=value=>(Number(value)||0).toFixed(2).replace(/\.00$/,"")+"%";
+  const badgeClass=value=>String(value||"").toLowerCase().replace(/[^a-z0-9]+/g,"_");
+  const prettyStatus=value=>String(value||"Unknown").replace(/_/g," ").replace(/\b\w/g,m=>m.toUpperCase());
+  const safeImage=value=>{try{const u=new URL(String(value||""));return u.protocol==="https:"?u.href:""}catch{return ""}};
+  const shortDate=value=>{const d=new Date(value||"");return Number.isFinite(d.getTime())?new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"}).format(d):"Unavailable"};
+
+  $("copy").addEventListener("click",()=>navigator.clipboard?.writeText(callback).then(()=>{$("copy").textContent="Copied!"},()=>{$("copy").textContent="Please select and copy the callback above."}));
+
+  function renderAccounts(items){
+    const list=$("accountList");list.replaceChildren();
+    if(!items?.length){list.textContent="No accessible Meta ad accounts were returned for this authorization.";return}
+    for(const item of items){
+      const row=document.createElement("div");row.className="account";
+      const title=document.createElement("strong");title.textContent=item.name||"Untitled ad account";row.append(title);
+      const details=[];if(item.business_name)details.push(item.business_name);if(item.currency)details.push(item.currency);if(item.timezone_name)details.push(item.timezone_name);
+      const meta=document.createElement("span");meta.textContent=details.join(" · ")||"Accessible Meta ad account";row.append(meta);list.append(row)
+    }
   }
-  function showConnected(result){const connected=result?.connected===true;accountsBtn.hidden=!connected;disconnectBtn.hidden=!connected;$("accountPanel").hidden=!connected;
-    if(connected){const name=result.account?.facebook_name||"Meta account";say("Connected to "+name+" with read-only ads access.","ok");btn.disabled=true;btn.textContent="Meta connected · read only";if(result.ad_accounts?.count!=null)$("accountList").textContent=result.ad_accounts.count+" saved ad account(s). Select Refresh ad accounts to update."}
-    else if(result?.configured){say("The secure bridge is configured. You can authorize your Meta account.");btn.disabled=false}else{$("instructions").hidden=false;say("The BSMS Meta bridge is deployed but not configured yet. Create the Meta developer app and add its secrets in Supabase.");btn.disabled=true}}
+
+  function renderAds(ads,currency){
+    const grid=$("adsGrid");grid.replaceChildren();
+    if(!Array.isArray(ads)||!ads.length){grid.textContent="No ads were returned for this campaign.";return}
+    for(const ad of ads){
+      const card=document.createElement("article");card.className="ad-card";
+      const media=document.createElement("div");media.className="ad-media";
+      const image=safeImage(ad.image_url);
+      if(image){const img=document.createElement("img");img.src=image;img.alt="";img.loading="lazy";img.referrerPolicy="no-referrer";media.append(img)}
+      else{const empty=document.createElement("span");empty.textContent="Creative preview unavailable";media.append(empty)}
+      card.append(media);
+
+      const body=document.createElement("div");body.className="ad-body";
+      const top=document.createElement("div");top.className="ad-title";
+      const h=document.createElement("h3");h.textContent=ad.name||"Untitled ad";
+      const status=document.createElement("span");status.className="badge "+badgeClass(ad.effective_status);status.textContent=prettyStatus(ad.effective_status||ad.status);
+      top.append(h,status);body.append(top);
+      if(ad.headline){const headline=document.createElement("div");headline.className="headline";headline.textContent=ad.headline;body.append(headline)}
+      const primary=document.createElement("div");primary.className="primary";primary.textContent=ad.primary_text||"Primary text unavailable";body.append(primary);
+
+      const m=ad.metrics||{},mini=document.createElement("div");mini.className="mini";
+      const cells=[
+        ["Spend",money(m.spend,currency)],
+        ["Link clicks",integer(m.link_clicks)],
+        ["Results",integer(m.results)],
+        ["Impressions",integer(m.impressions)],
+        ["Link CTR",pct(m.link_ctr)],
+        ["Cost/result",m.cost_per_result==null?"—":money(m.cost_per_result,currency)]
+      ];
+      for(const [label,value] of cells){const cell=document.createElement("div"),s=document.createElement("span"),strong=document.createElement("strong");s.textContent=label;strong.textContent=value;cell.append(s,strong);mini.append(cell)}
+      body.append(mini);card.append(body);grid.append(card)
+    }
+  }
+
+  function renderLeads(leads){
+    leads=leads||{};$("kpiLeads").textContent=integer(leads.total);$("kpiAttributed").textContent=integer(leads.attributed)+" ad-attributed";$("leadTotal").textContent=integer(leads.total);
+    const breakdown=$("leadBreakdown");breakdown.replaceChildren();
+    const labels={new:"New",contacted:"Contacted",qualified:"Qualified",quoted:"Quoted",won:"Won",lost:"Lost",spam:"Spam / test"};
+    for(const key of Object.keys(labels)){const n=Number(leads.by_status?.[key]||0);if(!n)continue;const chip=document.createElement("span");chip.className="lead-chip";const strong=document.createElement("strong");strong.textContent=integer(n);chip.append(strong,document.createTextNode(" "+labels[key]));breakdown.append(chip)}
+    if(!breakdown.children.length){const empty=document.createElement("span");empty.className="small";empty.textContent="No Website Checkup leads recorded since campaign launch.";breakdown.append(empty)}
+    const total=Number(leads.total||0),attributed=Number(leads.attributed||0),metaClicks=Number(leads.meta_click_leads||0);
+    $("attributionSummary").textContent=total?attributed+" of "+total+" lead(s) currently include an ad-content attribution key. "+metaClicks+" show a Meta/Facebook source or click ID.":"No Website Checkup leads have arrived since the campaign began.";
+    const note=$("attributionNote");
+    if(total&&attributed===0){note.className="note warn";note.textContent="The lead pipeline is working, but ad-level UTM tags are not present on these submissions yet. BSMS can still compare Meta's live ad metrics; exact Ad 01 vs 02 vs 03 lead attribution will become available once the destination URLs carry distinct utm_content values."}
+    else if(total&&attributed<total){note.className="note warn";note.textContent="Some leads are attributable and some are not. BSMS will keep them separate instead of guessing which ad produced an untagged lead."}
+    else if(total){note.className="note";note.textContent="Ad-level attribution is present for every lead in this campaign window."}
+    else{note.className="note";note.textContent="As real checkup requests arrive, this panel will connect their stored attribution data to the campaign without exposing customer details here."}
+  }
+
+  function renderDashboard(data){
+    const campaign=data.campaign||{},m=campaign.metrics||{},currency=data.account?.currency||"USD",budget=Number(campaign.lifetime_budget||campaign.daily_budget||0),spend=Number(m.spend||0);
+    $("dashboard").hidden=false;$("campaignName").textContent=campaign.name||"Meta campaign";
+    const meta=[];if(data.account?.name)meta.push(data.account.name);if(campaign.start_time)meta.push("Started "+shortDate(campaign.start_time));if(campaign.stop_time)meta.push("Ends "+shortDate(campaign.stop_time));$("campaignMeta").textContent=meta.join(" · ");
+    $("dashboardSync").textContent="Refreshed "+shortDate(data.generated_at);
+    $("kpiSpend").textContent=money(spend,currency);$("kpiBudget").textContent=budget?money(budget,currency)+" lifetime budget":"Budget unavailable";
+    $("kpiImpressions").textContent=integer(m.impressions);$("kpiReach").textContent=integer(m.reach)+" reach";
+    $("kpiClicks").textContent=integer(m.link_clicks);$("kpiCtr").textContent=pct(m.link_ctr)+" link CTR";
+    $("kpiResults").textContent=integer(m.results);$("kpiCpr").textContent=m.cost_per_result==null?"No cost/result yet":money(m.cost_per_result,currency)+" / result";
+    $("campaignObjective").textContent=prettyStatus(campaign.objective||"Lead generation");
+    const status=$("campaignStatus");status.className="badge "+badgeClass(campaign.effective_status||campaign.status);status.textContent=prettyStatus(campaign.effective_status||campaign.status);
+
+    if(budget>0){const progress=Math.max(0,Math.min(100,spend/budget*100));$("budgetText").textContent=money(spend,currency)+" spent of "+money(budget,currency);$("budgetPct").textContent=progress.toFixed(1)+"%";$("budgetFill").style.width=progress+"%";$("budgetPanel").hidden=false}
+    else{$("budgetPanel").hidden=true}
+
+    renderAds(data.ads,currency);renderLeads(data.leads);
+  }
+
+  async function loadDashboard(){
+    dashboardBtn.disabled=true;say("Refreshing live Meta campaign data. Read only…");
+    try{const data=await api("dashboard");renderDashboard(data);say("Meta Ads Command Deck is live. No ads or budgets were changed.","ok")}
+    catch(e){$("dashboard").hidden=true;say("Could not load live campaign data: "+(e?.message||"unknown error"),"error")}
+    finally{dashboardBtn.disabled=false}
+  }
+
+  function showConnected(result){
+    const connected=result?.connected===true;accountsBtn.hidden=!connected;disconnectBtn.hidden=!connected;dashboardBtn.hidden=!connected;$("accountPanel").hidden=!connected;
+    if(connected){const name=result.account?.facebook_name||"Meta account";say("Connected to "+name+" with read-only ads access.","ok");btn.disabled=true;btn.textContent="Meta connected · read only";if(result.ad_accounts?.count!=null)$("accountList").textContent=result.ad_accounts.count+" saved ad account(s).";loadDashboard()}
+    else if(result?.configured){say("The secure bridge is configured. You can authorize your Meta account.");btn.disabled=false;$("dashboard").hidden=true}
+    else{$("instructions").hidden=false;say("The BSMS Meta bridge is deployed but not configured yet. Create the Meta developer app and add its secrets in Supabase.");btn.disabled=true;$("dashboard").hidden=true}
+  }
+
   btn.addEventListener("click",async()=>{btn.disabled=true;say("Creating a one-time Meta authorization link…");try{const result=await api("start");if(typeof result.authorize_url!=="string"||!result.authorize_url.startsWith("https://www.facebook.com/"))throw Error("invalid_authorization_url");location.assign(result.authorize_url)}catch(e){say(e?.message||"Could not start Meta authorization.","error");btn.disabled=false}});
-  accountsBtn.addEventListener("click",async()=>{accountsBtn.disabled=true;say("Reading accessible ad accounts from Meta. No ads will be changed.");try{const result=await api("accounts");renderAccounts(result.ad_accounts);say("Ad-account list updated: "+result.count+" account(s). No ads changed.","ok")}catch(e){say(e?.message||"Ad-account sync failed.","error")}finally{accountsBtn.disabled=false}});
-  disconnectBtn.addEventListener("click",async()=>{if(disconnectBtn.dataset.confirm!=="yes"){disconnectBtn.dataset.confirm="yes";disconnectBtn.textContent="Tap again to confirm disconnect";return}disconnectBtn.disabled=true;say("Disconnecting Meta and removing the stored credential…");try{await api("disconnect",{confirm:"DISCONNECT_META"});say("Meta disconnected from Black Stag Marketing Studio.","ok");accountsBtn.hidden=true;disconnectBtn.hidden=true;$("accountPanel").hidden=true;btn.disabled=false;btn.textContent="Connect Meta account"}catch(e){say(e?.message||"Disconnect failed.","error");disconnectBtn.disabled=false}});
+  dashboardBtn.addEventListener("click",loadDashboard);
+  accountsBtn.addEventListener("click",async()=>{accountsBtn.disabled=true;say("Reading accessible ad accounts from Meta. No ads will be changed.");try{const result=await api("accounts");renderAccounts(result.ad_accounts);say("Ad-account list updated: "+result.count+" account(s). No ads changed.","ok");await loadDashboard()}catch(e){say(e?.message||"Ad-account sync failed.","error")}finally{accountsBtn.disabled=false}});
+  disconnectBtn.addEventListener("click",async()=>{if(disconnectBtn.dataset.confirm!=="yes"){disconnectBtn.dataset.confirm="yes";disconnectBtn.textContent="Tap again to confirm disconnect";return}disconnectBtn.disabled=true;say("Disconnecting Meta and removing the stored credential…");try{await api("disconnect",{confirm:"DISCONNECT_META"});say("Meta disconnected from Black Stag Marketing Studio.","ok");accountsBtn.hidden=true;dashboardBtn.hidden=true;disconnectBtn.hidden=true;$("accountPanel").hidden=true;$("dashboard").hidden=true;btn.disabled=false;btn.textContent="Connect Meta account"}catch(e){say(e?.message||"Disconnect failed.","error");disconnectBtn.disabled=false}});
+
   if(code||state||err){if(!state){say("Meta did not return the expected authorization state. Restart the connection.","error");return}say("Verifying Meta authorization. Do not refresh this page…");try{const result=await api("finish",{code,state,error:err});if(result.connected){showConnected(await api("status"));return}}catch(e){say("Meta authorization did not finish: "+(e?.message||"unknown error")+". Please start a new authorization if needed.","error");return}}
   try{showConnected(await api("status"))}catch(e){say(e?.message||"Unable to verify your Studio account.","error")}
 })();
