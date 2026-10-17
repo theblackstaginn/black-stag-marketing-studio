@@ -5,6 +5,9 @@ const BRAND_ID = "d51c76c3-a4a6-4109-99c2-5a4b3cff226b";
 const ORIGIN = "https://theblackstaginn.github.io";
 const CALLBACK = "https://theblackstaginn.github.io/black-stag-marketing-studio/meta-connect.html";
 const SCOPES = ["ads_read"];
+const BSMS_CAMPAIGN_ID = "261eb42b-bc35-4b18-ac0d-6120b6d7d6b3";
+const DEFAULT_META_CAMPAIGN_ID = "120251805582510770";
+const MAX_DASHBOARD_ADS = 20;
 const PROJECT = Deno.env.get("SUPABASE_URL") || "";
 
 type AdminClient = ReturnType<typeof admin>;
@@ -197,6 +200,204 @@ async function accounts(req:Request,db:AdminClient){
   if(saveError)throw Error("meta_ad_account_cache_unavailable");
   return respond(req,{ad_accounts:all,count:all.length,complete,warnings});
 }
+
+function num(value:unknown){
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?parsed:0;
+}
+function dollarsFromMinor(value:unknown){
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?parsed/100:0;
+}
+function safeMetaId(value:unknown){
+  const id=String(value||"").replace(/^act_/,"");
+  return /^\d{5,30}$/.test(id)?id:"";
+}
+function insightLeadCount(actions:unknown){
+  if(!Array.isArray(actions))return 0;
+  const rows=actions.filter(item=>item&&typeof item==="object") as Array<Record<string,unknown>>;
+  const priority=[
+    "offsite_conversion.fb_pixel_lead",
+    "lead",
+    "onsite_conversion.lead_grouped",
+    "onsite_conversion.lead"
+  ];
+  for(const type of priority){
+    const found=rows.find(item=>String(item.action_type||"")===type);
+    if(found)return num(found.value);
+  }
+  const fuzzy=rows.find(item=>/lead/i.test(String(item.action_type||"")));
+  return fuzzy?num(fuzzy.value):0;
+}
+function normalizeInsights(row:Record<string,unknown>|null|undefined){
+  const actions=Array.isArray(row?.actions)?row?.actions:[];
+  const spend=num(row?.spend),results=insightLeadCount(actions);
+  const inlineClicks=num(row?.inline_link_clicks);
+  return {
+    spend,
+    impressions:num(row?.impressions),
+    reach:num(row?.reach),
+    clicks:num(row?.clicks),
+    link_clicks:inlineClicks,
+    ctr:num(row?.ctr),
+    link_ctr:num(row?.inline_link_click_ctr),
+    cpc:num(row?.cpc),
+    cpm:num(row?.cpm),
+    frequency:num(row?.frequency),
+    results,
+    cost_per_result:results>0?spend/results:null
+  };
+}
+async function metaJson(cfg:MetaConfig,token:string,proof:string,path:string,params:Record<string,string>={}){
+  const url=new URL(graph(cfg,path));
+  for(const [key,value] of Object.entries(params))url.searchParams.set(key,value);
+  url.searchParams.set("access_token",token);
+  url.searchParams.set("appsecret_proof",proof);
+  const r=await fetch(url,{headers:{Accept:"application/json"},signal:AbortSignal.timeout(18000)});
+  const result=await r.json().catch(()=>null);
+  if(!r.ok||result?.error){
+    const code=Number(result?.error?.code);
+    if(code===190||r.status===401)throw Error("reauthorization_required");
+    console.error("Meta dashboard request HTTP",r.status,"path",path,"code",code||"none");
+    throw Error("meta_dashboard_request_failed");
+  }
+  return result;
+}
+async function dashboard(req:Request,db:AdminClient,input:Record<string,unknown>){
+  if(!await owner(req,db))return respond(req,{error:"not_authorized"},403);
+  const {token,cfg}=await validToken(db),proof=await appSecretProof(token,cfg.secret);
+  const {data:cache,error:cacheError}=await db.from("meta_ad_account_cache")
+    .select("ad_accounts,synced_at,complete,warnings")
+    .eq("brand_id",BRAND_ID)
+    .maybeSingle();
+  if(cacheError)throw Error("meta_ad_account_cache_unavailable");
+  const cached=Array.isArray(cache?.ad_accounts)?cache.ad_accounts as Array<Record<string,unknown>>:[];
+  if(!cached.length)throw Error("meta_account_not_accessible");
+
+  const requestedAccount=safeMetaId(input.ad_account_id);
+  const selected=cached.find(item=>safeMetaId(item.account_id)===requestedAccount) || (!requestedAccount?cached[0]:null);
+  if(!selected)throw Error("meta_account_not_accessible");
+  const accountId=safeMetaId(selected.account_id);
+  const account={
+    id:"act_"+accountId,
+    account_id:accountId,
+    name:String(selected.name||"Meta ad account").slice(0,160),
+    currency:selected.currency?String(selected.currency).slice(0,8):"USD",
+    timezone_name:selected.timezone_name?String(selected.timezone_name).slice(0,80):null,
+    account_status:Number.isFinite(Number(selected.account_status))?Number(selected.account_status):null
+  };
+
+  let campaignId=safeMetaId(input.meta_campaign_id)||DEFAULT_META_CAMPAIGN_ID;
+  let campaignResult:Record<string,unknown>|null=null;
+  try{
+    campaignResult=await metaJson(cfg,token,proof,"/"+campaignId,{
+      fields:"id,name,status,effective_status,objective,daily_budget,lifetime_budget,start_time,stop_time,created_time,updated_time"
+    });
+  }catch(e){
+    if(safeMetaId(input.meta_campaign_id))throw e;
+    const listed=await metaJson(cfg,token,proof,"/act_"+accountId+"/campaigns",{
+      fields:"id,name,status,effective_status,objective,daily_budget,lifetime_budget,start_time,stop_time,created_time,updated_time",
+      limit:"50"
+    });
+    const items=Array.isArray(listed?.data)?listed.data as Array<Record<string,unknown>>:[];
+    const preferred=items.find(item=>String(item.effective_status||"")==="ACTIVE")||items[0];
+    if(!preferred)throw Error("meta_campaign_not_found");
+    campaignId=safeMetaId(preferred.id);
+    campaignResult=preferred;
+  }
+  if(!campaignResult||!campaignId)throw Error("meta_campaign_not_found");
+
+  const insightFields="spend,impressions,reach,clicks,inline_link_clicks,ctr,inline_link_click_ctr,cpc,cpm,frequency,actions";
+  const [campaignInsightsRaw,adsRaw]=await Promise.all([
+    metaJson(cfg,token,proof,"/"+campaignId+"/insights",{fields:insightFields,date_preset:"maximum",limit:"1"}),
+    metaJson(cfg,token,proof,"/"+campaignId+"/ads",{
+      fields:"id,name,status,effective_status,created_time,updated_time,creative{id,name,title,body,image_url,thumbnail_url}",
+      limit:String(MAX_DASHBOARD_ADS)
+    })
+  ]);
+  const campaignInsight=Array.isArray(campaignInsightsRaw?.data)?campaignInsightsRaw.data[0]||null:null;
+  const adItems=Array.isArray(adsRaw?.data)?(adsRaw.data as Array<Record<string,unknown>>).slice(0,MAX_DASHBOARD_ADS):[];
+  const warnings:string[]=[];
+  const ads=await Promise.all(adItems.map(async item=>{
+    const adId=safeMetaId(item.id);
+    let insight:Record<string,unknown>|null=null;
+    if(adId){
+      try{
+        const raw=await metaJson(cfg,token,proof,"/"+adId+"/insights",{fields:insightFields,date_preset:"maximum",limit:"1"});
+        insight=Array.isArray(raw?.data)?raw.data[0]||null:null;
+      }catch{
+        warnings.push("One ad insight row could not be refreshed.");
+      }
+    }
+    const creative=item.creative&&typeof item.creative==="object"?item.creative as Record<string,unknown>:{};
+    return {
+      id:adId,
+      name:String(item.name||"Untitled ad").slice(0,180),
+      status:String(item.status||""),
+      effective_status:String(item.effective_status||""),
+      headline:creative.title?String(creative.title).slice(0,300):null,
+      primary_text:creative.body?String(creative.body).slice(0,1500):null,
+      image_url:creative.image_url?String(creative.image_url):creative.thumbnail_url?String(creative.thumbnail_url):null,
+      metrics:normalizeInsights(insight)
+    };
+  }));
+
+  const campaignStart=String(campaignResult.start_time||campaignResult.created_time||"");
+  let leadQuery=db.from("black_stag_leads")
+    .select("status,utm_source,utm_medium,utm_campaign,utm_content,fbclid,created_at")
+    .eq("brand_id",BRAND_ID)
+    .eq("campaign_id",BSMS_CAMPAIGN_ID)
+    .order("created_at",{ascending:false})
+    .limit(500);
+  if(campaignStart&&Number.isFinite(new Date(campaignStart).getTime()))leadQuery=leadQuery.gte("created_at",campaignStart);
+  const {data:leadRows,error:leadError}=await leadQuery;
+  if(leadError)throw Error("meta_lead_attribution_unavailable");
+  const leads=Array.isArray(leadRows)?leadRows as Array<Record<string,unknown>>:[];
+  const byStatus:Record<string,number>={new:0,contacted:0,qualified:0,quoted:0,won:0,lost:0,spam:0};
+  const byContent:Record<string,number>={};
+  let metaClickLeads=0,attributedLeads=0;
+  for(const lead of leads){
+    const status=String(lead.status||"");
+    if(Object.prototype.hasOwnProperty.call(byStatus,status))byStatus[status]++;
+    const content=String(lead.utm_content||"").trim();
+    if(content){byContent[content]=(byContent[content]||0)+1;attributedLeads++}
+    const source=String(lead.utm_source||"").toLowerCase();
+    if(Boolean(lead.fbclid)||source.includes("facebook")||source.includes("meta"))metaClickLeads++;
+  }
+
+  const campaignMetrics=normalizeInsights(campaignInsight);
+  const lifetimeBudget=dollarsFromMinor(campaignResult.lifetime_budget);
+  const dailyBudget=dollarsFromMinor(campaignResult.daily_budget);
+  return respond(req,{
+    connected:true,
+    generated_at:new Date().toISOString(),
+    cache:{synced_at:cache?.synced_at||null,complete:cache?.complete!==false,warnings:cache?.warnings||[]},
+    account,
+    campaign:{
+      id:campaignId,
+      name:String(campaignResult.name||"Meta campaign").slice(0,180),
+      status:String(campaignResult.status||""),
+      effective_status:String(campaignResult.effective_status||""),
+      objective:String(campaignResult.objective||""),
+      start_time:campaignResult.start_time||null,
+      stop_time:campaignResult.stop_time||null,
+      lifetime_budget:lifetimeBudget||null,
+      daily_budget:dailyBudget||null,
+      metrics:campaignMetrics
+    },
+    ads,
+    leads:{
+      total:leads.length,
+      meta_click_leads:metaClickLeads,
+      attributed:attributedLeads,
+      unattributed:Math.max(0,leads.length-attributedLeads),
+      by_status:byStatus,
+      by_utm_content:byContent
+    },
+    warnings:Array.from(new Set(warnings))
+  });
+}
+
 async function disconnect(req:Request,db:AdminClient,input:Record<string,unknown>){
   if(!await owner(req,db))return respond(req,{error:"not_authorized"},403);
   if(input.confirm!=="DISCONNECT_META")return respond(req,{error:"explicit_confirmation_required"},400);
@@ -219,11 +420,12 @@ Deno.serve(async(req:Request)=>{
     if(body.action==="start")return await start(req,db);
     if(body.action==="finish")return await finish(req,db,body);
     if(body.action==="accounts")return await accounts(req,db);
+    if(body.action==="dashboard")return await dashboard(req,db,body);
     if(body.action==="disconnect")return await disconnect(req,db,body);
     return respond(req,{error:"invalid_action"},400);
   }catch(e){
     const name=e instanceof Error?e.message:"server_error";
-    const known=["backend_not_configured","meta_secrets_missing","not_connected","reauthorization_required","meta_token_exchange_failed","meta_long_lived_exchange_failed","meta_token_validation_failed","meta_token_response_incomplete","meta_account_verification_failed","meta_ad_account_request_failed","meta_ad_account_cache_unavailable","meta_pagination_invalid","unexpected_token_expiry","invalid_encrypted_token","unable_to_save_connection"];
+    const known=["backend_not_configured","meta_secrets_missing","not_connected","reauthorization_required","meta_token_exchange_failed","meta_long_lived_exchange_failed","meta_token_validation_failed","meta_token_response_incomplete","meta_account_verification_failed","meta_ad_account_request_failed","meta_ad_account_cache_unavailable","meta_account_not_accessible","meta_campaign_not_found","meta_dashboard_request_failed","meta_lead_attribution_unavailable","meta_pagination_invalid","unexpected_token_expiry","invalid_encrypted_token","unable_to_save_connection"];
     if(!known.includes(name))console.error("Meta bridge error:",name);
     return respond(req,{error:known.includes(name)?name:"server_unavailable"},name==="not_connected"?404:name==="reauthorization_required"?403:503);
   }
