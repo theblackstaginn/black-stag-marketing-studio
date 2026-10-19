@@ -415,6 +415,14 @@ function safeHttpUrl(value: unknown, httpsOnly = false) {
     return "";
   }
 }
+function obviousNonJpeg(value: string) {
+  try {
+    const pathname = new URL(value).pathname.toLowerCase();
+    return /\.(png|webp|gif|bmp|tiff?|avif|heic|heif)$/.test(pathname);
+  } catch {
+    return false;
+  }
+}
 function captionWithLink(message: string, link: string) {
   if (!link) return message;
   if (!message) return link;
@@ -439,6 +447,7 @@ async function publish(req: Request, db: AdminClient, input: Record<string, unkn
   const imageUrl = input.image_url ? safeHttpUrl(input.image_url, true) : "";
   if (input.image_url && !imageUrl) return respond(req, { error: "invalid_image_url" }, 400);
   if (targets.includes("instagram") && !imageUrl) return respond(req, { error: "instagram_image_required" }, 400);
+  if (targets.includes("instagram") && obviousNonJpeg(imageUrl)) return respond(req, { error: "instagram_jpeg_required" }, 400);
   if (targets.includes("facebook") && !message.trim() && !link && !imageUrl) return respond(req, { error: "facebook_content_required" }, 400);
 
   const { token, cfg } = await validToken(db, brandId);
