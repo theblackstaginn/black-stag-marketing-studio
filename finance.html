@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#101612">
+  <title>Finance Desk | Black Stag Marketing Studio</title>
+  <meta name="description" content="Private, owner-only financial planning workspace for Black Stag businesses.">
+  <link rel="icon" type="image/webp" href="./assets/BSMS-icon.webp">
+  <link rel="stylesheet" href="./finance.css?v=1">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to finance desk</a>
+  <header class="masthead">
+    <a class="back-link" href="./?view=dashboard">← Back to Marketing Studio</a>
+    <span class="masthead-name">BLACK STAG <small>MARKETING STUDIO</small></span>
+    <span class="private-label">PRIVATE · OWNER FINANCE</span>
+  </header>
+
+  <main id="main" class="shell">
+    <header class="hero">
+      <span class="eyebrow">OPERATIONS / FINANCIAL PLANNING</span>
+      <h1>Finance <span>Desk</span></h1>
+      <p class="intro">A separate home for purchasing budgets, cash visibility, and business expenses. No marketing metrics mixed into the books.</p>
+    </header>
+
+    <div id="gate" class="notice" role="status" aria-live="polite">Verifying your private Studio session…</div>
+
+    <div id="workspace" hidden>
+      <div class="toolbar">
+        <label for="brandSelect" class="brand-control">
+          <span>BUSINESS</span>
+          <select id="brandSelect" aria-label="Choose business for financial planning"></select>
+        </label>
+        <button id="refresh" type="button" class="action quiet">↻ Refresh budget</button>
+      </div>
+
+      <section class="panel bank-panel" aria-labelledby="accountHeading">
+        <div class="panel-top">
+          <span class="eyebrow">BANK CONNECTIONS</span>
+          <span class="status-pill">Not connected</span>
+        </div>
+        <h2 id="accountHeading">Bank account · not connected</h2>
+        <p id="accountDescription" class="muted">No bank account is connected. Balance and transaction information will appear only after an owner-approved read-only connection is built.</p>
+        <div class="bank-warning"><span aria-hidden="true">♜</span> Future connections will require a secure, read-only approval flow. BSMS will not initiate transfers or store banking passwords.</div>
+      </section>
+
+      <section class="panel" aria-labelledby="snapshotHeading">
+        <div class="heading-row">
+          <div>
+            <span class="eyebrow">PURCHASING</span>
+            <h2 id="snapshotHeading">Opening budget snapshot</h2>
+          </div>
+          <span class="source-type">Planned amounts · not cash spent</span>
+        </div>
+        <div class="metrics">
+          <div class="metric featured"><span>WCW opening estimate</span><strong id="plannedTotal">—</strong><small>Food and selected takeaway supplies</small></div>
+          <div class="metric"><span>Food ingredients</span><strong id="plannedFood">—</strong><small>Fall menu opening order</small></div>
+          <div class="metric"><span>Takeaway supplies</span><strong id="plannedPackaging">—</strong><small>Selected packaging cases</small></div>
+          <div class="metric"><span>Regions bank balance</span><strong id="availableCash">Unavailable</strong><small>Account not linked</small></div>
+        </div>
+        <div class="source-row">
+          <div>
+            <strong id="budgetTitle">No verified budget found</strong>
+            <p id="budgetStatus" class="muted" role="status" aria-live="polite">Checking the private Stag &amp; Stone budget record…</p>
+          </div>
+          <a id="openBudget" class="action" href="#" target="_blank" rel="noopener noreferrer" hidden>Open verified workbook ↗</a>
+        </div>
+      </section>
+
+      <section class="twocol" aria-label="Finance roadmap">
+        <div class="panel compact">
+          <div class="panel-top"><span class="eyebrow">TRANSACTIONS</span><span class="soft-pill">Not tracking yet</span></div>
+          <h2>Expense ledger</h2>
+          <p class="muted">Actual WCW, CoffeeAM, Amazon, rent, payroll, and equipment charges will live here. No transactions have been imported or recorded in this section.</p>
+          <p class="tiny">A protected database ledger and optional CSV import come next. No figures are counted as paid until there is a real transaction or manual entry.</p>
+        </div>
+        <div class="panel compact">
+          <div class="panel-top"><span class="eyebrow">REPORTS</span><span class="soft-pill">Awaiting transactions</span></div>
+          <h2>Cash flow &amp; spending</h2>
+          <p class="muted">Later, review monthly cash movement, spending by supplier, remaining budget, and account balances independently for each business.</p>
+          <p class="tiny">No revenue, profit, or cash runway is estimated from marketing performance.</p>
+        </div>
+      </section>
+
+      <p id="syncStatus" class="sync-status" role="status" aria-live="polite"></p>
+    </div>
+    <footer class="footer">Owner access verified through Supabase Auth and brand ownership. Source budget lives in the private Asset Vault and Google Drive.</footer>
+  </main>
+
+  <script src="./config.js?v=3"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./finance.js?v=1"></script>
+</body>
+</html>
