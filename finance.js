@@ -68,15 +68,16 @@
     $("budgetStatus").textContent = "Checking the private Asset Vault…";
     setStatus("Loading owner-approved source records…");
     try {
-      const { data, error } = await state.client.from("assets")
+      const { data: source, error } = await state.client.from("assets")
         .select("name,description,external_url,updated_at")
         .eq("brand_id", state.brandId)
         .eq("asset_type", "document")
+        .eq("name", "Fall 2026 Opening Inventory — WCW Verified Budget")
         .eq("active", true)
         .order("updated_at", { ascending: false })
-        .limit(100);
+        .limit(1)
+        .maybeSingle();
       if (error) throw error;
-      const source = (data || []).find(item => /^Fall 2026 Opening Inventory\s*[—-]\s*WCW Verified Budget$/i.test(item.name || ""));
       if (!source) {
         setStatus("No verified WCW budget is linked to this business yet.");
         return;
