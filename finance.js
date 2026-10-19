@@ -110,11 +110,8 @@
   function changeBrand(brandId) {
     if (!state.brands.some(b => b.id === brandId)) return;
     state.brandId = brandId;
-    const stag = brandId === STAG_AND_STONE;
-    $("accountHeading").textContent = stag ? "Regions Bank · planned" : "Bank account · not connected";
-    $("accountDescription").textContent = stag
-      ? "The Stag & Stone business account has not been opened yet. There is no bank connection and no balance data."
-      : "No business bank account has been connected for this brand. Balances and transactions are unavailable.";
+    $("accountHeading").textContent = "Bank account · not connected";
+    $("accountDescription").textContent = "No business bank account is connected for this brand. All banking data is unavailable.";
     $("availableCash").textContent = "Unavailable";
     refresh();
   }
