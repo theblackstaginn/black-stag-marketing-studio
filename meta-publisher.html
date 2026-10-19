@@ -59,14 +59,14 @@ button{border:1px solid #cfad77;background:linear-gradient(125deg,#e1c590,#b08c5
     </div>
     <div class="field">
       <label for="image">Public HTTPS image URL <span class="small">required for Instagram</span></label>
-      <input id="image" type="url" inputmode="url" placeholder="https://…/image.webp">
+      <input id="image" type="url" inputmode="url" placeholder="https://…/image.jpg">
     </div>
   </div>
   <div class="checks" aria-label="Publish destinations">
     <label class="check"><input id="facebook" type="checkbox" checked> Facebook</label>
     <label class="check"><input id="instagram" type="checkbox"> Instagram <span id="igHandle" class="small"></span></label>
   </div>
-  <div class="note">Photo posts place the supplied link in the caption text. Instagram requires a Facebook-linked professional account and a publicly reachable HTTPS image. Video/Reels come in the next pass.</div>
+  <div class="note">Photo posts place the supplied link in the caption text. Instagram requires a Facebook-linked professional account and a publicly reachable JPEG image over HTTPS. Video/Reels come in the next pass.</div>
   <div class="actions"><button id="publish" type="button" disabled>Publish selected channels</button></div>
 </div>
 </section>
@@ -108,7 +108,7 @@ function errorText(code){
   reauthorization_required:"The saved Meta authorization expired. Reconnect publishing permissions.",
   publisher_reauthorization_required:"This brand is connected to Meta, but it needs the new publishing permissions. Reconnect it.",
   meta_permissions_incomplete:"Meta did not grant every required publishing permission.",
-  instagram_image_required:"Instagram needs a public HTTPS image URL.",
+  instagram_image_required:"Instagram needs a public HTTPS JPEG image URL.",\n  instagram_jpeg_required:"Instagram image posts must use a JPEG. Use a .jpg/.jpeg source image.",
   instagram_account_not_linked:"That Facebook Page does not have a linked professional Instagram account.",
   page_not_accessible:"That Page is no longer available to the connected Meta account.",
   invalid_image_url:"The image must be a valid public HTTPS URL.",
