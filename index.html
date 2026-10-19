@@ -42,16 +42,19 @@
   />
   <style>
     #metaAdsNav[hidden],
+    #metaPublisherNav[hidden],
     #pinterestDeskNav[hidden],
     #itchDeskNav[hidden],
     #tumblrDeskNav[hidden],
     #artstationDeskNav[hidden]{display:none!important}
     #metaAdsNav,
+    #metaPublisherNav,
     #pinterestDeskNav,
     #itchDeskNav,
     #tumblrDeskNav,
     #artstationDeskNav{color:inherit}
     #metaAdsMobileCard[hidden],
+    #metaPublisherMobileCard[hidden],
     #ownerDeskMobileCard[hidden],
     #pinterestDeskMobileCard[hidden],
     #itchDeskMobileCard[hidden],
@@ -324,6 +327,18 @@
           <span>Meta Ads</span>
         </a>
 
+        <a id="metaPublisherNav" href="./meta-publisher.html"
+           class="nav-button" hidden
+           style="text-decoration:none" aria-label="Open direct Facebook and Instagram publisher">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M4 12 20 4l-6 16-3-7-7-1Z"></path>
+              <path d="m11 13 4-4"></path>
+            </svg>
+          </span>
+          <span>Meta Publisher</span>
+        </a>
+
               <a id="pinterestDeskNav" href="./pinterest-desk.html"
            class="nav-button pinterest-shortcut" hidden
            style="text-decoration:none">
@@ -577,6 +592,16 @@
               <p>Watch live campaign status, spend, creative performance, and Website Checkup attribution from the read-only Meta bridge.</p>
             </div>
             <a class="lace-studio-open" href="./meta-connect.html">Open Meta Ads ↗</a>
+          </section>
+
+          <!-- DIRECT META PUBLISHING SHORTCUT -->
+          <section id="metaPublisherMobileCard" class="lace-studio-banner" hidden aria-label="Direct Facebook and Instagram publishing">
+            <div>
+              <span class="eyebrow">Black Stag · Publishing</span>
+              <strong>Meta Publisher</strong>
+              <p>Send owner-approved photo, link, and text posts directly to the active brand's Facebook Page and linked professional Instagram account.</p>
+            </div>
+            <a class="lace-studio-open" href="./meta-publisher.html">Open Meta Publisher ↗</a>
           </section>
 
           <!-- LACE & LEATHER OWNER DESK SHORTCUT -->
@@ -2019,9 +2044,10 @@
   })();
 </script>
 <script>
-  // Show Black Stag Web Design Meta Ads setup only while that brand is active.
+  // Show Black Stag Web Design acquisition tools and the shared Meta Publisher for supported brands.
   (function(){
     const brandId="d51c76c3-a4a6-4109-99c2-5a4b3cff226b";
+    const publisherBrands=new Set([brandId,"f2d4ad11-da97-4ede-bd8c-135150cf9ef6"]);
     function showForCurrentBrand(){
       let selected=null;
       try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
@@ -2029,6 +2055,11 @@
       for(const id of ["metaAdsNav","metaAdsMobileCard","leadDeskNav","leadDeskMobileCard"]){
         const el=document.getElementById(id);
         if(el)el.hidden=!active;
+      }
+      const publisherActive=publisherBrands.has(selected);
+      for(const id of ["metaPublisherNav","metaPublisherMobileCard"]){
+        const el=document.getElementById(id);
+        if(el)el.hidden=!publisherActive;
       }
     }
     const name=document.getElementById("activeBrandName");

@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#151915">
+<title>Meta Publisher · Black Stag Marketing Studio</title>
+<style>
+:root{color-scheme:dark;--cream:#f0e7d5;--brass:#d6b37b;--muted:#bcb7a8;--sage:#bfceb7;--panel:#222922ed;--panel2:#171e18;--line:#9c83565e;--good:#9fc69b;--warn:#e1c590;--bad:#efb0a2}
+*{box-sizing:border-box}body{min-height:100vh;margin:0;padding:18px;background:radial-gradient(ellipse at 50% 0,#35392f,#161b17 65%,#101310);color:var(--cream);font:15px/1.6 system-ui,-apple-system,Segoe UI,sans-serif}
+main{max-width:960px;width:100%;margin:0 auto;padding:clamp(18px,4vw,38px);border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 18px 70px #0006}.eyebrow{color:var(--brass);font-size:11px;font-weight:750;letter-spacing:.19em;text-transform:uppercase}h1,h2,h3{font-family:Georgia,serif;font-weight:400;line-height:1.16}h1{font-size:clamp(34px,7vw,50px);margin:7px 0 12px}h2{font-size:24px;margin:0 0 8px}p{color:var(--muted);margin:8px 0 16px}a{color:#e4c493;text-underline-offset:3px}code{color:#ead1a7}
+.panel{margin-top:24px;border-top:1px solid #78694976;padding-top:20px}.card{border:1px solid #83734b74;background:#171e18;border-radius:13px;padding:16px;margin-top:13px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.field{display:grid;gap:6px}.field.full{grid-column:1/-1}label,.label{font-size:12px;color:#d8cfbd;font-weight:750;letter-spacing:.04em}input,textarea,select{width:100%;border:1px solid #7f6b4d;background:#101611;color:var(--cream);border-radius:9px;padding:12px 13px;font:inherit}textarea{min-height:150px;resize:vertical}input:focus,textarea:focus,select:focus{outline:3px solid #cfad7766;outline-offset:1px}.checks{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px}.check{display:flex;gap:8px;align-items:center;color:var(--cream)}.check input{width:auto}.small{font-size:12px;color:var(--muted)}
+button{border:1px solid #cfad77;background:linear-gradient(125deg,#e1c590,#b08c56);color:#1b1d18;padding:12px 15px;border-radius:10px;font:700 14px system-ui,sans-serif;cursor:pointer}button.secondary{background:transparent;color:var(--cream);border-color:#9c835674}button:disabled{opacity:.48;cursor:default}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:14px}.actions button{flex:1 1 180px}button:focus-visible,a:focus-visible{outline:3px solid #e8c98f;outline-offset:3px}
+.status{border:1px solid #79674c88;background:#111812;border-radius:10px;min-height:52px;padding:13px 16px;margin:18px 0}.status.ok{border-color:#779174;color:var(--sage)}.status.error{border-color:#b98577;color:#ebbbaf}.status.warn{border-color:#9f8255;color:#e1c590}.result{white-space:pre-wrap;overflow-wrap:anywhere}.note{border-left:3px solid #9f8255;padding:9px 12px;background:#181d18;color:var(--muted);font-size:13px;margin-top:12px}.footer{margin-top:24px;padding-top:17px;border-top:1px solid #78694976;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.setup{font-size:13px;color:var(--muted)}[hidden]{display:none!important}
+@media(max-width:680px){body{padding:0}main{border-radius:0;border-left:0;border-right:0;min-height:100vh}.grid{grid-template-columns:1fr}.field.full{grid-column:auto}.actions{display:grid;grid-template-columns:1fr}.actions button{width:100%}}
+</style>
+</head>
+<body>
+<main>
+<div class="eyebrow">Black Stag Marketing Studio · Publishing</div>
+<h1>Meta Publisher</h1>
+<p>Publish owner-approved posts directly to a brand's Facebook Page and linked professional Instagram account. Tokens stay server-side and the existing Ads Command Deck remains separate.</p>
+
+<div class="grid">
+  <div class="field">
+    <label for="brand">Brand</label>
+    <select id="brand">
+      <option value="d51c76c3-a4a6-4109-99c2-5a4b3cff226b">Black Stag Web Design</option>
+      <option value="f2d4ad11-da97-4ede-bd8c-135150cf9ef6">Stag &amp; Stone Coffee and Bakehouse</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="page">Facebook Page</label>
+    <select id="page" disabled><option value="">Connect Meta publishing first</option></select>
+  </div>
+</div>
+
+<div id="status" class="status" role="status" aria-live="polite">Checking your Marketing Studio sign-in…</div>
+<div class="actions">
+  <button id="connect" type="button" disabled>Connect publishing permissions</button>
+  <button id="refresh" type="button" class="secondary" disabled>Refresh Pages</button>
+</div>
+
+<section class="panel">
+<div class="eyebrow">Composer</div>
+<h2>Craft the post</h2>
+<div class="card">
+  <div class="grid">
+    <div class="field full">
+      <label for="message">Caption / post text</label>
+      <textarea id="message" maxlength="2200" placeholder="Write the post here…"></textarea>
+      <div class="small"><span id="count">0</span>/2200 characters</div>
+    </div>
+    <div class="field">
+      <label for="link">Link <span class="small">optional</span></label>
+      <input id="link" type="url" inputmode="url" placeholder="https://example.com/">
+    </div>
+    <div class="field">
+      <label for="image">Public HTTPS image URL <span class="small">required for Instagram</span></label>
+      <input id="image" type="url" inputmode="url" placeholder="https://…/image.jpg">
+    </div>
+  </div>
+  <div class="checks" aria-label="Publish destinations">
+    <label class="check"><input id="facebook" type="checkbox" checked> Facebook</label>
+    <label class="check"><input id="instagram" type="checkbox"> Instagram <span id="igHandle" class="small"></span></label>
+  </div>
+  <div class="note">Photo posts place the supplied link in the caption text. Instagram requires a Facebook-linked professional account and a publicly reachable JPEG image over HTTPS. Video/Reels come in the next pass.</div>
+  <div class="actions"><button id="publish" type="button" disabled>Publish selected channels</button></div>
+</div>
+</section>
+
+<section class="panel">
+<div class="eyebrow">Last result</div>
+<h2>Publishing report</h2>
+<div id="result" class="card result small">Nothing published from this console yet.</div>
+</section>
+
+<section id="setup" class="panel setup">
+<div class="eyebrow">Meta app setup</div>
+<h2>One redirect URI is required</h2>
+<p>Add this exact URL to the Meta developer app's allowed OAuth redirect URIs before connecting:</p>
+<code>https://theblackstaginn.github.io/black-stag-marketing-studio/meta-publisher.html</code>
+<p>The publisher requests Page listing/read access, Page post publishing, and Instagram basic/content-publishing permissions. Black Stag Web Design also preserves its existing <code>ads_read</code> permission so the Ads Command Deck keeps working.</p>
+</section>
+
+<div class="footer small"><a href="./">← Marketing Studio</a><a href="./meta-connect.html">Meta Ads Command Deck ↗</a></div>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="./config.js"></script>
+<script>
+"use strict";
+(async()=>{
+const $=id=>document.getElementById(id);
+const settings=window.BLACK_STAG_CONFIG?.supabase;
+const endpoint=settings?.url?settings.url+"/functions/v1/meta-publisher-bridge":"";
+let client=null,busy=false,pages=[];
+const brandNames={
+ "d51c76c3-a4a6-4109-99c2-5a4b3cff226b":"Black Stag Web Design",
+ "f2d4ad11-da97-4ede-bd8c-135150cf9ef6":"Stag & Stone"
+};
+function say(text,type=""){const el=$("status");el.textContent=text;el.className="status"+(type?" "+type:"")}
+function errorText(code){
+ const map={
+  not_authorized:"Sign in to Black Stag Marketing Studio with the owner account first.",
+  meta_secrets_missing:"The Meta developer app connection is not configured on the server.",
+  not_connected:"This brand has not connected Meta publishing yet.",
+  reauthorization_required:"The saved Meta authorization expired. Reconnect publishing permissions.",
+  publisher_reauthorization_required:"This brand is connected to Meta, but it needs the new publishing permissions. Reconnect it.",
+  meta_permissions_incomplete:"Meta did not grant every required publishing permission.",
+  instagram_image_required:"Instagram needs a public HTTPS JPEG image URL.",\n  instagram_jpeg_required:"Instagram image posts must use a JPEG. Use a .jpg/.jpeg source image.",
+  instagram_account_not_linked:"That Facebook Page does not have a linked professional Instagram account.",
+  page_not_accessible:"That Page is no longer available to the connected Meta account.",
+  invalid_image_url:"The image must be a valid public HTTPS URL.",
+  invalid_link:"The link must be a valid http/https URL.",
+  message_too_long:"The post is longer than 2,200 characters.",
+  meta_publish_failed:"Meta rejected the publish request. The other selected channel may still have succeeded.",
+  explicit_confirmation_required:"Publishing requires an explicit confirmation.",
+  server_unavailable:"The publisher bridge is temporarily unavailable."
+ };
+ return map[code]||code||"Unknown publishing error.";
+}
+async function api(action,payload={}){
+ const {data,error}=await client.auth.getSession();
+ if(error||!data?.session?.access_token)throw new Error("not_authorized");
+ const controller=new AbortController(),timeout=setTimeout(()=>controller.abort(),45000);let response;
+ try{response=await fetch(endpoint,{method:"POST",signal:controller.signal,headers:{"Content-Type":"application/json","apikey":settings.publishableKey,"Authorization":"Bearer "+data.session.access_token},body:JSON.stringify({action,...payload})})}finally{clearTimeout(timeout)}
+ const body=await response.json().catch(()=>({error:"server_unavailable"}));
+ if(!response.ok)throw Object.assign(new Error(body?.error||"server_unavailable"),{payload:body});
+ return body;
+}
+function setBusy(value){busy=value;$("connect").disabled=value;$("refresh").disabled=value||!$("page").options.length;updatePublishButton()}
+function updatePublishButton(){const any=$("facebook").checked||$("instagram").checked;$("publish").disabled=busy||!$("page").value||!any}
+function selectedPage(){return pages.find(p=>p.id===$("page").value)||null}
+function updateIg(){const p=selectedPage(),ig=p?.instagram;$("instagram").disabled=!ig;if(!ig)$("instagram").checked=false;$("igHandle").textContent=ig?(ig.username?"@"+ig.username:"linked"):"not linked";updatePublishButton()}
+function renderPages(list){
+ pages=Array.isArray(list)?list:[];const select=$("page");select.replaceChildren();
+ if(!pages.length){select.append(new Option("No managed Pages returned",""));select.disabled=true;updateIg();return}
+ select.append(new Option("Choose a Page…",""));
+ for(const p of pages)select.append(new Option(p.name+(p.instagram?.username?" · @"+p.instagram.username:""),p.id));
+ select.disabled=false;updateIg();
+}
+async function loadPages(){
+ setBusy(true);say("Loading managed Facebook Pages…");
+ try{const data=await api("pages",{brand_id:$("brand").value});renderPages(data.pages);say("Publishing connection ready. Choose a Page and compose the post.","ok");$("refresh").disabled=false}
+ catch(e){renderPages([]);say(errorText(e.message),"error")}
+ finally{setBusy(false)}
+}
+async function loadStatus(){
+ setBusy(true);renderPages([]);
+ try{
+  const data=await api("status",{brand_id:$("brand").value});
+  if(data.publisher_ready){$("connect").textContent="Reconnect publishing permissions";say("Meta publishing is connected for "+brandNames[$("brand").value]+".","ok");await loadPages();return}
+  if(data.connected){$("connect").textContent="Upgrade Meta permissions";const missing=(data.missing_scopes||[]).join(", ");say("Meta is connected, but publishing still needs: "+missing,"warn")}
+  else{$("connect").textContent="Connect publishing permissions";say("Connect this brand to Meta before publishing.","warn")}
+ }catch(e){say(errorText(e.message),"error")}
+ finally{setBusy(false)}
+}
+async function connect(){
+ setBusy(true);say("Preparing secure Meta authorization…");
+ try{const data=await api("start",{brand_id:$("brand").value});sessionStorage.setItem("bsms-meta-publisher-brand",$("brand").value);location.assign(data.authorize_url)}
+ catch(e){say(errorText(e.message),"error");setBusy(false)}
+}
+function renderResult(data){
+ const rows=[];for(const key of ["facebook","instagram"]){const r=data?.results?.[key];if(!r)continue;rows.push((r.ok?"✓ ":"✕ ")+key[0].toUpperCase()+key.slice(1)+(r.ok?(r.id?" · "+r.id:""):" · "+errorText(r.error)))}
+ $("result").textContent=rows.join("\n")+(data?.partial?"\n\nPartial publish: one channel succeeded and one did not. Do not republish the successful channel.":"");
+}
+async function publish(){
+ const targets=[];if($("facebook").checked)targets.push("facebook");if($("instagram").checked)targets.push("instagram");
+ const p=selectedPage();if(!p||!targets.length)return;
+ const message=$("message").value,link=$("link").value.trim(),image=$("image").value.trim();
+ const label=targets.map(x=>x[0].toUpperCase()+x.slice(1)).join(" + ");
+ if(!confirm("Publish now to "+label+" for "+p.name+"?\n\nThis creates a live public post."))return;
+ setBusy(true);$("result").textContent="Publishing…";say("Sending owner-approved post to Meta…");
+ try{
+  const data=await api("publish",{brand_id:$("brand").value,page_id:p.id,targets,message,link,image_url:image,confirm:"PUBLISH_NOW"});
+  renderResult(data);say(data.ok?"Published successfully.":data.partial?"Partially published. Check the report before doing anything else.":"Meta rejected the selected publish targets.",data.ok?"ok":data.partial?"warn":"error")
+ }catch(e){$("result").textContent=errorText(e.message);say(errorText(e.message),"error")}
+ finally{setBusy(false)}
+}
+$("message").addEventListener("input",()=>$("count").textContent=$("message").value.length);
+$("brand").addEventListener("change",()=>{sessionStorage.setItem("bsms-meta-publisher-brand",$("brand").value);loadStatus()});
+$("page").addEventListener("change",updateIg);$("facebook").addEventListener("change",updatePublishButton);$("instagram").addEventListener("change",updatePublishButton);
+$("connect").addEventListener("click",connect);$("refresh").addEventListener("click",loadPages);$("publish").addEventListener("click",publish);
+if(!window.supabase||!settings?.url||!settings?.publishableKey){say("Marketing Studio configuration unavailable.","error");return}
+client=window.supabase.createClient(settings.url,settings.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const saved=sessionStorage.getItem("bsms-meta-publisher-brand");if(brandNames[saved])$("brand").value=saved;
+const qs=new URLSearchParams(location.search),code=qs.get("code")||"",state=qs.get("state")||"",oauthError=qs.get("error")||"";
+if(code||state||oauthError){
+ try{say("Finishing Meta authorization…");const data=await api("finish",{code,state,error:oauthError});if(data?.brand_id&&brandNames[data.brand_id]){$("brand").value=data.brand_id;sessionStorage.setItem("bsms-meta-publisher-brand",data.brand_id)}history.replaceState({},document.title,location.pathname);say("Meta publishing authorization saved.","ok")}
+ catch(e){history.replaceState({},document.title,location.pathname);say(errorText(e.message),"error")}
+}
+await loadStatus();
+})();
+</script>
+</body>
+</html>
