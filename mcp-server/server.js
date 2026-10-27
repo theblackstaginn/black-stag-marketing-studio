@@ -1,4 +1,7 @@
 import "dotenv/config";
+import { createDeadlineFetch } from "./upstream-fetch.js";
+const upstreamFetch = createDeadlineFetch();
+const mediaFetch = createDeadlineFetch({ timeoutMs: 30000 });
 import express from "express";
 import { createClient } from "@supabase/supabase-js";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
@@ -28,6 +31,8 @@ const supabaseBase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_ANON_KEY,
   {
+    db: { retry: false },
+    global: { fetch: upstreamFetch },
     auth: {
       persistSession: false,
       autoRefreshToken: false
@@ -45,11 +50,13 @@ function createUserClient(accessToken) {
     process.env.SUPABASE_URL,
     process.env.SUPABASE_ANON_KEY,
     {
+      db: { retry: false },
       auth: {
         persistSession: false,
         autoRefreshToken: false
       },
       global: {
+        fetch: upstreamFetch,
         headers: {
           Authorization: `Bearer ${accessToken}`
         }
@@ -1948,7 +1955,7 @@ function buildServer(supabase, authenticatedUser) {
         }
 
         const response =
-          await fetch(
+          await mediaFetch(
             url,
             {
               redirect:
@@ -2243,7 +2250,7 @@ function buildServer(supabase, authenticatedUser) {
       }
 
       const response =
-        await fetch(
+        await mediaFetch(
           downloadUrl,
           {
             redirect:
