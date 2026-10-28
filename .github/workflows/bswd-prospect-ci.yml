@@ -1,0 +1,48 @@
+name: BSWD Prospect Desk checks
+on:
+  push:
+    branches: [feat/bswd-prospect-pipeline-20261028]
+  pull_request:
+    paths:
+      - 'prospect-desk.*'
+      - 'supabase/**'
+      - 'tests/bswd*'
+      - 'tests/bswd/**'
+      - '.github/workflows/bswd-prospect-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: bswd-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  static-checks:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: node --check prospect-desk.js
+      - run: node tests/bswd_static_checks.cjs
+  isolated-integration:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.122.0
+      - run: npm ci --prefix tests/bswd
+      - run: npx --prefix tests/bswd playwright install --with-deps chromium
+      - name: SQL, real Auth/RLS sessions, desktop and mobile browser workflow
+        run: tests/bswd/run-isolated.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bswd-test-evidence
+          path: bswd-test-evidence/
+          if-no-files-found: ignore
