@@ -4,7 +4,7 @@
  const BRAND_ID="d51c76c3-a4a6-4109-99c2-5a4b3cff226b";
  const STAGES=["discovered","researched","qualified","draft_ready","approved","contacted","replied","meeting","quoted","won","lost","do_not_contact"];
  const $=id=>document.getElementById(id);
- let client,ownerId,records=[];
+ let client,ownerId,records=[],outreach=[];
  function node(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
  function notice(text){$("gate").textContent=text;}
  function normalize(value){return String(value||"").normalize("NFKC").trim().toLowerCase().replace(/\s+/g," ");}
@@ -37,17 +37,56 @@
    });
    controls.append(sel,save,feedback);card.append(controls);
    const details=node("details");details.append(node("summary","Drafts and outreach history"));
-   const drafts=awaitingPlaceholder(p.id);details.append(drafts);card.append(details);
+   const drafts=draftEditor(p);details.append(drafts);card.append(details);
    queue.append(card);
   }
  }
- function awaitingPlaceholder(id){const wrap=node("div");wrap.dataset.prospectId=id;wrap.append(node("p","Drafts are read-only in this first increment. No messages can be sent."));return wrap;}
+ function draftEditor(p){
+  const wrap=node("div");const history=outreach.filter(x=>x.prospect_id===p.id);
+  for(const d of history){
+   const section=node("div");section.className="panel";
+   section.append(field("Channel",d.channel),field("State",d.state),field("Subject",d.subject));
+   const body=node("pre",d.draft_body);body.style.whiteSpace="pre-wrap";body.style.overflowWrap="anywhere";section.append(body);
+   if(d.state==="draft"&&!p.suppressed_at&&p.stage!=="do_not_contact"){
+    const approve=node("button","Approve draft for manual use");approve.type="button";
+    const feedback=node("span");feedback.setAttribute("role","status");
+    approve.addEventListener("click",async()=>{
+     if(!window.confirm("Approve this draft? Approval does not send anything."))return;
+     approve.disabled=true;
+     const {error}=await client.from("bswd_outreach").update({state:"approved",approved_at:new Date().toISOString()}).eq("id",d.id).eq("owner_id",ownerId).eq("state","draft");
+     feedback.textContent=error?"Approval failed: "+error.message:"Approved. Not sent.";if(!error)await refresh();
+    });section.append(approve,feedback);
+   }
+   wrap.append(section);
+  }
+  if(p.suppressed_at||p.stage==="do_not_contact"){
+   wrap.append(node("p","Contact suppressed: new drafts and approval are disabled."));return wrap;
+  }
+  const form=node("form");form.className="panel";
+  const heading=node("h3","Prepare personalized draft");form.append(heading);
+  const channelLabel=node("label","Channel");const channel=node("select");
+  for(const value of ["email","contact_form","referral"]){const option=node("option",value.replace("_"," "));option.value=value;channel.append(option);}
+  channelLabel.append(channel);form.append(channelLabel);
+  const subjectLabel=node("label","Subject");const subject=node("input");subject.maxLength=180;subjectLabel.append(subject);form.append(subjectLabel);
+  const bodyLabel=node("label","Draft body");const body=node("textarea");body.required=true;body.maxLength=12000;bodyLabel.append(body);form.append(bodyLabel);
+  const save=node("button","Save draft only");save.type="submit";const feedback=node("span");feedback.setAttribute("role","status");form.append(save,feedback);
+  form.addEventListener("submit",async e=>{
+   e.preventDefault();
+   if(!body.value.trim()||(channel.value==="email"&&!subject.value.trim())){feedback.textContent="Body and email subject required.";return;}
+   save.disabled=true;
+   const {error}=await client.from("bswd_outreach").insert({owner_id:ownerId,prospect_id:p.id,channel:channel.value,subject:subject.value.trim()||null,draft_body:body.value.trim(),state:"draft"});
+   feedback.textContent=error?"Draft failed: "+error.message:"Draft saved. Nothing sent.";save.disabled=false;if(!error)await refresh();
+  });
+  wrap.append(form);return wrap;
+ }
  async function refresh(){
   $("refresh").disabled=true;
   const {data,error}=await client.from("bswd_prospects").select("id,owner_id,business_name,location,website_url,source_url,opportunity_evidence,contact_channel,stage,suppressed_at,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(200);
   $("refresh").disabled=false;
   if(error){notice("Prospect table unavailable. Migration may not be applied: "+error.message);return;}
-  records=data||[];notice("");render();
+  const {data:drafts,error:draftError}=await client.from("bswd_outreach").select("id,owner_id,prospect_id,channel,subject,draft_body,state,approved_at,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(500);
+  if(draftError){notice("Outreach records unavailable: "+draftError.message);return;}
+  outreach=drafts||[];records=data||[];notice("");render();
  }
  async function init(){
   const conf=window.BLACK_STAG_CONFIG?.supabase||{};
