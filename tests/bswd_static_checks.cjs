@@ -24,6 +24,12 @@ requirePattern(ui,/brand\?\.owner_id\s*!==\s*userData\.user\.id/,"brand owner ch
 requirePattern(ui,/state:"draft"/,"outreach inserts must start as drafts");
 assert.doesNotMatch(ui,/\.functions\.invoke\(|fetch\([^)]*send|sendEmail\s*\(/i,"unexpected sending implementation");
 requirePattern(html,/noindex,nofollow/i,"prospect page must not be indexed");
+requirePattern(ui,/function hasEmail\(p\)/,"email contact detection missing");
+requirePattern(ui,/contact_channel,contact_value,stage/,"public contact value must be queried for the desk");
+requirePattern(ui,/emailOnly/,"email-only list filter missing");
+requirePattern(html,/id="emailOnly"/,"email-only toggle missing");
+requirePattern(html,/id="contactEmail"/,"public contact email input missing");
+requirePattern(html,/prospect-desk\.js\?v=2/,"updated JS cache bust missing");
 for (const name of ["prospects", "outreach", "events"]) {
  const policy = schema.split('create policy "owner access ' + name + '"')[1]?.split(';')[0] || "";
  for (const clause of ["using", "with check"]) {
