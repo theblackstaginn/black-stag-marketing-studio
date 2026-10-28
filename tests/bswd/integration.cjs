@@ -21,7 +21,7 @@ function file(p){return sql(fs.readFileSync(p,'utf8'));}
 const must=(r,label)=>{assert.equal(r.error,null,label+': '+r.error?.message);return r.data;};
 async function rejected(p,label){const r=await p;assert(r.error,label+' was allowed');console.log('PASS API: '+label);}
 fs.mkdirSync('bswd-test-evidence',{recursive:true});
-let browser,server;
+let browser,server,activePage;
 (async()=>{
  // Real repository core schema plus actual co-owner visibility policies.
  file('supabase/schema.sql');
@@ -51,6 +51,7 @@ let browser,server;
  async function login(name){const c=createClient(api,anon,opts);must(await c.auth.signInWithPassword({email:users[name].email,password}),'Sign in '+name);return c;}
  const owner=await login('owner'), outsider=await login('outsider'), coowner=await login('coowner');
  const payload={owner_id:users.owner.id,business_name:'Synthetic API QA',location:'Test City',source_url:'https://example.test/research',opportunity_evidence:'Synthetic evidence. Never contact.',prospect_key:'untrusted-client-key',stage:'researched'};
+ await rejected(coowner.from('brands').update({owner_id:users.coowner.id}).eq('id',BRAND),'coowner cannot take primary ownership');
  const prospect=must(await owner.from('bswd_prospects').insert(payload).select().single(),'Owner creates prospect');
  for(const [name,c] of [['outsider',outsider],['coowner',coowner],['anon',createClient(api,anon,opts)]]){
   for(const table of ['bswd_prospects','bswd_outreach','bswd_prospect_events']){
@@ -103,14 +104,14 @@ let browser,server;
   return context;
  }
  for(const name of [null,'outsider','coowner']){
-  const context=await contextFor(name,{width:390,height:844});const page=await context.newPage();
+  const context=await contextFor(name,{width:390,height:844});const page=await context.newPage();activePage=page;
   await page.goto(base+'/prospect-desk.html');
   await page.waitForFunction(()=>!/Verifying/.test(document.getElementById('gate').textContent));
   assert(await page.locator('#app').isHidden(),String(name)+' UI gate');
   await context.close();console.log('PASS browser gate: '+(name||'signed out'));
  }
  for(const [label,width,height] of [['desktop',1280,900],['mobile',390,844],['small-mobile',320,740]]){
-  const context=await contextFor('owner',{width,height});const page=await context.newPage();const errors=[];
+  const context=await contextFor('owner',{width,height});const page=await context.newPage();activePage=page;const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'/prospect-desk.html');await page.locator('#app').waitFor({state:'visible'});await page.getByText('Synthetic API QA',{exact:true}).waitFor();
   await page.getByText('Add researched prospect',{exact:true}).click();
@@ -147,7 +148,7 @@ let browser,server;
   await context.close();console.log('PASS browser: '+label+' create, duplicate, filter, draft, approve, audit, suppression, sign-out');
  }
  console.log('PASS: isolated SQL + real Auth/Data API/RLS + browser integration');
-})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{
+})().catch(async e=>{console.error(e);if(activePage)await activePage.screenshot({path:'bswd-test-evidence/failure.png',fullPage:true}).catch(()=>{});process.exitCode=1;}).finally(async()=>{
  if(browser)await browser.close();if(server)server.close();
  // This database is disposable. Remove only synthetic users created by this run.
  // The shell trap destroys the entire unlinked stack even after any test failure.

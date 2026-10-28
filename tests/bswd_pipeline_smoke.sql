@@ -19,6 +19,7 @@ declare
   v_other uuid;
   v_prospect uuid;
   v_draft uuid;
+  v_pending uuid;
   n integer;
   state_name text;
 begin
@@ -28,7 +29,8 @@ begin
   perform set_config('request.jwt.claim.role','authenticated',true);
   perform set_config('request.jwt.claims',jsonb_build_object('sub',v_owner,'role','authenticated')::text,true);
   execute 'set local role authenticated';
-  if current_user <> 'authenticated' then raise exception 'RLS test role not active'; end if;
+  if current_user <> 'authenticated' or (select rolbypassrls or rolsuper from pg_roles where rolname=current_user) then raise exception 'Nonprivileged RLS test role required'; end if;
+  if has_function_privilege('authenticated','private.bswd_record_event()','EXECUTE') then raise exception 'Browser can execute trusted audit function'; end if;
   insert into public.bswd_prospects(owner_id,business_name,location,source_url,opportunity_evidence,prospect_key,stage)
   values(v_owner,'Pipeline QA Only','Test City','https://example.test/qa','Synthetic test, never contact','caller-key','researched') returning id into v_prospect;
   if not exists(select 1 from public.bswd_prospects where id=v_prospect and prospect_key='pipeline qa only|test city') then raise exception 'Canonical dedupe key missing'; end if;
@@ -53,9 +55,11 @@ begin
   perform pg_temp.expect_rejection(format('update public.bswd_outreach set external_message_id=''fake'' where id=%L',v_draft),'cannot assert sent');
   perform pg_temp.expect_rejection(format('update public.bswd_outreach set state=''sent'' where id=%L',v_draft),'cannot be advanced|audited server');
   perform pg_temp.expect_rejection(format('update public.bswd_outreach set state=''replied'' where id=%L',v_draft),'cannot be advanced|audited server');
+  insert into public.bswd_outreach(owner_id,prospect_id,channel,draft_body) values(v_owner,v_prospect,'referral','Synthetic pending draft') returning id into v_pending;
   update public.bswd_prospects set stage='do_not_contact' where id=v_prospect;
   if not exists(select 1 from public.bswd_prospects where id=v_prospect and suppressed_at is not null) then raise exception 'Missing suppression timestamp'; end if;
   perform pg_temp.expect_rejection(format('insert into public.bswd_outreach(owner_id,prospect_id,channel,draft_body) values(%L,%L,''email'',''forbidden'')',v_owner,v_prospect),'suppressed prospect');
+  perform pg_temp.expect_rejection(format('update public.bswd_outreach set state=''approved'',approved_at=now() where id=%L',v_pending),'suppressed prospect');
   perform pg_temp.expect_rejection(format('update public.bswd_outreach set state=''cancelled'' where id=%L',v_draft),'suppressed prospect');
   perform pg_temp.expect_rejection(format('update public.bswd_prospects set suppressed_at=null,stage=''researched'' where id=%L',v_prospect),'cannot be reopened|terminal');
   perform pg_temp.expect_rejection('truncate public.bswd_prospects cascade','permission denied');
@@ -65,7 +69,7 @@ begin
   perform pg_temp.expect_rejection(format('update public.bswd_prospect_events set event_type=''fake_sent'' where prospect_id=%L',v_prospect),'permission denied');
   perform pg_temp.expect_rejection(format('delete from public.bswd_prospect_events where prospect_id=%L',v_prospect),'permission denied');
   select count(*) into n from public.bswd_prospect_events where prospect_id=v_prospect;
-  if n<>4 then raise exception 'Expected 4 real audit events, got %',n; end if;
+  if n<>5 then raise exception 'Expected 5 real audit events, got %',n; end if;
   perform set_config('request.jwt.claim.sub',v_other::text,true);
   perform set_config('request.jwt.claims',jsonb_build_object('sub',v_other,'role','authenticated')::text,true);
   if exists(select 1 from public.bswd_prospects) or exists(select 1 from public.bswd_outreach) or exists(select 1 from public.bswd_prospect_events) then raise exception 'Cross-user read leak'; end if;
