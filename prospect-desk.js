@@ -12,13 +12,14 @@
  function keyFor(name,location){return normalize(name)+"|"+normalize(location);}
  function url(value){try{const u=new URL(value);return ["https:","http:"].includes(u.protocol)?u.href:null;}catch{return null;}}
  function field(label,value){const p=node("p");p.append(node("strong",label+": "),node("span",value||"Not recorded"));return p;}
+ function hasEmail(p){return p.contact_channel==="email"&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.contact_value||"");}
  function render(){
-  const filtered=records.filter(p=>$("stageFilter").value==="all"||p.stage===$("stageFilter").value);
+  const filtered=records.filter(p=>($("stageFilter").value==="all"||p.stage===$("stageFilter").value)&&(!$("emailOnly").checked||hasEmail(p)));
   $("count").textContent=filtered.length+" / "+records.length+" records";
   $("empty").hidden=filtered.length>0;const queue=$("queue");queue.replaceChildren();
   for(const p of filtered){
    const card=node("article");card.className="panel";
-   card.append(node("h2",p.business_name),field("Location",p.location),field("Stage",p.stage),field("Evidence",p.opportunity_evidence));
+   card.append(node("h2",p.business_name),field("Location",p.location),field("Stage",p.stage),field("Contact method",p.contact_channel),field(hasEmail(p)?"Business email":"Other contact",p.contact_value),field("Evidence",p.opportunity_evidence));
    const src=url(p.source_url);if(src){const link=node("a","View source");link.href=src;link.target="_blank";link.rel="noopener noreferrer";card.append(link);}
    if(p.suppressed_at||p.stage==="do_not_contact"){const flag=node("p","Contact suppressed. No outreach permitted.");flag.className="flag";card.append(flag);}
    const controls=node("div");controls.className="toolbar";
@@ -91,7 +92,7 @@
   $("refresh").disabled=true;
   const {data:identity,error:identityError}=await client.auth.getUser();
   if(identityError||identity?.user?.id!==ownerId){lock("Sign in to Black Stag Marketing Studio first.");return;}
-  const {data,error}=await client.from("bswd_prospects").select("id,owner_id,business_name,location,website_url,source_url,opportunity_evidence,contact_channel,stage,suppressed_at,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(200);
+  const {data,error}=await client.from("bswd_prospects").select("id,owner_id,business_name,location,website_url,source_url,opportunity_evidence,contact_channel,contact_value,stage,suppressed_at,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(200);
   $("refresh").disabled=false;
   if(error){notice("Prospect table unavailable. Migration may not be applied: "+error.message);return;}
   const {data:drafts,error:draftError}=await client.from("bswd_outreach").select("id,owner_id,prospect_id,channel,subject,draft_body,state,approved_at,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(500);
@@ -112,12 +113,12 @@
   if(brandError||brand?.owner_id!==userData.user.id){notice("This desk is restricted to the BSWD owner.");return;}
   ownerId=userData.user.id;$("app").hidden=false;
   for(const stage of STAGES){if(!Array.from($("stageFilter").options).some(o=>o.value===stage)){const option=node("option",stage.replaceAll("_"," "));option.value=stage;$("stageFilter").append(option);}}
-  $("refresh").addEventListener("click",refresh);$("stageFilter").addEventListener("change",render);
+  $("refresh").addEventListener("click",refresh);$("stageFilter").addEventListener("change",render);$("emailOnly").addEventListener("change",render);
   $("newProspect").addEventListener("submit",async e=>{
-   e.preventDefault();const name=$("business").value.trim(),location=$("location").value.trim(),source=url($("source").value),website=$("website").value.trim(),evidence=$("evidence").value.trim();
-   if(!name||!source||!evidence||(website&&!url(website))){$("addStatus").textContent="Enter a valid source, evidence, and optional website URL.";return;}
+   e.preventDefault();const name=$("business").value.trim(),location=$("location").value.trim(),source=url($("source").value),website=$("website").value.trim(),evidence=$("evidence").value.trim(),email=$("contactEmail").value.trim();
+   if(!name||!source||!evidence||(website&&!url(website))||(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))){$("addStatus").textContent="Enter a valid source, evidence, and optional website or email address.";return;}
    $("add").disabled=true;
-   const {error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence,contact_channel:$("channel").value.trim(),prospect_key:keyFor(name,location),stage:"researched"});
+   const {error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence,contact_channel:email?"email":$("channel").value.trim(),contact_value:email||null,prospect_key:keyFor(name,location),stage:"researched"});
    $("add").disabled=false;
    $("addStatus").textContent=error?(error.code==="23505"?"Duplicate business and location.":error.message):"Saved research candidate.";
    if(!error){$("newProspect").reset();await refresh();}
