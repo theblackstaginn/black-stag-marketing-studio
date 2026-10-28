@@ -125,7 +125,7 @@ let browser,server,activePage;
   await page.locator('#stageFilter').selectOption('qualified');await card.getByText('Drafts and outreach history',{exact:true}).click();
   await card.getByLabel('Subject',{exact:true}).fill('Synthetic subject');await card.getByLabel('Draft body',{exact:true}).fill('Synthetic draft. '+('longunbrokencontent'.repeat(30)));
   await card.getByRole('button',{name:'Save draft only'}).click();
-  await card.getByRole('button',{name:'Approve draft for manual use'}).waitFor({state:'attached'});
+  await card.getByRole('button',{name:'Approve draft for manual use',includeHidden:true}).waitFor({state:'attached'});
   // Refresh rebuilds collapsed details; expand the newly rendered history.
   await page.waitForFunction(()=>!document.getElementById('refresh').disabled);
   card=page.locator('#queue > article').filter({has:page.getByRole('heading',{name,exact:true})});
