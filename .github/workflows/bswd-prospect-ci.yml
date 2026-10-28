@@ -1,5 +1,8 @@
 name: BSWD Prospect Desk checks
 on:
+  push:
+    branches:
+      - feat/bswd-prospect-pipeline-20261028
   pull_request:
     paths:
       - 'prospect-desk.*'
