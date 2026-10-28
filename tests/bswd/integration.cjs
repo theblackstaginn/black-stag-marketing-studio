@@ -26,6 +26,7 @@ let browser,server;
  // Real repository core schema plus actual co-owner visibility policies.
  file('supabase/schema.sql');
  file('supabase/migrations/20260929235934_add_brand_co_owners.sql');
+ file('supabase/migrations/20260930000443_protect_primary_brand_owner.sql');
  const migrations=fs.readdirSync('supabase/migrations').filter(x=>/bswd/.test(x)).sort();
  assert.equal(migrations.length,2);
  assert(migrations[0].endsWith('_bswd_prospect_pipeline.sql'),'Schema must sort before guards');
@@ -86,7 +87,7 @@ let browser,server;
   if(!['prospect-desk.html','prospect-desk.js','lead-desk.css'].includes(name)){res.statusCode=404;return res.end();}
   res.setHeader('Content-Type',name.endsWith('.html')?'text/html':name.endsWith('.css')?'text/css':'application/javascript');
   let body=fs.readFileSync(name,'utf8');
-  if(name.endsWith('.html'))body=body.replace('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2','/supabase.js');
+  if(name.endsWith('.html'))body=body.replace(/https:\/\/cdn\.jsdelivr\.net\/npm\/@supabase\/supabase-js@[^"]+/, '/supabase.js');
   res.end(body);
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
@@ -119,7 +120,7 @@ let browser,server;
   await fill();await page.locator('#add').click();await page.getByText('Duplicate business and location.',{exact:true}).waitFor();
   let card=page.locator('#queue > article').filter({has:page.getByRole('heading',{name,exact:true})});
   await card.locator('.toolbar select').selectOption('qualified');await card.getByRole('button',{name:'Save stage',exact:true}).click();
-  await card.getByText('qualified',{exact:true}).waitFor();
+  await card.locator('p > span').filter({hasText:/^qualified$/}).waitFor();
   await page.locator('#stageFilter').selectOption('qualified');await card.getByText('Drafts and outreach history',{exact:true}).click();
   await card.getByLabel('Subject',{exact:true}).fill('Synthetic subject');await card.getByLabel('Draft body',{exact:true}).fill('Synthetic draft. '+('longunbrokencontent'.repeat(30)));
   await card.getByRole('button',{name:'Save draft only'}).click();

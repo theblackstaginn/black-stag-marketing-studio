@@ -5,8 +5,8 @@ returns trigger language plpgsql security invoker set search_path = '' as $$
 declare
   canonical_key text;
 begin
-  canonical_key := lower(regexp_replace(trim(normalize(new.business_name, NFKC)), '\s+', ' ', 'g'))
-    || '|' || lower(regexp_replace(trim(normalize(coalesce(new.location,''), NFKC)), '\s+', ' ', 'g'));
+  canonical_key := lower(trim(regexp_replace(normalize(new.business_name, NFKC), '\s+', ' ', 'g')))
+    || '|' || lower(trim(regexp_replace(normalize(coalesce(new.location,''), NFKC), '\s+', ' ', 'g')));
   if tg_op = 'INSERT' then
     new.prospect_key := canonical_key;
     if new.last_contacted_at is not null then
@@ -25,7 +25,7 @@ begin
       raise exception 'Ownership, dedupe key and verified contact time are immutable in browser workflow';
     end if;
     if old.suppressed_at is not null and
-       (new.suppressed_at is null or new.stage <> 'do_not_contact') then
+       (new.suppressed_at is distinct from old.suppressed_at or new.stage <> 'do_not_contact') then
       raise exception 'Suppressed prospect cannot be reopened by the client';
     end if;
     if old.stage = 'do_not_contact' and new.stage <> 'do_not_contact' then

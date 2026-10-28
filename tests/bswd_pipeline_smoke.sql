@@ -79,7 +79,7 @@ begin
   perform pg_temp.expect_rejection('select * from public.bswd_prospects','permission denied');
   perform pg_temp.expect_rejection('select * from public.bswd_outreach','permission denied');
   perform pg_temp.expect_rejection('select * from public.bswd_prospect_events','permission denied');
-  raise notice 'PASS: owner CRUD, dedupe, lifecycle integrity, suppression, immutable audit, outsider and anon isolation';
+  raise notice 'PASS: owner access, dedupe, lifecycle integrity, suppression, immutable audit, outsider and anon isolation';
 end
 $test$;
 rollback;
