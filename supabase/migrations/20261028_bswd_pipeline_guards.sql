@@ -85,6 +85,7 @@ before insert or update on public.bswd_outreach
 for each row execute function public.bswd_outreach_guard();
 
 -- Event log is append-only to browser clients.
-revoke update,delete on public.bswd_prospect_events from authenticated;
+revoke insert,update,delete on public.bswd_prospect_events from authenticated;
+-- Audit events must originate from a trusted, separately authenticated backend.
 -- Outreach never needs browser DELETE. Suppression audit should remain.
 revoke delete on public.bswd_outreach from authenticated;
