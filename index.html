@@ -324,6 +324,17 @@
           <span>Revenue Desk</span>
         </a>
 
+        <a id="prospectDeskNav" href="./prospect-desk.html" class="nav-button" hidden
+           style="text-decoration:none" aria-label="Open Black Stag Prospect Desk">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <circle cx="9" cy="8" r="3"></circle>
+              <path d="M3 20v-2a6 6 0 0 1 12 0v2M16 8h5M18.5 5.5v5"></path>
+            </svg>
+          </span>
+          <span>Prospects</span>
+        </a>
+
         <a id="metaAdsNav" href="./meta-connect.html"
            class="nav-button" hidden
            style="text-decoration:none">
@@ -589,6 +600,16 @@
               <p>Review new inquiries, follow up on prospects, and track conversations from checkup to closed work.</p>
             </div>
             <a class="lace-studio-open" href="./lead-desk.html">Open Revenue Desk ↗</a>
+          </section>
+
+          <!-- BLACK STAG WEB DESIGN PRIVATE PROSPECT RESEARCH & DRAFT QUEUE -->
+          <section id="prospectDeskMobileCard" class="lace-studio-banner" hidden aria-label="Black Stag private prospect research desk">
+            <div>
+              <span class="eyebrow">Black Stag Web Design · Prospect Research</span>
+              <strong>Prospect Desk</strong>
+              <p>Review researched businesses, draft personalized outreach, and approve drafts. No messages are sent automatically.</p>
+            </div>
+            <a class="lace-studio-open" href="./prospect-desk.html">Open Prospect Desk ↗</a>
           </section>
 
           <!-- BLACK STAG WEB DESIGN META ADS SHORTCUT -->
@@ -2048,7 +2069,7 @@
       let selected=null;
       try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
       const active=selected===brandId;
-      for(const id of ["metaAdsNav","metaAdsMobileCard","leadDeskNav","leadDeskMobileCard"]){
+      for(const id of ["metaAdsNav","metaAdsMobileCard","leadDeskNav","leadDeskMobileCard","prospectDeskNav","prospectDeskMobileCard"]){
         const el=document.getElementById(id);
         if(el)el.hidden=!active;
       }
