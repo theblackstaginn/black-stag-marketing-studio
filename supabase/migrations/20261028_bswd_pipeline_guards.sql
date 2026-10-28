@@ -3,7 +3,15 @@
 create or replace function public.bswd_prospect_guard()
 returns trigger language plpgsql security invoker set search_path = '' as $$
 begin
+  if tg_op = 'INSERT' and new.stage not in ('discovered','researched','qualified','draft_ready','do_not_contact') then
+    raise exception 'New prospect cannot claim outreach or sales activity';
+  end if;
   if tg_op = 'UPDATE' then
+    if new.owner_id is distinct from old.owner_id
+       or new.prospect_key is distinct from old.prospect_key
+       or new.last_contacted_at is distinct from old.last_contacted_at then
+      raise exception 'Ownership, dedupe key and verified contact time are immutable in browser workflow';
+    end if;
     if old.suppressed_at is not null and
        (new.suppressed_at is null or new.stage <> 'do_not_contact') then
       raise exception 'Suppressed prospect cannot be reopened by the client';
@@ -42,6 +50,13 @@ begin
     raise exception 'Cannot prepare or approve outreach to suppressed prospect';
   end if;
   if tg_op = 'UPDATE' then
+    if new.approved_at is distinct from old.approved_at
+       and not (old.state='draft' and new.state='approved' and old.approved_at is null and new.approved_at is not null) then
+      raise exception 'Approval timestamp cannot be modified';
+    end if;
+    if new.sent_at is distinct from old.sent_at or new.external_message_id is distinct from old.external_message_id then
+      raise exception 'Browser cannot assert sent messages';
+    end if;
     if new.owner_id is distinct from old.owner_id
        or new.prospect_id is distinct from old.prospect_id
        or new.draft_body is distinct from old.draft_body
@@ -58,8 +73,8 @@ begin
     if old.state='draft' and new.state='approved' and new.approved_at is null then
       raise exception 'Approval timestamp required';
     end if;
-  elsif new.state <> 'draft' then
-    raise exception 'New outreach must start as draft';
+  elsif new.state <> 'draft' or new.approved_at is not null or new.sent_at is not null or new.external_message_id is not null then
+    raise exception 'New outreach must be an unsent, unapproved draft';
   end if;
   return new;
 end;
