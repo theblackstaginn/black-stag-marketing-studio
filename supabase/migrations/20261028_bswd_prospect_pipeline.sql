@@ -66,14 +66,14 @@ alter table public.bswd_outreach force row level security;
 alter table public.bswd_prospect_events force row level security;
 
 create policy "owner access prospects" on public.bswd_prospects
-  for all to authenticated using(owner_id = (select auth.uid()))
-  with check(owner_id = (select auth.uid()));
+  for all to authenticated using(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())))
+  with check(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())));
 create policy "owner access outreach" on public.bswd_outreach
-  for all to authenticated using(owner_id = (select auth.uid()))
-  with check(owner_id = (select auth.uid()));
+  for all to authenticated using(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())))
+  with check(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())));
 create policy "owner access events" on public.bswd_prospect_events
-  for all to authenticated using(owner_id = (select auth.uid()))
-  with check(owner_id = (select auth.uid()));
+  for all to authenticated using(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())))
+  with check(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())));
 
 revoke all on public.bswd_prospects, public.bswd_outreach, public.bswd_prospect_events from anon;
 grant select,insert,update,delete on public.bswd_prospects, public.bswd_outreach, public.bswd_prospect_events to authenticated;
