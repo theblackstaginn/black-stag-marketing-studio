@@ -1,9 +1,21 @@
--- Apply AFTER 20261028_bswd_prospect_pipeline.sql. Not deployed.
+-- Apply AFTER 20261028175959_bswd_prospect_pipeline.sql. Not deployed.
 -- Guard lifecycle integrity even when callers bypass the browser.
 create or replace function public.bswd_prospect_guard()
 returns trigger language plpgsql security invoker set search_path = '' as $$
+declare
+  canonical_key text;
 begin
-  if tg_op = 'INSERT' and new.stage not in ('discovered','researched','qualified','draft_ready','do_not_contact') then
+  canonical_key := lower(regexp_replace(trim(normalize(new.business_name, NFKC)), '\s+', ' ', 'g'))
+    || '|' || lower(regexp_replace(trim(normalize(coalesce(new.location,''), NFKC)), '\s+', ' ', 'g'));
+  if tg_op = 'INSERT' then
+    new.prospect_key := canonical_key;
+    if new.last_contacted_at is not null then
+      raise exception 'New prospect cannot claim verified contact time';
+    end if;
+  elsif canonical_key is distinct from old.prospect_key then
+    raise exception 'Business identity is immutable; deduplication cannot be bypassed';
+  end if;
+  if tg_op = 'INSERT'  and new.stage not in ('discovered','researched','qualified','draft_ready','do_not_contact') then
     raise exception 'New prospect cannot claim outreach or sales activity';
   end if;
   if tg_op = 'UPDATE' then
@@ -44,12 +56,13 @@ declare
   target_stage text;
 begin
   select suppressed_at,stage into target_suppressed,target_stage
-  from public.bswd_prospects where id=new.prospect_id and owner_id=new.owner_id;
+  from public.bswd_prospects where id=new.prospect_id and owner_id=new.owner_id for update;
   if not found then raise exception 'Prospect unavailable'; end if;
   if target_suppressed is not null or target_stage = 'do_not_contact' then
     raise exception 'Cannot prepare or approve outreach to suppressed prospect';
   end if;
   if tg_op = 'UPDATE' then
+    if old.state='draft' and new.state='approved' then new.approved_at := now(); end if;
     if new.approved_at is distinct from old.approved_at
        and not (old.state='draft' and new.state='approved' and old.approved_at is null and new.approved_at is not null) then
       raise exception 'Approval timestamp cannot be modified';
@@ -89,3 +102,41 @@ revoke insert,update,delete on public.bswd_prospect_events from authenticated;
 -- Audit events must originate from a trusted, separately authenticated backend.
 -- Outreach never needs browser DELETE. Suppression audit should remain.
 revoke delete on public.bswd_outreach from authenticated;
+
+-- Prevent cascading deletion of suppression and audit history by the browser.
+revoke delete on public.bswd_prospects from authenticated;
+
+-- Trusted trigger only: no callable browser audit-writing endpoint.
+create schema if not exists private;
+create or replace function private.bswd_record_event()
+returns trigger language plpgsql security definer set search_path = '' as $$
+declare
+  kind text;
+  payload jsonb := '{}'::jsonb;
+begin
+  if auth.uid() is null or auth.uid() is distinct from new.owner_id or not exists (
+    select 1 from public.brands where id='d51c76c3-a4a6-4109-99c2-5a4b3cff226b' and owner_id=auth.uid()
+  ) then raise exception 'Audit actor must be the BSWD owner'; end if;
+  if tg_table_name='bswd_prospects' then
+    if tg_op='INSERT' then kind := 'prospect_created';
+    elsif new.stage is distinct from old.stage then
+      kind := case when new.stage='do_not_contact' then 'prospect_suppressed' else 'stage_changed' end;
+      payload := jsonb_build_object('from',old.stage,'to',new.stage);
+    else return new; end if;
+    insert into public.bswd_prospect_events(owner_id,prospect_id,event_type,details)
+    values(new.owner_id,new.id,kind,payload);
+  else
+    if tg_op='INSERT' then kind := 'draft_created';
+    elsif new.state is distinct from old.state then kind := 'draft_' || new.state;
+    else return new; end if;
+    insert into public.bswd_prospect_events(owner_id,prospect_id,event_type,details)
+    values(new.owner_id,new.prospect_id,kind,jsonb_build_object('outreach_id',new.id));
+  end if;
+  return new;
+end;
+$$;
+revoke all on function private.bswd_record_event() from public, anon, authenticated;
+create trigger bswd_prospect_audit after insert or update on public.bswd_prospects
+for each row execute function private.bswd_record_event();
+create trigger bswd_outreach_audit after insert or update on public.bswd_outreach
+for each row execute function private.bswd_record_event();

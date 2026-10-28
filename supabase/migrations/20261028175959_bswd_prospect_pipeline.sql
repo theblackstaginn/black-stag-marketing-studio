@@ -76,6 +76,7 @@ create policy "owner access events" on public.bswd_prospect_events
   with check(owner_id = (select auth.uid()) and exists (select 1 from public.brands b where b.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b.owner_id = (select auth.uid())));
 
 revoke all on public.bswd_prospects, public.bswd_outreach, public.bswd_prospect_events from anon;
+revoke all on public.bswd_prospects, public.bswd_outreach, public.bswd_prospect_events from authenticated;
 grant select,insert,update,delete on public.bswd_prospects, public.bswd_outreach, public.bswd_prospect_events to authenticated;
 
 -- Before any sending implementation: enforce suppression/approval transactionally server-side.
