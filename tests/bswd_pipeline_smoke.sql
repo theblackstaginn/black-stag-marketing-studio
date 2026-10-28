@@ -61,7 +61,29 @@ begin
   exception when others then v_blocked:=true; end;
   if not v_blocked then raise exception 'FAIL: suppressed prospect reopened'; end if;
 
-  raise notice 'PASS: draft approval, no fake sends, no fake wins, suppression';
+  -- A suppressed prospect must also block updates to previously approved drafts.
+  v_blocked:=false;
+  begin
+    update public.bswd_outreach set state='cancelled' where id=v_draft;
+  exception when others then v_blocked:=true; end;
+  if not v_blocked then raise exception 'FAIL: suppressed outreach can be modified'; end if;
+
+  -- An authenticated browser must never be allowed to forge audit events.
+  v_blocked:=false;
+  begin
+    insert into public.bswd_prospect_events(owner_id,prospect_id,event_type)
+    values(v_owner,v_prospect,'fake_sent');
+  exception when insufficient_privilege then v_blocked:=true;
+             when others then raise; end;
+  if not v_blocked then raise exception 'FAIL: browser can forge audit events'; end if;
+
+  -- Cross-owner reads must return zero rows under RLS.
+  perform set_config('request.jwt.claim.sub',gen_random_uuid()::text,true);
+  if exists(select 1 from public.bswd_prospects where id=v_prospect) then
+    raise exception 'FAIL: other user can read BSWD prospect';
+  end if;
+
+  raise notice 'PASS: approval, state integrity, suppression, audit permissions, owner isolation';
 end
 $test$;
 rollback;
