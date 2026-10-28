@@ -1,0 +1,23 @@
+name: BSWD Prospect Desk checks
+on:
+  pull_request:
+    paths:
+      - 'prospect-desk.*'
+      - 'supabase/migrations/*bswd*'
+      - 'tests/bswd*'
+      - '.github/workflows/bswd-prospect-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate JavaScript syntax
+        run: node --check prospect-desk.js
+      - name: Check Prospect Desk security contracts
+        run: node tests/bswd_static_checks.cjs
