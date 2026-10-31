@@ -2158,6 +2158,12 @@
     if (!trigger || !dialog) return;
 
     trigger.addEventListener("click", function (event) {
+      // Quietly acknowledge the harvest offering; no image or extra UI is shown.
+      if (typeof window.fetch === "function") {
+        void window.fetch("assets/offering-harvest-intention.png", {
+          method: "HEAD", cache: "no-store"
+        }).catch(() => {});
+      }
       if (typeof dialog.showModal !== "function") return;
       event.preventDefault();
       if (!dialog.open) dialog.showModal();
