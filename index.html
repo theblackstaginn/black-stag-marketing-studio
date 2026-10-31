@@ -66,6 +66,52 @@
     .lace-studio-open:focus-visible{outline:3px solid #f7d89d;outline-offset:3px}
     @media(max-width:580px){.lace-studio-banner{padding:16px}.lace-studio-open{width:100%}}
 
+
+    /* Runic Stag: a quiet, clickable dedication above every working-brand dashboard. */
+    #view-dashboard .runic-stag-trigger{
+      display:flex;align-items:center;justify-content:center;
+      width:max-content;max-width:100%;min-height:44px;
+      margin:-8px auto 18px;padding:7px 20px 10px;
+      border:0;border-bottom:1px solid rgba(195,148,92,.26);
+      border-radius:0;background:transparent;box-shadow:none;
+      color:#c6a277;text-decoration:none;
+      font-family:"Segoe UI Symbol","Noto Sans Runic",sans-serif;
+      font-size:clamp(1rem,2.4vw,1.25rem);
+      font-weight:400;letter-spacing:.17em;line-height:1.2;
+      cursor:pointer;transition:color .2s ease,border-color .2s ease,text-shadow .2s ease;
+      -webkit-tap-highlight-color:transparent;
+    }
+    #view-dashboard .runic-stag-trigger:hover,
+    #view-dashboard .runic-stag-trigger:focus-visible{
+      color:#ead1a5;border-bottom-color:rgba(221,172,109,.65);
+      text-shadow:0 0 12px rgba(207,140,72,.22);
+    }
+    #view-dashboard .runic-stag-trigger:focus-visible{
+      outline:2px solid #d2a46b;outline-offset:3px;
+    }
+    #runicStagPlaqueDialog{
+      width:min(1040px,calc(100vw - 24px));
+      max-width:1040px;max-height:calc(100dvh - 24px);
+      margin:auto;padding:clamp(8px,1.5vw,14px);
+      border:1px solid rgba(183,122,65,.45);
+      border-radius:12px;background:#0b0908;
+      color:#f0e0c8;box-shadow:0 24px 90px rgba(0,0,0,.8);
+    }
+    #runicStagPlaqueDialog::backdrop{background:rgba(3,4,4,.88);backdrop-filter:blur(5px)}
+    #runicStagPlaqueDialog .runic-stag-image{
+      display:block;width:100%;height:auto;
+      max-height:calc(100dvh - 55px);object-fit:contain;
+    }
+    #runicStagPlaqueDialog .runic-stag-close{
+      position:absolute;z-index:1;top:12px;right:12px;
+      display:grid;place-items:center;width:40px;height:40px;
+      padding:0;border:1px solid rgba(218,173,111,.65);border-radius:50%;
+      color:#f0dec0;background:rgba(10,9,8,.9);
+      font:normal 1.5rem/1 system-ui,sans-serif;cursor:pointer;
+    }
+    #runicStagPlaqueDialog .runic-stag-close:focus-visible{
+      outline:2px solid #f0dec0;outline-offset:3px;
+    }
   </style>
 </head>
 
@@ -488,6 +534,17 @@
           id="view-dashboard"
           data-view-panel="dashboard"
         >
+
+
+          <!-- RUNIC STAG: TAP THE RUNES TO REVEAL THE FULL PLAQUE -->
+          <a
+            class="runic-stag-trigger"
+            id="runicStagTrigger"
+            href="assets/runic-stag-plaque.webp"
+            aria-label="Open the Runic Stag devotion plaque"
+            aria-haspopup="dialog"
+            aria-controls="runicStagPlaqueDialog"
+          ><span aria-hidden="true">ᛏ · ᛃ · ᛒ · ᚷ · ᚠ</span></a>
 
           <!-- MOBILE BRAND SWITCHER -->
 
@@ -1998,6 +2055,29 @@
   </dialog>
 
 
+
+  <!-- RUNIC STAG PLAQUE: SHARED ACROSS ALL DASHBOARD BRANDS -->
+  <dialog
+    id="runicStagPlaqueDialog"
+    aria-label="Runic Stag devotion plaque"
+  >
+    <button
+      type="button"
+      class="runic-stag-close"
+      id="runicStagPlaqueClose"
+      aria-label="Close Runic Stag plaque"
+    >&times;</button>
+    <img
+      class="runic-stag-image"
+      src="assets/runic-stag-plaque.webp"
+      alt="An ornate copper Runic Stag plaque bearing the runes for devotion, harvest, growth, love, and abundance. Steady unwavering devotion brings forth a fruit of great desire. Health, love, abundance and prosperity. So mote it be."
+      width="1536"
+      height="1024"
+      loading="lazy"
+      decoding="async"
+    />
+  </dialog>
+
   <!-- ========================================
        STATUS / TOAST
        ======================================== -->
@@ -2080,6 +2160,28 @@
     }
     window.addEventListener("storage",showForCurrentBrand);
     showForCurrentBrand();
+  })();
+</script>
+
+<script>
+  // The rune strip opens the original plaque without navigating away from work.
+  (function () {
+    const trigger = document.getElementById("runicStagTrigger");
+    const dialog = document.getElementById("runicStagPlaqueDialog");
+    const close = document.getElementById("runicStagPlaqueClose");
+    if (!trigger || !dialog || !close) return;
+
+    trigger.addEventListener("click", function (event) {
+      if (typeof dialog.showModal !== "function") return;
+      event.preventDefault();
+      if (!dialog.open) dialog.showModal();
+    });
+    close.addEventListener("click", function () {
+      if (dialog.open) dialog.close();
+    });
+    dialog.addEventListener("click", function (event) {
+      if (event.target === dialog) dialog.close();
+    });
   })();
 </script>
 </body>
