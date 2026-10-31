@@ -37,13 +37,13 @@
   $("count").textContent=filtered.length+" shown · "+targets+" research-ready · "+records.length+" total";
   $("empty").hidden=filtered.length>0;const queue=$("queue");queue.replaceChildren();
   for(const p of filtered){
-   const card=node("article");card.className="panel";
+   const card=node("article");card.className="panel";card.dataset.prospectId=p.id;
    card.append(node("h2",p.business_name),field("Location",p.location),field("Stage",p.stage),
     field("Website gap",GAPS[p.opportunity_type]||"Needs verification"),field("Website",p.website_url||"No verified site recorded"),
     field("Contact method",p.contact_channel),field(hasEmail(p)?"Business email":"Other contact",p.contact_value),
     field("Public email source",p.email_source_url),field("Evidence",p.opportunity_evidence));
    const eligibility=node("p",targetReady(p)?"✓ Research criteria recorded; eligible for owner review.":"Not yet an eligible target. Verify the public email and actual website gap.");
-   eligibility.className=targetReady(p)?"muted":"flag";card.append(eligibility,siteCheckView(p));
+   eligibility.className=(targetReady(p)?"muted":"flag")+" target-eligibility";card.append(eligibility,siteCheckView(p));
    const src=url(p.source_url);if(src){const link=node("a","View source");link.href=src;link.target="_blank";link.rel="noopener noreferrer";card.append(link);}
    if(p.suppressed_at||p.stage==="do_not_contact"){const flag=node("p","Contact suppressed. No outreach permitted.");flag.className="flag";card.append(flag);}
    const controls=node("div");controls.className="toolbar";
@@ -76,7 +76,7 @@
   }
  }
  function siteCheckView(p){
-  const box=node("div");box.className="panel";
+  const box=node("div");box.className="panel site-check-panel";
   const c=siteChecks.get(p.id);
   const statuses={likely_website_found:"Likely existing website",possible_match:"Possible match; verify before outreach",no_clear_site_found:"No clear site found (NOT proof of absence)",search_error:"Search incomplete"};
   box.append(field("Automatic website lookup",c?statuses[c.status]||"Unknown":"Waiting for check"));
@@ -206,7 +206,23 @@
    const {data,error}=await client.functions.invoke("bswd-site-verifier",{body:{prospect_id:p.id,force}});
    if(error)return {ok:false,message:error.message||"Service unavailable"};
    if(!data?.ok||!data?.check)return {ok:false,message:data?.error||"No result returned"};
-   siteChecks.set(p.id,data.check);render();return {ok:true};
+   siteChecks.set(p.id,data.check);
+   // Background results must not reset unsaved selections or draft text.
+   if($("targetFilter").value==="all"){
+    const card=Array.from($("queue").children).find(x=>x.dataset.prospectId===p.id);
+    if(card){
+     const panel=card.querySelector(".site-check-panel");
+     if(panel)panel.replaceWith(siteCheckView(p));
+     const eligibility=card.querySelector(".target-eligibility");
+     if(eligibility){
+      const ready=targetReady(p);
+      eligibility.textContent=ready?"✓ Research criteria recorded; eligible for owner review.":"Not yet an eligible target. Verify the public email and actual website gap.";
+      eligibility.className=(ready?"muted":"flag")+" target-eligibility";
+     }
+    }
+    $("count").textContent=$("queue").children.length+" shown · "+records.filter(targetReady).length+" research-ready · "+records.length+" total";
+   }else render();
+   return {ok:true};
   }catch(error){return {ok:false,message:error?.message||"Lookup unavailable"};}
  }
  async function verifyDue(limit=2){
