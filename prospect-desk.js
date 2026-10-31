@@ -4,9 +4,9 @@
  const BRAND_ID="d51c76c3-a4a6-4109-99c2-5a4b3cff226b";
  const STAGES=["discovered","researched","qualified","draft_ready","approved","contacted","replied","meeting","quoted","won","lost","do_not_contact"];
  const $=id=>document.getElementById(id);
- let client,ownerId,records=[],outreach=[],events=[];
+ let client,ownerId,records=[],outreach=[],events=[],siteChecks=new Map(),scanStarted=false,scanRunning=false;
  function node(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
- function lock(text){ownerId=null;records=[];outreach=[];events=[];$("queue").replaceChildren();$("app").hidden=true;notice(text);}
+ function lock(text){ownerId=null;records=[];outreach=[];events=[];siteChecks.clear();$("queue").replaceChildren();$("app").hidden=true;notice(text);}
  function notice(text){$("gate").textContent=text;}
  function normalize(value){return String(value||"").normalize("NFKC").trim().toLowerCase().replace(/\s+/g," ");}
  function keyFor(name,location){return normalize(name)+"|"+normalize(location);}
@@ -16,7 +16,12 @@
  function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||"").trim());}
  function hasEmail(p){return p.contact_channel==="email"&&validEmail(p.contact_value);}
  function targetReady(p){
-  return hasEmail(p)&&Boolean(url(p.email_source_url))&&Object.hasOwn(GAPS,p.opportunity_type)
+  const check=siteChecks.get(p.id);
+  const recent=check&&Date.now()-Date.parse(check.checked_at)<30*86400000;
+  const consistent=check&&(p.opportunity_type==="severely_broken"
+    ?["likely_website_found","possible_match"].includes(check.status)
+    :check.status==="no_clear_site_found");
+  return Boolean(recent&&consistent)&&hasEmail(p)&&Boolean(url(p.email_source_url))&&Object.hasOwn(GAPS,p.opportunity_type)
    &&Boolean(String(p.opportunity_evidence||"").trim())
    &&Boolean(url(p.source_url))&&(!p.website_url||Boolean(url(p.website_url)))
    &&(p.opportunity_type==="severely_broken"?Boolean(url(p.website_url)):!p.website_url);
@@ -29,7 +34,7 @@
    &&(!$("emailOnly").checked||hasEmail(p))
    &&(mode==="all"||(mode==="ready"?targetReady(p):!targetReady(p))))
    .sort((a,b)=>targetPriority(a)-targetPriority(b)||String(a.business_name).localeCompare(String(b.business_name)));
-  $("count").textContent=filtered.length+" shown · "+targets+" verified targets · "+records.length+" total";
+  $("count").textContent=filtered.length+" shown · "+targets+" research-ready · "+records.length+" total";
   $("empty").hidden=filtered.length>0;const queue=$("queue");queue.replaceChildren();
   for(const p of filtered){
    const card=node("article");card.className="panel";
@@ -38,7 +43,7 @@
     field("Contact method",p.contact_channel),field(hasEmail(p)?"Business email":"Other contact",p.contact_value),
     field("Public email source",p.email_source_url),field("Evidence",p.opportunity_evidence));
    const eligibility=node("p",targetReady(p)?"✓ Research criteria recorded; eligible for owner review.":"Not yet an eligible target. Verify the public email and actual website gap.");
-   eligibility.className=targetReady(p)?"muted":"flag";card.append(eligibility);
+   eligibility.className=targetReady(p)?"muted":"flag";card.append(eligibility,siteCheckView(p));
    const src=url(p.source_url);if(src){const link=node("a","View source");link.href=src;link.target="_blank";link.rel="noopener noreferrer";card.append(link);}
    if(p.suppressed_at||p.stage==="do_not_contact"){const flag=node("p","Contact suppressed. No outreach permitted.");flag.className="flag";card.append(flag);}
    const controls=node("div");controls.className="toolbar";
@@ -69,6 +74,37 @@
    card.append(activity);
    queue.append(card);
   }
+ }
+ function siteCheckView(p){
+  const box=node("div");box.className="panel";
+  const c=siteChecks.get(p.id);
+  const statuses={likely_website_found:"Likely existing website",possible_match:"Possible match; verify before outreach",no_clear_site_found:"No clear site found (NOT proof of absence)",search_error:"Search incomplete"};
+  box.append(field("Automatic website lookup",c?statuses[c.status]||"Unknown":"Waiting for check"));
+  if(c){
+   box.append(field("Checked",new Date(c.checked_at).toLocaleString()));
+   if(c.match_reason)box.append(node("p",c.match_reason));
+   const matches=Array.isArray(c.candidates)?c.candidates.filter(x=>x.kind==="website_candidate").slice(0,3):[];
+   for(const m of matches){const site=url(m.url);if(!site)continue;
+    const link=node("a",(m.title||m.host||"Candidate site")+" · "+Math.round((m.score||0)*100)+"% signal");
+    link.href=site;link.target="_blank";link.rel="noopener noreferrer";
+    const line=node("p");line.append(link);box.append(line);
+   }
+   if(["no_website","social_only"].includes(p.opportunity_type)&&c.status==="likely_website_found"){
+    const flag=node("p","Potential conflict: a website was found. Confirm before classifying this business as site-less.");
+    flag.className="flag";box.append(flag);
+   }
+  }
+  if(!p.suppressed_at&&p.stage!=="do_not_contact"){
+   const button=node("button",c?"Recheck website":"Check website");button.type="button";
+   const status=node("span");status.setAttribute("role","status");
+   button.addEventListener("click",async()=>{
+    button.disabled=true;status.textContent="Searching...";
+    const result=await verifySite(p,Boolean(c));
+    status.textContent=result.ok?"Recorded.":"Unavailable: "+result.message;
+    button.disabled=false;
+   });box.append(button,status);
+  }
+  return box;
  }
  function verificationEditor(p){
   const form=node("form");form.className="panel";
@@ -156,8 +192,41 @@
   if(draftError){notice("Outreach records unavailable: "+draftError.message);return;}
   const {data:activity,error:eventError}=await client.from("bswd_prospect_events").select("id,prospect_id,event_type,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(1000);
   if(eventError){notice("Activity history unavailable: "+eventError.message);return;}
+  const {data:checks,error:checkError}=await client.from("bswd_site_search_checks")
+   .select("prospect_id,status,best_candidate_url,candidates,match_reason,checked_at,query_count,provider").limit(500);
+  if(checkError){notice("Website lookup unavailable: "+checkError.message);return;}
   if(!ownerId)return;
+  siteChecks=new Map((checks||[]).map(x=>[x.prospect_id,x]));
   outreach=drafts||[];records=data||[];events=activity||[];notice("");render();
+  if(!scanStarted){scanStarted=true;void verifyDue(2);}
+ }
+ async function verifySite(p,force=false){
+  if(!ownerId||p.suppressed_at||p.stage==="do_not_contact")return {ok:false,message:"Not available for this prospect"};
+  try{
+   const {data,error}=await client.functions.invoke("bswd-site-verifier",{body:{prospect_id:p.id,force}});
+   if(error)return {ok:false,message:error.message||"Service unavailable"};
+   if(!data?.ok||!data?.check)return {ok:false,message:data?.error||"No result returned"};
+   siteChecks.set(p.id,data.check);render();return {ok:true};
+  }catch(error){return {ok:false,message:error?.message||"Lookup unavailable"};}
+ }
+ async function verifyDue(limit=2){
+  if(!ownerId||scanRunning)return;scanRunning=true;
+  $("verifyNext").disabled=true;
+  const status=$("verifyStatus");
+  try{
+   const targets=records.filter(p=>hasEmail(p)&&!p.suppressed_at&&p.stage!=="do_not_contact"
+    &&(!siteChecks.has(p.id)||Date.now()-Date.parse(siteChecks.get(p.id).checked_at)>7*86400000))
+    .slice(0,Math.min(3,Math.max(1,limit)));
+   if(!targets.length){status.textContent="All email contacts recently checked.";return;}
+   let completed=0;
+   for(const p of targets){
+    status.textContent="Checking "+p.business_name+" ("+(completed+1)+"/"+targets.length+")";
+    const result=await verifySite(p);
+    if(!result.ok){status.textContent="Stopped after "+completed+" check(s): "+result.message;return;}
+    completed++;
+   }
+   status.textContent=completed+" automated checks complete. Review the evidence.";
+  }finally{scanRunning=false;$("verifyNext").disabled=false;}
  }
  async function init(){
   const conf=window.BLACK_STAG_CONFIG?.supabase||{};
@@ -170,7 +239,7 @@
   if(brandError||brand?.owner_id!==userData.user.id){notice("This desk is restricted to the BSWD owner.");return;}
   ownerId=userData.user.id;$("app").hidden=false;
   for(const stage of STAGES){if(!Array.from($("stageFilter").options).some(o=>o.value===stage)){const option=node("option",stage.replaceAll("_"," "));option.value=stage;$("stageFilter").append(option);}}
-  $("refresh").addEventListener("click",refresh);$("stageFilter").addEventListener("change",render);$("emailOnly").addEventListener("change",render);$("targetFilter").addEventListener("change",render);
+  $("refresh").addEventListener("click",refresh);$("stageFilter").addEventListener("change",render);$("emailOnly").addEventListener("change",render);$("targetFilter").addEventListener("change",render);$("verifyNext").addEventListener("click",()=>void verifyDue(3));
   $("newProspect").addEventListener("submit",async e=>{
    e.preventDefault();const name=$("business").value.trim(),location=$("location").value.trim(),
     source=url($("source").value),website=$("website").value.trim(),evidence=$("evidence").value.trim(),
@@ -181,10 +250,16 @@
     $("addStatus").textContent="Verify a public business email and its source, choose a website gap, and record evidence. Broken sites require a URL; no-site/social-only targets must leave it empty.";return;
    }
    $("add").disabled=true;
-   const {error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence,contact_channel:"email",contact_value:email,email_source_url:emailSource,opportunity_type:gap,prospect_key:keyFor(name,location),stage:"researched"});
+   const {data:created,error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence,contact_channel:"email",contact_value:email,email_source_url:emailSource,opportunity_type:gap,prospect_key:keyFor(name,location),stage:"researched"}).select("id").single();
    $("add").disabled=false;
    $("addStatus").textContent=error?(error.code==="23505"?"Duplicate business and location.":error.message):"Saved research candidate.";
-   if(!error){$("newProspect").reset();await refresh();}
+   if(!error){$("newProspect").reset();await refresh();
+    const createdProspect=records.find(p=>p.id===created?.id);
+    if(createdProspect){$("addStatus").textContent="Saved. Automatically checking its website...";
+     const checked=await verifySite(createdProspect);
+     $("addStatus").textContent=checked.ok?"Saved with website lookup results.":"Saved; website lookup pending: "+checked.message;
+    }
+   }
   });
   await refresh();
  }
