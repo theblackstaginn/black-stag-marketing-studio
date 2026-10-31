@@ -102,21 +102,6 @@
       display:block;width:100%;height:auto;
       max-height:calc(100dvh - 55px);object-fit:contain;
     }
-    #runicStagPlaqueDialog .runic-stag-close{
-      position:absolute;z-index:1;top:12px;right:12px;
-      display:grid;place-items:center;width:40px;height:40px;
-      padding:0;border:1px solid rgba(218,173,111,.65);border-radius:50%;
-      color:#f0dec0;background:rgba(10,9,8,.9);
-      font:normal 1.5rem/1 system-ui,sans-serif;cursor:pointer;
-    }
-    #runicStagPlaqueDialog .runic-stag-close:focus-visible{
-      outline:2px solid #f0dec0;outline-offset:3px;
-    }
-    /* Hide the floating Ember/Search/Inbox toolbar only while the plaque is open.
-       The dialog's own X remains available, including on iPhone. */
-    #runicStagPlaqueDialog[open] ~ #studioPowerTools{
-      display:none!important;
-    }
   </style>
 </head>
 
@@ -2066,12 +2051,6 @@
     id="runicStagPlaqueDialog"
     aria-label="Runic Stag devotion plaque"
   >
-    <button
-      type="button"
-      class="runic-stag-close"
-      id="runicStagPlaqueClose"
-      aria-label="Close Runic Stag plaque"
-    >&times;</button>
     <img
       class="runic-stag-image"
       src="assets/runic-stag-plaque.webp"
@@ -2173,16 +2152,12 @@
   (function () {
     const trigger = document.getElementById("runicStagTrigger");
     const dialog = document.getElementById("runicStagPlaqueDialog");
-    const close = document.getElementById("runicStagPlaqueClose");
-    if (!trigger || !dialog || !close) return;
+    if (!trigger || !dialog) return;
 
     trigger.addEventListener("click", function (event) {
       if (typeof dialog.showModal !== "function") return;
       event.preventDefault();
       if (!dialog.open) dialog.showModal();
-    });
-    close.addEventListener("click", function () {
-      if (dialog.open) dialog.close();
     });
     dialog.addEventListener("click", function (event) {
       if (event.target === dialog) dialog.close();
