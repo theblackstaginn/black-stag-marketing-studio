@@ -19,7 +19,7 @@
   const check=siteChecks.get(p.id);
   const recent=check&&Date.now()-Date.parse(check.checked_at)<30*86400000;
   const consistent=check&&(p.opportunity_type==="severely_broken"
-    ?["likely_website_found","possible_match"].includes(check.status)
+    ?["likely_website_found","possible_match","no_clear_site_found"].includes(check.status)
     :check.status==="no_clear_site_found");
   return Boolean(recent&&consistent)&&hasEmail(p)&&Boolean(url(p.email_source_url))&&Object.hasOwn(GAPS,p.opportunity_type)
    &&Boolean(String(p.opportunity_evidence||"").trim())
