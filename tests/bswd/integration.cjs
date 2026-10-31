@@ -28,7 +28,7 @@ let browser,server,activePage;
  file('supabase/migrations/20260929235934_add_brand_co_owners.sql');
  file('supabase/migrations/20260930000443_protect_primary_brand_owner.sql');
  const migrations=fs.readdirSync('supabase/migrations').filter(x=>/bswd/.test(x)).sort();
- assert.equal(migrations.length,3);
+ assert.equal(migrations.length,4);
  assert(migrations[0].endsWith('_bswd_prospect_pipeline.sql'),'Schema must sort before guards');
  assert.notEqual(migrations[0].split('_')[0],migrations[1].split('_')[0],'Migration versions must be distinct');
  for(const m of migrations)file('supabase/migrations/'+m);
@@ -53,6 +53,10 @@ let browser,server,activePage;
  const payload={owner_id:users.owner.id,business_name:'Synthetic API QA',location:'Test City',source_url:'https://example.test/research',opportunity_evidence:'Synthetic evidence. Never contact.',contact_channel:'email',contact_value:'public-business@example.test',email_source_url:'https://example.test/contact',opportunity_type:'no_website',prospect_key:'untrusted-client-key',stage:'researched'};
  await rejected(coowner.from('brands').update({owner_id:users.coowner.id}).eq('id',BRAND),'coowner cannot take primary ownership');
  const prospect=must(await owner.from('bswd_prospects').insert(payload).select().single(),'Owner creates prospect');
+ must(await admin.from('bswd_site_search_checks').insert({
+  prospect_id:prospect.id,status:'no_clear_site_found',candidates:[],query_count:1,
+  provider:'synthetic-local',match_reason:'Synthetic test, not a live business'
+ }),'Seed local website-search fixture');
  for(const [name,c] of [['outsider',outsider],['coowner',coowner],['anon',createClient(api,anon,opts)]]){
   for(const table of ['bswd_prospects','bswd_outreach','bswd_prospect_events']){
    const r=await c.from(table).select('*');
@@ -119,6 +123,14 @@ let browser,server,activePage;
   async function fill(){await page.locator('#business').fill(name);await page.locator('#location').fill('Test City');await page.locator('#source').fill('https://example.test/qa');await page.locator('#evidence').fill('Synthetic verified evidence; never contact.');await page.locator('#contactEmail').fill('public-business@example.test');await page.locator('#emailSource').fill('https://example.test/contact');await page.locator('#opportunityType').selectOption('no_website');}
   await fill();await page.locator('#add').click();await page.getByRole('heading',{name,exact:true}).waitFor();await page.getByText('No dedicated website',{exact:true}).first().waitFor();
   await fill();await page.locator('#add').click();await page.getByText('Duplicate business and location.',{exact:true}).waitFor();
+  // Simulate only the successful, server-written result of an independent search.
+  // Never make external calls from the isolated test environment.
+  const saved=must(await admin.from('bswd_prospects').select('id').eq('business_name',name).single(),'Find browser test prospect');
+  must(await admin.from('bswd_site_search_checks').insert({
+   prospect_id:saved.id,status:'no_clear_site_found',candidates:[],query_count:2,
+   provider:'synthetic-local',match_reason:'Isolated fixture; no real lookup'
+  }),'Seed browser website verification');
+  await page.locator('#refresh').click();
   let card=page.locator('#queue > article').filter({has:page.getByRole('heading',{name,exact:true})});
   await card.locator('.toolbar select').selectOption('qualified');await card.getByRole('button',{name:'Save stage',exact:true}).click();
   await card.locator('p > span').filter({hasText:/^qualified$/}).waitFor();
