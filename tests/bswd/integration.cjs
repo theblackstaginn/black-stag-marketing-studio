@@ -118,7 +118,7 @@ let browser,server,activePage;
   const context=await contextFor('owner',{width,height});const page=await context.newPage();activePage=page;const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'/prospect-desk.html');await page.locator('#app').waitFor({state:'visible'});await page.locator('#targetFilter').waitFor();await page.getByText('Synthetic API QA',{exact:true}).waitFor();
-  await page.getByText('Add researched prospect',{exact:true}).click();
+  await page.getByText('Add prospect for automatic website lookup',{exact:true}).click();
   const name='Synthetic Browser QA '+label;
   async function fill(){await page.locator('#business').fill(name);await page.locator('#location').fill('Test City');await page.locator('#source').fill('https://example.test/qa');await page.locator('#evidence').fill('Synthetic verified evidence; never contact.');await page.locator('#contactEmail').fill('public-business@example.test');await page.locator('#emailSource').fill('https://example.test/contact');await page.locator('#opportunityType').selectOption('no_website');}
   await fill();await page.locator('#add').click();await page.getByRole('heading',{name,exact:true}).waitFor();await page.getByText('No dedicated website',{exact:true}).first().waitFor();
