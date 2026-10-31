@@ -28,7 +28,7 @@ let browser,server,activePage;
  file('supabase/migrations/20260929235934_add_brand_co_owners.sql');
  file('supabase/migrations/20260930000443_protect_primary_brand_owner.sql');
  const migrations=fs.readdirSync('supabase/migrations').filter(x=>/bswd/.test(x)).sort();
- assert.equal(migrations.length,2);
+ assert.equal(migrations.length,3);
  assert(migrations[0].endsWith('_bswd_prospect_pipeline.sql'),'Schema must sort before guards');
  assert.notEqual(migrations[0].split('_')[0],migrations[1].split('_')[0],'Migration versions must be distinct');
  for(const m of migrations)file('supabase/migrations/'+m);
@@ -50,7 +50,7 @@ let browser,server,activePage;
  fs.writeFileSync('bswd-test-evidence/sql-result.txt',smoke+'\nRollback row counts unchanged: '+before+'\n');
  async function login(name){const c=createClient(api,anon,opts);must(await c.auth.signInWithPassword({email:users[name].email,password}),'Sign in '+name);return c;}
  const owner=await login('owner'), outsider=await login('outsider'), coowner=await login('coowner');
- const payload={owner_id:users.owner.id,business_name:'Synthetic API QA',location:'Test City',source_url:'https://example.test/research',opportunity_evidence:'Synthetic evidence. Never contact.',prospect_key:'untrusted-client-key',stage:'researched'};
+ const payload={owner_id:users.owner.id,business_name:'Synthetic API QA',location:'Test City',source_url:'https://example.test/research',opportunity_evidence:'Synthetic evidence. Never contact.',contact_channel:'email',contact_value:'public-business@example.test',email_source_url:'https://example.test/contact',opportunity_type:'no_website',prospect_key:'untrusted-client-key',stage:'researched'};
  await rejected(coowner.from('brands').update({owner_id:users.coowner.id}).eq('id',BRAND),'coowner cannot take primary ownership');
  const prospect=must(await owner.from('bswd_prospects').insert(payload).select().single(),'Owner creates prospect');
  for(const [name,c] of [['outsider',outsider],['coowner',coowner],['anon',createClient(api,anon,opts)]]){
@@ -113,11 +113,11 @@ let browser,server,activePage;
  for(const [label,width,height] of [['desktop',1280,900],['mobile',390,844],['small-mobile',320,740]]){
   const context=await contextFor('owner',{width,height});const page=await context.newPage();activePage=page;const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(base+'/prospect-desk.html');await page.locator('#app').waitFor({state:'visible'});await page.getByText('Synthetic API QA',{exact:true}).waitFor();
+  await page.goto(base+'/prospect-desk.html');await page.locator('#app').waitFor({state:'visible'});await page.locator('#targetFilter').waitFor();await page.getByText('Synthetic API QA',{exact:true}).waitFor();
   await page.getByText('Add researched prospect',{exact:true}).click();
   const name='Synthetic Browser QA '+label;
-  async function fill(){await page.locator('#business').fill(name);await page.locator('#location').fill('Test City');await page.locator('#source').fill('https://example.test/qa');await page.locator('#evidence').fill('Synthetic verified evidence; never contact.');}
-  await fill();await page.locator('#add').click();await page.getByRole('heading',{name,exact:true}).waitFor();
+  async function fill(){await page.locator('#business').fill(name);await page.locator('#location').fill('Test City');await page.locator('#source').fill('https://example.test/qa');await page.locator('#evidence').fill('Synthetic verified evidence; never contact.');await page.locator('#contactEmail').fill('public-business@example.test');await page.locator('#emailSource').fill('https://example.test/contact');await page.locator('#opportunityType').selectOption('no_website');}
+  await fill();await page.locator('#add').click();await page.getByRole('heading',{name,exact:true}).waitFor();await page.getByText('No dedicated website',{exact:true}).first().waitFor();
   await fill();await page.locator('#add').click();await page.getByText('Duplicate business and location.',{exact:true}).waitFor();
   let card=page.locator('#queue > article').filter({has:page.getByRole('heading',{name,exact:true})});
   await card.locator('.toolbar select').selectOption('qualified');await card.getByRole('button',{name:'Save stage',exact:true}).click();
