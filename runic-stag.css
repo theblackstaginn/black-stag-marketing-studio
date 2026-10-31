@@ -14,3 +14,9 @@
 .runic-stag-plaque .runic-stag-seal{margin-top:20px;color:#d5b182;font-style:italic}
 .runic-stag-dialog.is-fading{opacity:0;transform:scale(.985);transition:opacity 1s,transform 1s}
 @media(prefers-reduced-motion:reduce){.runic-stag-dialog.is-fading{transition:none}}
+
+.runic-stag-plaque:has(.runic-stag-art:not([hidden])){padding:0;background:transparent;border:0;box-shadow:none}
+.runic-stag-plaque:has(.runic-stag-art:not([hidden]))::before{display:none}
+.runic-stag-art{display:block;width:100%;height:auto;border-radius:10px;box-shadow:0 20px 70px #0009}
+.runic-stag-art[hidden],.runic-stag-fallback[hidden]{display:none!important}
+.runic-stag-plaque:has(.runic-stag-art:not([hidden])) .runic-stag-close{z-index:2;background:#171b19cc;border-radius:50%;width:35px;height:35px}
