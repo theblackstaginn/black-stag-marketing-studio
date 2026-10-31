@@ -244,13 +244,13 @@
    e.preventDefault();const name=$("business").value.trim(),location=$("location").value.trim(),
     source=url($("source").value),website=$("website").value.trim(),evidence=$("evidence").value.trim(),
     email=$("contactEmail").value.trim(),emailSource=url($("emailSource").value),gap=$("opportunityType").value;
-   if(!name||!source||!evidence||!validEmail(email)||!emailSource||!Object.hasOwn(GAPS,gap)
+   if(!name||!source||!validEmail(email)||!emailSource||(gap&&!Object.hasOwn(GAPS,gap))
      ||(website&&!url(website))||(gap==="severely_broken"&&!website)
      ||(gap!=="severely_broken"&&website)){
-    $("addStatus").textContent="Verify a public business email and its source, choose a website gap, and record evidence. Broken sites require a URL; no-site/social-only targets must leave it empty.";return;
+    $("addStatus").textContent="A valid public business email, its source URL, and a research source are required. If claiming a broken site, include its URL. You can leave the gap undecided until the automated search finishes.";return;
    }
    $("add").disabled=true;
-   const {data:created,error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence,contact_channel:"email",contact_value:email,email_source_url:emailSource,opportunity_type:gap,prospect_key:keyFor(name,location),stage:"researched"}).select("id").single();
+   const {data:created,error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence||null,contact_channel:"email",contact_value:email,email_source_url:emailSource,opportunity_type:gap||null,prospect_key:keyFor(name,location),stage:"researched"}).select("id").single();
    $("add").disabled=false;
    $("addStatus").textContent=error?(error.code==="23505"?"Duplicate business and location.":error.message):"Saved research candidate.";
    if(!error){$("newProspect").reset();await refresh();
