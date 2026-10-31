@@ -1,0 +1,22 @@
+/* Runic Stag: intentionally quiet, scoped to the main dashboard. */
+.runic-stag-anchor{display:flex;justify-content:center;padding:8px 0 18px}
+.runic-stag-trigger{border:0;background:transparent;color:#c49a69;font:normal clamp(1.05rem,3vw,1.4rem)/1.5 Georgia,serif;letter-spacing:.35em;cursor:pointer;padding:8px 14px;transition:color .2s,text-shadow .2s}
+.runic-stag-trigger:hover,.runic-stag-trigger:focus-visible{color:#f1d2a3;text-shadow:0 0 15px #bb875d66}
+.runic-stag-trigger:focus-visible,.runic-stag-close:focus-visible{outline:2px solid #e5c28b;outline-offset:4px}
+.runic-stag-dialog{border:0;padding:0;background:transparent;color:#e9ddca;max-width:min(92vw,560px);width:100%;overflow:visible}
+.runic-stag-dialog::backdrop{background:rgba(4,7,6,.82);backdrop-filter:blur(5px)}
+.runic-stag-plaque{position:relative;text-align:center;padding:clamp(28px,6vw,52px) clamp(20px,5vw,42px);border:1px solid #9c754d;border-radius:13px;background:radial-gradient(ellipse at 50% 0%,#35352b,#171b19 68%,#101412);box-shadow:inset 0 0 0 5px #181a17,inset 0 0 0 6px #73583b,0 20px 70px #0009}
+.runic-stag-plaque::before{content:"";position:absolute;inset:13px;border:1px solid #a27a4a66;border-radius:5px;pointer-events:none}
+.runic-stag-close{position:absolute;right:17px;top:13px;border:0;background:transparent;color:#d2b48b;font-size:24px;cursor:pointer}
+.runic-stag-glyphs{color:#d8b07a;font:normal clamp(1.35rem,5vw,1.8rem) Georgia,serif;letter-spacing:.2em;margin:0 0 20px}
+.runic-stag-plaque h2{font:normal clamp(1.25rem,4vw,1.65rem) Georgia,serif;letter-spacing:.06em;margin:0 0 19px;color:#ebd4ae}
+.runic-stag-plaque p{font:normal clamp(.9rem,2.6vw,1.02rem)/1.7 Georgia,serif;margin:0 0 13px}
+.runic-stag-plaque .runic-stag-seal{margin-top:20px;color:#d5b182;font-style:italic}
+.runic-stag-dialog.is-fading{opacity:0;transform:scale(.985);transition:opacity 1s,transform 1s}
+@media(prefers-reduced-motion:reduce){.runic-stag-dialog.is-fading{transition:none}}
+
+.runic-stag-plaque:has(.runic-stag-art:not([hidden])){padding:0;background:transparent;border:0;box-shadow:none}
+.runic-stag-plaque:has(.runic-stag-art:not([hidden]))::before{display:none}
+.runic-stag-art{display:block;width:100%;height:auto;border-radius:10px;box-shadow:0 20px 70px #0009}
+.runic-stag-art[hidden],.runic-stag-fallback[hidden]{display:none!important}
+.runic-stag-plaque:has(.runic-stag-art:not([hidden])) .runic-stag-close{z-index:2;background:#171b19cc;border-radius:50%;width:35px;height:35px}
