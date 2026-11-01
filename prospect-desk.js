@@ -241,10 +241,12 @@
   $("verifyNext").disabled=true;
   const status=$("verifyStatus");
   try{
+   // Auto-check missing-site prospects first. Known-site records remain manually checkable.
    const targets=records.filter(p=>hasEmail(p)&&!p.suppressed_at&&p.stage!=="do_not_contact"
+    &&(!p.website_url||p.opportunity_type==="severely_broken")
     &&(!siteChecks.has(p.id)||Date.now()-Date.parse(siteChecks.get(p.id).checked_at)>7*86400000))
     .slice(0,Math.min(3,Math.max(1,limit)));
-   if(!targets.length){status.textContent="All email contacts recently checked.";return;}
+   if(!targets.length){status.textContent="No eligible email leads need website checks; existing-site records are skipped.";return;}
    let completed=0;
    for(const p of targets){
     status.textContent="Checking "+p.business_name+" ("+(completed+1)+"/"+targets.length+")";
