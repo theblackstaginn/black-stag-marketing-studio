@@ -132,6 +132,8 @@ let browser,server,activePage;
   }),'Seed browser website verification');
   await page.locator('#refresh').click();
   let card=page.locator('#queue > article').filter({has:page.getByRole('heading',{name,exact:true})});
+  // The refresh handler is asynchronous; wait until the seeded result is rendered.
+  await card.getByText('No clear site found (NOT proof of absence)',{exact:true}).waitFor();
   await card.locator('.toolbar select').selectOption('qualified');await card.getByRole('button',{name:'Save stage',exact:true}).click();
   await card.locator('p > span').filter({hasText:/^qualified$/}).waitFor();
   await page.locator('#stageFilter').selectOption('qualified');await card.getByText('Drafts and outreach history',{exact:true}).click();
