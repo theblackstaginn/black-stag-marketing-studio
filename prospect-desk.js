@@ -204,7 +204,18 @@
   if(!ownerId||p.suppressed_at||p.stage==="do_not_contact")return {ok:false,message:"Not available for this prospect"};
   try{
    const {data,error}=await client.functions.invoke("bswd-site-verifier",{body:{prospect_id:p.id,force}});
-   if(error)return {ok:false,message:error.message||"Service unavailable"};
+   if(error){
+    // Only display the verifier's short machine-readable error code, never arbitrary server text.
+    let code="";
+    try{
+     if(typeof error.context?.json==="function"){
+      const detail=await error.context.json();
+      if(typeof detail?.error==="string"&&/^[a-z][a-z0-9_]{0,79}$/.test(detail.error))code=detail.error;
+     }
+    }catch{/* Transport or non-JSON errors retain their generic message. */}
+    const status=Number(error.context?.status);
+    return {ok:false,message:code?("Website lookup HTTP "+(status||"error")+": "+code):(error.message||"Service unavailable")};
+   }
    if(!data?.ok||!data?.check)return {ok:false,message:data?.error||"No result returned"};
    siteChecks.set(p.id,data.check);
    // Background results must not reset unsaved selections or draft text.
