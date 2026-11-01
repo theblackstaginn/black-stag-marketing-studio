@@ -22,14 +22,15 @@ requirePattern(guards,/new\.sent_at is distinct from old\.sent_at/i,"delivery ti
 requirePattern(ui,/client\.auth\.getUser\(\)/,"authenticated user check missing");
 requirePattern(ui,/brand\?\.owner_id\s*!==\s*userData\.user\.id/,"brand owner check missing");
 requirePattern(ui,/state:"draft"/,"outreach inserts must start as drafts");
-assert.doesNotMatch(ui,/\.functions\.invoke\(|fetch\([^)]*send|sendEmail\s*\(/i,"unexpected sending implementation");
+assert.doesNotMatch(ui,/fetch\([^)]*send|sendEmail\s*\(/i,"unexpected sending implementation");
+assert.doesNotMatch(ui,/\.functions\.invoke\((?!["\x27]bswd-site-verifier["\x27])/i,"only the read-only website verifier may be invoked");
 requirePattern(html,/noindex,nofollow/i,"prospect page must not be indexed");
 requirePattern(ui,/function hasEmail\(p\)/,"email contact detection missing");
 requirePattern(ui,/contact_channel,contact_value,stage/,"public contact value must be queried for the desk");
 requirePattern(ui,/emailOnly/,"email-only list filter missing");
 requirePattern(html,/id="emailOnly"/,"email-only toggle missing");
 requirePattern(html,/id="contactEmail"/,"public contact email input missing");
-requirePattern(html,/prospect-desk\.js\?v=2/,"updated JS cache bust missing");
+requirePattern(html,/prospect-desk\.js\?v=4/,"updated JS cache bust missing");
 for (const name of ["prospects", "outreach", "events"]) {
  const policy = schema.split('create policy "owner access ' + name + '"')[1]?.split(';')[0] || "";
  for (const clause of ["using", "with check"]) {
@@ -38,4 +39,24 @@ for (const name of ["prospects", "outreach", "events"]) {
   requirePattern(predicate, /b\.id = 'd51c76c3-a4a6-4109-99c2-5a4b3cff226b' and b\.owner_id = \(select auth\.uid\(\)\)/i, name + " BSWD brand predicate missing");
  }
 }
+const targeting=read("supabase/migrations/20261031042550_bswd_email_verified_website_gap_focus.sql");
+const discovery=read("supabase/migrations/20261031043600_bswd_site_search_checks.sql");
+const verifier=read("supabase/functions/bswd-site-verifier/index.ts");
+requirePattern(targeting,/opportunity_type\s+text/i,"website-gap classification column missing");
+requirePattern(targeting,/email_source_url\s+text/i,"email source evidence column missing");
+requirePattern(discovery,/enable row level security/i,"site search records require RLS");
+requirePattern(discovery,/force row level security/i,"site search records require FORCE RLS");
+requirePattern(discovery,/revoke all on public.bswd_site_search_checks from authenticated/i,"browser must not write automated evidence");
+requirePattern(ui,/from\("bswd_site_search_checks"\)/,"automated site check readback missing");
+requirePattern(ui,/functions\.invoke\("bswd-site-verifier"/,"automatic site check invocation missing");
+requirePattern(ui,/void verifyDue\(2\)/,"initial automatic website check missing");
+requirePattern(ui,/await verifySite\(createdProspect\)/,"new business automatic website check missing");
+requirePattern(ui,/no_clear_site_found/,"search uncertainty classification missing");
+requirePattern(html,/id="verifyNext"/,"owner batch check control missing");
+requirePattern(html,/id="verifyStatus"/,"search progress field missing");
+requirePattern(verifier,/\/auth\/v1\/user/,"verifier must authenticate caller");
+requirePattern(verifier,/bswd_owner_only/,"verifier must enforce primary BSWD owner");
+requirePattern(verifier,/SUPABASE_SERVICE_ROLE_KEY/,"server-only evidence write key missing");
+requirePattern(verifier,/X-Tavily-Access-Mode/,"keyless search mode missing");
+assert.doesNotMatch(verifier,/sendEmail|smtp|resend\.emails|outreach\.insert/i,"site checker must never send outreach");
 console.log("PASS: prospect desk static security contracts (not a substitute for database integration tests)");
