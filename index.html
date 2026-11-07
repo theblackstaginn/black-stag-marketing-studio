@@ -421,6 +421,15 @@
           <span>Tumblr Desk</span>
         </a>
 
+        <a id="workshopInventoryNav" href="./workshop-inventory.html"
+           class="nav-button workshop-shortcut" hidden
+           style="text-decoration:none">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false"><path d="M4 5h16v14H4zM8 5v14M13 5v14M4 10h16"/></svg>
+          </span>
+          <span>Workshop Inventory</span>
+        </a>
+
         <a id="artstationDeskNav" href="./artstation-desk.html"
            class="nav-button artstation-shortcut" hidden
            style="text-decoration:none">
@@ -710,6 +719,16 @@
               <p>Watch followers, recent notes, publishing activity, queue state, and tag mix from the live Tumblr bridge.</p>
             </div>
             <a class="lace-studio-open" href="./tumblr-desk.html">Open Tumblr Desk ↗</a>
+          </section>
+
+          <!-- LACE & LEATHER WORKSHOP INVENTORY SHORTCUT -->
+          <section id="workshopInventoryMobileCard" class="lace-studio-banner" hidden aria-label="Lace and Leather workshop inventory">
+            <div>
+              <span class="eyebrow">Lace &amp; Leather · Workshop</span>
+              <strong>Workshop Inventory</strong>
+              <p>Track wand-making materials, leather supplies, and purchased merchandise for the artisan cart.</p>
+            </div>
+            <a class="lace-studio-open" href="./workshop-inventory.html">Open Workshop Inventory ↗</a>
           </section>
 
           <!-- LACE & LEATHER ARTSTATION SHORTCUT -->
@@ -2114,7 +2133,7 @@
       let selected=null;
       try{selected=window.localStorage.getItem("blackStagMarketingStudio.activeBrand")}catch{}
       const active=selected===brandId;
-      const ids=["pinterestDeskNav","itchDeskNav","tumblrDeskNav","artstationDeskNav","ownerDeskMobileCard","pinterestDeskMobileCard","itchDeskMobileCard","tumblrDeskMobileCard","artstationDeskMobileCard"];
+      const ids=["pinterestDeskNav","itchDeskNav","tumblrDeskNav","artstationDeskNav","workshopInventoryNav","ownerDeskMobileCard","pinterestDeskMobileCard","itchDeskMobileCard","tumblrDeskMobileCard","artstationDeskMobileCard","workshopInventoryMobileCard"];
       for(const id of ids){
         const el=document.getElementById(id);
         if(el)el.hidden=!active;
