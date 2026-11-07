@@ -333,6 +333,15 @@ const APP_DATA = {
   assetFolders: []
 };
 
+// UI only: historical Stag & Stone data stays untouched in Supabase.
+const HIDDEN_WORKING_BRAND_IDS = new Set([
+  "f2d4ad11-da97-4ede-bd8c-135150cf9ef6"
+]);
+
+function isVisibleWorkingBrand(brand) {
+  return Boolean(brand) && !HIDDEN_WORKING_BRAND_IDS.has(brand.id);
+}
+
 
 /* =========================================================
    APP STATE
@@ -2432,14 +2441,14 @@ function ensureValidActiveBrand() {
     getActiveBrand();
 
 
-  if (activeBrand) {
+  if (isVisibleWorkingBrand(activeBrand) && activeBrand.active !== false) {
     return activeBrand;
   }
 
-
   const fallback =
-    APP_DATA.brands[0] ??
-    null;
+    APP_DATA.brands.find(
+      brand => isVisibleWorkingBrand(brand) && brand.active !== false
+    ) ?? null;
 
 
   APP_STATE.activeBrandId =
@@ -2499,12 +2508,11 @@ function setActiveBrand(
     );
 
 
-  if (!brand) {
+  if (!isVisibleWorkingBrand(brand) || brand.active === false) {
     showToast(
-      "That brand could not be found.",
+      "That brand is not available in the working dashboard.",
       "error"
     );
-
     return;
   }
 
@@ -2703,8 +2711,7 @@ function renderBrandPicker() {
   list.innerHTML =
     APP_DATA.brands
       .filter(
-        brand =>
-          brand.active !== false
+        brand => brand.active !== false && isVisibleWorkingBrand(brand)
       )
       .map(
         brand => {
@@ -2992,6 +2999,7 @@ function renderBrandGrid() {
 
   grid.innerHTML =
     APP_DATA.brands
+      .filter(isVisibleWorkingBrand)
       .map(
         brand => {
           const isActive =
@@ -19140,8 +19148,7 @@ function renderQuickCreateBrandOptions() {
   select.innerHTML =
     APP_DATA.brands
       .filter(
-        brand =>
-          brand.active !== false
+        brand => brand.active !== false && isVisibleWorkingBrand(brand)
       )
       .map(
         brand => `
@@ -19171,9 +19178,8 @@ function renderQuickCreateBrandOptions() {
     (
       currentValue &&
       APP_DATA.brands.some(
-        brand =>
-          brand.id ===
-          currentValue
+        brand => brand.id === currentValue &&
+          brand.active !== false && isVisibleWorkingBrand(brand)
       )
     )
       ? currentValue
@@ -22144,7 +22150,8 @@ async function refreshWorkingData() {
     APP_DATA.brands.some(
       brand =>
         brand.id ===
-        activeBrandId
+        activeBrandId &&
+        brand.active !== false && isVisibleWorkingBrand(brand)
     )
   ) {
     APP_STATE.activeBrandId =
@@ -26068,7 +26075,8 @@ async function startAuthenticatedApp(
           brand.id ===
           storedBrandId &&
           brand.active !==
-            false
+            false &&
+          isVisibleWorkingBrand(brand)
       );
 
     if (storedBrandExists) {
@@ -26079,7 +26087,8 @@ async function startAuthenticatedApp(
         APP_DATA.brands.find(
           brand =>
             brand.active !==
-            false
+            false &&
+            isVisibleWorkingBrand(brand)
         )?.id ||
         null;
     }
