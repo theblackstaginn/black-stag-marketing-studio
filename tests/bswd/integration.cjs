@@ -28,11 +28,11 @@ let browser,server,activePage;
  file('supabase/migrations/20260929235934_add_brand_co_owners.sql');
  file('supabase/migrations/20260930000443_protect_primary_brand_owner.sql');
  const migrations=fs.readdirSync('supabase/migrations').filter(x=>/bswd/.test(x)).sort();
- assert.equal(migrations.length,4);
+ assert.equal(migrations.length,5);
  assert(migrations[0].endsWith('_bswd_prospect_pipeline.sql'),'Schema must sort before guards');
  assert.notEqual(migrations[0].split('_')[0],migrations[1].split('_')[0],'Migration versions must be distinct');
  for(const m of migrations)file('supabase/migrations/'+m);
- // Production work_items exists in BSMS; this disposable suite otherwise loads only the four BSWD migrations.
+ // Production work_items exists in BSMS; this disposable suite otherwise loads only the five BSWD migrations.
  sql(`create table public.work_items (
    id uuid primary key default gen_random_uuid(),
    brand_id uuid not null references public.brands(id),
@@ -74,6 +74,44 @@ let browser,server,activePage;
    brand_id:BRAND,title:'Research candidate: Synthetic Staged QA',work_type:'research',
    status:'waiting',notes:'BSWD_CANDIDATE_V1='+JSON.stringify(stagedFixture)
  }).select('id').single(),'Seed local staged research candidate');
+
+ const auditedBroken={
+   ...stagedFixture,business_name:'Synthetic Audited Defect QA',
+   contact_email:'synthetic-broken@example.test',
+   website_url:'https://broken.example.test/',
+   opportunity_type:'severely_broken',
+   site_audit:{result:'material_defect',checked_at:new Date().toISOString(),
+     evidence:['Synthetic test: primary navigation returns a reproducible missing-page error on two links.'],
+     urls_checked:['https://broken.example.test/','https://broken.example.test/services']}
+ };
+ const auditedOutdated={
+   ...stagedFixture,business_name:'Synthetic Audited Outdated QA',
+   contact_email:'synthetic-outdated@example.test',
+   website_url:'https://outdated.example.test/',
+   opportunity_type:'outdated_site',
+   site_audit:{result:'completely_outdated',checked_at:new Date().toISOString(),
+     evidence:['Synthetic test: fixed-width legacy page overflows a typical mobile viewport with unreadable tiny text.','Synthetic test: published service and location pages identify obsolete services and a defunct office address.'],
+     urls_checked:['https://outdated.example.test/','https://outdated.example.test/contact']}
+ };
+ const healthySite={
+   ...stagedFixture,business_name:'Synthetic Healthy Site QA',
+   contact_email:'synthetic-healthy@example.test',website_url:'https://healthy.example.test/',
+   opportunity_type:null,
+   site_audit:{result:'healthy',checked_at:new Date().toISOString(),evidence:[],urls_checked:['https://healthy.example.test/']}
+ };
+ const siteWithoutProof={
+   ...stagedFixture,business_name:'Synthetic Unverified Site QA',
+   contact_email:'synthetic-unverified@example.test',
+   website_url:'https://unverified.example.test/',
+   opportunity_type:'outdated_site'
+ };
+ for(const c of [auditedBroken,auditedOutdated,healthySite,siteWithoutProof]){
+  must(await admin.from('work_items').insert({
+    brand_id:BRAND,title:'Research candidate: '+c.business_name,work_type:'research',
+    status:'waiting',notes:'BSWD_CANDIDATE_V1='+JSON.stringify(c)
+  }).select('id').single(),'Seed synthetic site audit record');
+ }
+
  const payload={owner_id:users.owner.id,business_name:'Synthetic API QA',location:'Test City',source_url:'https://example.test/research',opportunity_evidence:'Synthetic evidence. Never contact.',contact_channel:'email',contact_value:'public-business@example.test',email_source_url:'https://example.test/contact',opportunity_type:'no_website',prospect_key:'untrusted-client-key',stage:'researched'};
  await rejected(coowner.from('brands').update({owner_id:users.coowner.id}).eq('id',BRAND),'coowner cannot take primary ownership');
  const prospect=must(await owner.from('bswd_prospects').insert(payload).select().single(),'Owner creates prospect');
@@ -147,6 +185,25 @@ let browser,server,activePage;
   assert.equal(imports.length,1,'staged prospect must import only once');
   assert.equal(imports[0].stage,'researched','agent-staged prospects must never claim owner approval');
   assert.equal(imports[0].opportunity_type,null,'agent-staged website gap requires owner verification');
+
+  for(const [business,category] of [
+   ['Synthetic Audited Defect QA','severely_broken'],
+   ['Synthetic Audited Outdated QA','outdated_site']
+  ]){
+   await page.getByRole('heading',{name:business,exact:true}).waitFor();
+   const rows=must(await admin.from('bswd_prospects').select('stage,website_url,opportunity_type,opportunity_evidence').eq('business_name',business),'Confirm audited site imported');
+   assert.equal(rows.length,1,'audited site must import exactly once');
+   assert.equal(rows[0].stage,'researched','audited prospect cannot assert approval or contact');
+   assert.equal(rows[0].opportunity_type,category,'keep factual site audit classification');
+   assert(rows[0].website_url.startsWith('https://'),'existing site URL must be recorded');
+   assert(rows[0].opportunity_evidence.includes('SITE_AUDIT_V1='),'site audit evidence must persist');
+  }
+  for(const excluded of ['Synthetic Healthy Site QA','Synthetic Unverified Site QA']){
+   const rows=must(await admin.from('bswd_prospects').select('id').eq('business_name',excluded),'Reject healthy/unaudited existing site');
+   assert.equal(rows.length,0,'healthy or unaudited existing website cannot enter Prospect Desk');
+   assert.equal(await page.getByRole('heading',{name:excluded,exact:true}).count(),0,'disqualified prospect must stay out of UI');
+  }
+
   await page.getByText('Add prospect for automatic website lookup',{exact:true}).click();
   const name='Synthetic Browser QA '+label;
   async function fill(){await page.locator('#business').fill(name);await page.locator('#location').fill('Test City');await page.locator('#source').fill('https://example.test/qa');await page.locator('#evidence').fill('Synthetic verified evidence; never contact.');await page.locator('#contactEmail').fill('public-business@example.test');await page.locator('#emailSource').fill('https://example.test/contact');await page.locator('#opportunityType').selectOption('no_website');}
