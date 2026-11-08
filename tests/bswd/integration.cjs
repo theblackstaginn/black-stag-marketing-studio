@@ -32,6 +32,20 @@ let browser,server,activePage;
  assert(migrations[0].endsWith('_bswd_prospect_pipeline.sql'),'Schema must sort before guards');
  assert.notEqual(migrations[0].split('_')[0],migrations[1].split('_')[0],'Migration versions must be distinct');
  for(const m of migrations)file('supabase/migrations/'+m);
+ // Production work_items exists in BSMS; this disposable suite otherwise loads only the four BSWD migrations.
+ sql(`create table public.work_items (
+   id uuid primary key default gen_random_uuid(),
+   brand_id uuid not null references public.brands(id),
+   title text not null,
+   notes text,
+   work_type text not null default 'research',
+   status text not null default 'open',
+   created_at timestamptz not null default now()
+ );
+ alter table public.work_items enable row level security;
+ grant select on public.work_items to authenticated;
+ create policy "local BSWD staged work read" on public.work_items for select to authenticated
+ using (exists(select 1 from public.brands b where b.id=brand_id and b.owner_id=(select auth.uid())));`);
  const users={};
  const password='Synthetic-local-QA-only-2026!';
  for(const name of ['owner','outsider','coowner']){
@@ -50,6 +64,16 @@ let browser,server,activePage;
  fs.writeFileSync('bswd-test-evidence/sql-result.txt',smoke+'\nRollback row counts unchanged: '+before+'\n');
  async function login(name){const c=createClient(api,anon,opts);must(await c.auth.signInWithPassword({email:users[name].email,password}),'Sign in '+name);return c;}
  const owner=await login('owner'), outsider=await login('outsider'), coowner=await login('coowner');
+ const stagedFixture={
+   business_name:'Synthetic Staged QA',location:'Test City',source_url:'https://example.test/staged',
+   email_source_url:'https://example.test/staged/contact',contact_email:'synthetic-staged@example.test',
+   website_url:null,opportunity_evidence:'Synthetic QA candidate only. No real outreach.',
+   opportunity_type:null,checked_at:new Date().toISOString()
+ };
+ must(await admin.from('work_items').insert({
+   brand_id:BRAND,title:'Research candidate: Synthetic Staged QA',work_type:'research',
+   status:'waiting',notes:'BSWD_CANDIDATE_V1='+JSON.stringify(stagedFixture)
+ }).select('id').single(),'Seed local staged research candidate');
  const payload={owner_id:users.owner.id,business_name:'Synthetic API QA',location:'Test City',source_url:'https://example.test/research',opportunity_evidence:'Synthetic evidence. Never contact.',contact_channel:'email',contact_value:'public-business@example.test',email_source_url:'https://example.test/contact',opportunity_type:'no_website',prospect_key:'untrusted-client-key',stage:'researched'};
  await rejected(coowner.from('brands').update({owner_id:users.coowner.id}).eq('id',BRAND),'coowner cannot take primary ownership');
  const prospect=must(await owner.from('bswd_prospects').insert(payload).select().single(),'Owner creates prospect');
@@ -118,6 +142,11 @@ let browser,server,activePage;
   const context=await contextFor('owner',{width,height});const page=await context.newPage();activePage=page;const errors=[];
   page.on('pageerror',e=>errors.push(e.message));
   await page.goto(base+'/prospect-desk.html');await page.locator('#app').waitFor({state:'visible'});await page.locator('#targetFilter').waitFor();await page.getByText('Synthetic API QA',{exact:true}).waitFor();
+  await page.getByRole('heading',{name:'Synthetic Staged QA',exact:true}).waitFor();
+  const imports=must(await admin.from('bswd_prospects').select('stage,opportunity_type').eq('business_name','Synthetic Staged QA'),'Check auto imported prospect');
+  assert.equal(imports.length,1,'staged prospect must import only once');
+  assert.equal(imports[0].stage,'researched','agent-staged prospects must never claim owner approval');
+  assert.equal(imports[0].opportunity_type,null,'agent-staged website gap requires owner verification');
   await page.getByText('Add prospect for automatic website lookup',{exact:true}).click();
   const name='Synthetic Browser QA '+label;
   async function fill(){await page.locator('#business').fill(name);await page.locator('#location').fill('Test City');await page.locator('#source').fill('https://example.test/qa');await page.locator('#evidence').fill('Synthetic verified evidence; never contact.');await page.locator('#contactEmail').fill('public-business@example.test');await page.locator('#emailSource').fill('https://example.test/contact');await page.locator('#opportunityType').selectOption('no_website');}
