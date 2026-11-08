@@ -12,9 +12,36 @@
  function keyFor(name,location){return normalize(name)+"|"+normalize(location);}
  function url(value){try{const u=new URL(value);return ["https:","http:"].includes(u.protocol)?u.href:null;}catch{return null;}}
  function field(label,value){const p=node("p");p.append(node("strong",label+": "),node("span",value||"Not recorded"));return p;}
- const GAPS={no_website:"No dedicated website",social_only:"Social-media only",severely_broken:"Severely broken website"};
+ const GAPS={no_website:"No dedicated website",social_only:"Social-media only",severely_broken:"Verified broken website",outdated_site:"Completely outdated website"};
  function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||"").trim());}
  function hasEmail(p){return p.contact_channel==="email"&&validEmail(p.contact_value);}
+ // An existing website is eligible only after documented first-hand audit evidence.
+ // The site's official domain must match at least one audited page; healthy and inconclusive sites fail closed.
+ function verifiedSiteAudit(a,site,kind){
+  if(!site||!["severely_broken","outdated_site"].includes(kind)||!a||typeof a!=="object"||Array.isArray(a))return null;
+  const result=kind==="severely_broken"?"material_defect":"completely_outdated";
+  if(a.result!==result)return null;
+  const date=Date.parse(a.checked_at);
+  if(!Number.isFinite(date)||date>Date.now()+3600000||Date.now()-date>30*86400000)return null;
+  if(!Array.isArray(a.evidence)||a.evidence.length<(kind==="outdated_site"?2:1)||a.evidence.length>8)return null;
+  if(a.evidence.some(x=>typeof x!=="string"||x.trim().length<24||x.length>360))return null;
+  if(!Array.isArray(a.urls_checked)||a.urls_checked.length<1||a.urls_checked.length>8)return null;
+  const auditedUrls=a.urls_checked.map(x=>typeof x==="string"?url(x):null);
+  if(auditedUrls.some(x=>!x))return null;
+  const hostname=u=>new URL(u).hostname.toLowerCase().replace(/^www\./,"");
+  if(!auditedUrls.some(x=>hostname(x)===hostname(site)))return null;
+  return {result,checked_at:new Date(date).toISOString(),evidence:a.evidence.map(x=>x.trim()),urls_checked:auditedUrls};
+ }
+ function siteAuditFromEvidence(text){
+  const line=String(text||"").split(/\r?\n/).find(x=>x.startsWith("SITE_AUDIT_V1="));
+  if(!line||line.length>3500)return null;
+  try{return JSON.parse(line.slice("SITE_AUDIT_V1=".length));}catch{return null;}
+ }
+ function hasVerifiedSiteAudit(p){
+  const site=url(p.website_url);
+  return Boolean(site&&verifiedSiteAudit(siteAuditFromEvidence(p.opportunity_evidence),site,p.opportunity_type));
+ }
+
  // Transfer machine-readable BSMS research notes through the signed-in owner's RLS session.
  // The background agent never impersonates the owner or writes protected tables directly.
  // This is a research-only import: no approval, sent status, or outbound message.
@@ -33,11 +60,23 @@
   if(name.length<2||name.length>200||location.length>160||!validEmail(email)||email.length>320
     ||!source||!emailSource||!evidence||evidence.length>4000||!Number.isFinite(checked)
     ||checked>Date.now()+3600000||Date.now()-checked>90*86400000
-    ||normalize(String(work.title).replace(/^Research candidate:\s+/i,""))!==normalize(name)
-    ||c.website_url)return null; // First-site leads only; never import an existing-site claim.
+    ||normalize(String(work.title).replace(/^Research candidate:\s+/i,""))!==normalize(name))return null;
+  const site=c.website_url?url(c.website_url):null;
+  if(c.website_url&&!site)return null;
+  let audited=null,kind=null,fullEvidence=evidence;
+  if(site){
+   kind=c.opportunity_type;
+   audited=verifiedSiteAudit(c.site_audit,site,kind);
+   if(!audited)return null; // Functional, unaudited, or ambiguously outdated websites NEVER reach the desk.
+   fullEvidence+="\n\nExisting site audited "+audited.checked_at.slice(0,10)+":\n"
+    +audited.evidence.map(x=>"- "+x).join("\n")
+    +"\nPages checked: "+audited.urls_checked.join(", ")
+    +"\nSITE_AUDIT_V1="+JSON.stringify(audited);
+   if(fullEvidence.length>4000)return null;
+  }else if(c.site_audit||["outdated_site","severely_broken"].includes(c.opportunity_type))return null;
   return {owner_id:ownerId,business_name:name,location,source_url:source,
-   opportunity_evidence:evidence,contact_channel:"email",contact_value:email,
-   email_source_url:emailSource,website_url:null,opportunity_type:null,
+   opportunity_evidence:fullEvidence,contact_channel:"email",contact_value:email,
+   email_source_url:emailSource,website_url:site,opportunity_type:kind,
    prospect_key:keyFor(name,location),stage:"researched"};
  }
  async function importStagedCandidates(){
@@ -77,15 +116,13 @@
  function targetReady(p){
   const check=siteChecks.get(p.id);
   const recent=check&&Date.now()-Date.parse(check.checked_at)<30*86400000;
-  const consistent=check&&(p.opportunity_type==="severely_broken"
-    ?["likely_website_found","possible_match","no_clear_site_found"].includes(check.status)
-    :check.status==="no_clear_site_found");
-  return Boolean(recent&&consistent)&&hasEmail(p)&&Boolean(url(p.email_source_url))&&Object.hasOwn(GAPS,p.opportunity_type)
-   &&Boolean(String(p.opportunity_evidence||"").trim())
-   &&Boolean(url(p.source_url))&&(!p.website_url||Boolean(url(p.website_url)))
-   &&(p.opportunity_type==="severely_broken"?Boolean(url(p.website_url)):!p.website_url);
+  const hasSite=Boolean(p.website_url);
+  const eligible=hasSite?hasVerifiedSiteAudit(p)
+    :Boolean(recent&&check.status==="no_clear_site_found"&&["no_website","social_only"].includes(p.opportunity_type));
+  return eligible&&hasEmail(p)&&Boolean(url(p.email_source_url))&&Object.hasOwn(GAPS,p.opportunity_type)
+   &&Boolean(String(p.opportunity_evidence||"").trim())&&Boolean(url(p.source_url));
  }
- function targetPriority(p){return ({no_website:0,social_only:1,severely_broken:2})[p.opportunity_type]??3;}
+ function targetPriority(p){return ({no_website:0,social_only:1,severely_broken:2,outdated_site:3})[p.opportunity_type]??4;}
  function render(){
   const targets=records.filter(targetReady).length;
   const mode=$("targetFilter").value;
@@ -98,7 +135,7 @@
   for(const p of filtered){
    const card=node("article");card.className="panel";card.dataset.prospectId=p.id;
    card.append(node("h2",p.business_name),field("Location",p.location),field("Stage",p.stage),
-    field("Website gap",GAPS[p.opportunity_type]||"Needs verification"),field("Website",p.website_url||"No verified site recorded"),
+    field("Website opportunity",GAPS[p.opportunity_type]||"Needs verification"),field("Website",p.website_url||"No verified site recorded"),
     field("Contact method",p.contact_channel),field(hasEmail(p)?"Business email":"Other contact",p.contact_value),
     field("Public email source",p.email_source_url),field("Evidence",p.opportunity_evidence));
    const eligibility=node("p",targetReady(p)?"✓ Research criteria recorded; eligible for owner review.":"Not yet an eligible target. Verify the public email and actual website gap.");
@@ -138,7 +175,7 @@
   const box=node("div");box.className="panel site-check-panel";
   const c=siteChecks.get(p.id);
   const statuses={likely_website_found:"Likely existing website",possible_match:"Possible match; verify before outreach",no_clear_site_found:"No clear site found (NOT proof of absence)",search_error:"Search incomplete"};
-  box.append(field("Automatic website lookup",c?statuses[c.status]||"Unknown":"Waiting for check"));
+  box.append(field("Automatic website lookup",c?statuses[c.status]||"Unknown":hasVerifiedSiteAudit(p)?"Existing site audited before import":"Waiting for check"));
   if(c){
    box.append(field("Checked",new Date(c.checked_at).toLocaleString()));
    if(c.match_reason)box.append(node("p",c.match_reason));
@@ -178,7 +215,7 @@
   const choose=node("option","Select after independent research");choose.value="";gap.append(choose);
   for(const [key,label] of Object.entries(GAPS)){const option=node("option",label);option.value=key;gap.append(option);}
   gap.value=p.opportunity_type||"";gapLabel.append(gap);form.append(gapLabel);
-  const website=input("Actual dedicated website URL (required only if severely broken)",p.website_url,"url",2000);
+  const website=input("Dedicated website URL (required for broken or outdated sites)",p.website_url,"url",2000);
   const evidenceLabel=node("label","Objective website-gap evidence");const evidence=node("textarea",p.opportunity_evidence||"");
   evidence.maxLength=4000;evidenceLabel.append(evidence);form.append(evidenceLabel);
   const save=node("button","Save research verification");save.type="submit";
@@ -186,10 +223,12 @@
   form.addEventListener("submit",async event=>{
    event.preventDefault();
    const contact=email.value.trim(),link=url(emailSource.value.trim()),site=website.value.trim()?url(website.value.trim()):null;
+   const siteType=["severely_broken","outdated_site"].includes(gap.value);
    if(!validEmail(contact)||!link||!Object.hasOwn(GAPS,gap.value)||!evidence.value.trim()
-     ||(website.value.trim()&&!site)||(gap.value==="severely_broken"&&!site)
-     ||(gap.value!=="severely_broken"&&website.value.trim())){
-    feedback.textContent="A public email, its source URL, a supported website gap, and objective evidence are required. Broken sites need a URL; no-site/social-only leads must leave that field empty.";
+     ||(website.value.trim()&&!site)||(siteType&&!site)
+     ||(!siteType&&website.value.trim())
+     ||(siteType&&!hasVerifiedSiteAudit({website_url:site,opportunity_type:gap.value,opportunity_evidence:evidence.value}))){
+    feedback.textContent="A public business email and research evidence are required. Existing-site prospects require a recent, documented SITE_AUDIT_V1 record proving a real defect or completely outdated website. Healthy and unaudited websites are disqualified.";
     return;
    }
    save.disabled=true;
@@ -303,7 +342,7 @@
   try{
    // Auto-check missing-site prospects first. Known-site records remain manually checkable.
    const targets=records.filter(p=>hasEmail(p)&&!p.suppressed_at&&p.stage!=="do_not_contact"
-    &&(!p.website_url||p.opportunity_type==="severely_broken")
+    &&!p.website_url
     &&(!siteChecks.has(p.id)||Date.now()-Date.parse(siteChecks.get(p.id).checked_at)>7*86400000))
     .slice(0,Math.min(3,Math.max(1,limit)));
    if(!targets.length){status.textContent="No eligible email leads need website checks; existing-site records are skipped.";return;}
@@ -334,9 +373,10 @@
     source=url($("source").value),website=$("website").value.trim(),evidence=$("evidence").value.trim(),
     email=$("contactEmail").value.trim(),emailSource=url($("emailSource").value),gap=$("opportunityType").value;
    if(!name||!source||!validEmail(email)||!emailSource||(gap&&!Object.hasOwn(GAPS,gap))
-     ||(website&&!url(website))||(gap==="severely_broken"&&!website)
-     ||(gap!=="severely_broken"&&website)){
-    $("addStatus").textContent="A valid public business email, its source URL, and a research source are required. If claiming a broken site, include its URL. You can leave the gap undecided until the automated search finishes.";return;
+     ||(website&&!url(website))||(["severely_broken","outdated_site"].includes(gap)&&!website)
+     ||(!["severely_broken","outdated_site"].includes(gap)&&website)
+     ||(website&&!hasVerifiedSiteAudit({website_url:website,opportunity_type:gap,opportunity_evidence:evidence}))){
+    $("addStatus").textContent="Use a public business email, its source URL, and research evidence. An existing website must have a verified audit record first. Healthy websites are disqualified.";return;
    }
    $("add").disabled=true;
    const {data:created,error}=await client.from("bswd_prospects").insert({owner_id:ownerId,business_name:name,location,source_url:source,website_url:website?url(website):null,opportunity_evidence:evidence||null,contact_channel:"email",contact_value:email,email_source_url:emailSource,opportunity_type:gap||null,prospect_key:keyFor(name,location),stage:"researched"}).select("id").single();
