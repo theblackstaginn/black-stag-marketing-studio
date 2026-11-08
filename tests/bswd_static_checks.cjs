@@ -30,7 +30,7 @@ requirePattern(ui,/contact_channel,contact_value,stage/,"public contact value mu
 requirePattern(ui,/emailOnly/,"email-only list filter missing");
 requirePattern(html,/id="emailOnly"/,"email-only toggle missing");
 requirePattern(html,/id="contactEmail"/,"public contact email input missing");
-requirePattern(html,/prospect-desk\.js\?v=5/,"updated JS cache bust missing");
+requirePattern(html,/prospect-desk\.js\?v=6/,"updated JS cache bust missing");
 for (const name of ["prospects", "outreach", "events"]) {
  const policy = schema.split('create policy "owner access ' + name + '"')[1]?.split(';')[0] || "";
  for (const clause of ["using", "with check"]) {
@@ -66,10 +66,20 @@ requirePattern(ui,/\.eq\("brand_id",BRAND_ID\)/,"staged work must be scoped to B
 requirePattern(ui,/\.eq\("work_type","research"\)/,"only research staging work may import");
 requirePattern(ui,/\.insert\(candidate\)/,"owner-scoped researched import missing");
 requirePattern(ui,/stage:"researched"/,"candidate import may only create researched records");
-requirePattern(ui,/opportunity_type:null/,"candidate classification must not be auto-approved");
-requirePattern(ui,/c\.website_url\)return null/,"existing website candidate must not be auto-imported");
+requirePattern(ui,/opportunity_type:kind/,"audited site categories must be preserved");
+requirePattern(ui,/if\(site\)\{/,"existing websites require an import audit");
+requirePattern(ui,/verifiedSiteAudit\(c\.site_audit,site,kind\)/,"agent site audit must be independently validated");
+requirePattern(ui,/if\(!audited\)return null/,"unverified existing websites must be excluded");
+requirePattern(ui,/function hasVerifiedSiteAudit\(p\)/,"audited website gate missing");
+requirePattern(ui,/SITE_AUDIT_V1=/,"site audit evidence marker missing");
+requirePattern(ui,/existing-site prospects require a recent, documented SITE_AUDIT_V1|Existing-site prospects require a recent, documented SITE_AUDIT_V1/,"owner review validation missing");
+requirePattern(ui,/stage:"researched"/,"automated import cannot claim sales or contact");
 requirePattern(ui,/keyFor\(p\.business_name,p\.location\)===candidate\.prospect_key/,"candidate dedupe key check missing");
 requirePattern(ui,/importRunning/,"concurrent imports should be blocked");
 requirePattern(html,/id="importStatus"/,"user-visible research import status missing");
 assert.doesNotMatch(ui,/state:"sent"|send_draft|send_email|\.functions\.invoke\("bswd-prospect-sender"/i,"automated research must not send emails");
+const audited=read("supabase/migrations/20261108134400_bswd_outdated_site_audit_classification.sql");
+requirePattern(audited,/outdated_site/,"fully outdated sites need distinct researched category");
+requirePattern(html,/value="outdated_site"/,"outdated site must be selectable");
+assert.doesNotMatch(ui,/state:"sent"|send_draft|send_email/i,"prospect UI must not send automatically");
 console.log("PASS: prospect desk static security contracts (not a substitute for database integration tests)");
