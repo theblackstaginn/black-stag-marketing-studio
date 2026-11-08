@@ -4,7 +4,7 @@
  const BRAND_ID="d51c76c3-a4a6-4109-99c2-5a4b3cff226b";
  const STAGES=["discovered","researched","qualified","draft_ready","approved","contacted","replied","meeting","quoted","won","lost","do_not_contact"];
  const $=id=>document.getElementById(id);
- let client,ownerId,records=[],outreach=[],events=[],siteChecks=new Map(),scanStarted=false,scanRunning=false;
+ let client,ownerId,records=[],outreach=[],events=[],siteChecks=new Map(),scanStarted=false,scanRunning=false,importRunning=false,importLastRun=0;
  function node(tag,text){const e=document.createElement(tag);if(text!==undefined)e.textContent=String(text);return e;}
  function lock(text){ownerId=null;records=[];outreach=[];events=[];siteChecks.clear();$("queue").replaceChildren();$("app").hidden=true;notice(text);}
  function notice(text){$("gate").textContent=text;}
@@ -15,6 +15,65 @@
  const GAPS={no_website:"No dedicated website",social_only:"Social-media only",severely_broken:"Severely broken website"};
  function validEmail(value){return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value||"").trim());}
  function hasEmail(p){return p.contact_channel==="email"&&validEmail(p.contact_value);}
+ // Transfer machine-readable BSMS research notes through the signed-in owner's RLS session.
+ // The background agent never impersonates the owner or writes protected tables directly.
+ // This is a research-only import: no approval, sent status, or outbound message.
+ function stagedCandidate(work){
+  if(!/^Research candidate:\s+/i.test(String(work.title||"")))return null;
+  const line=String(work.notes||"").split(/\r?\n/).find(x=>x.startsWith("BSWD_CANDIDATE_V1="));
+  if(!line||line.length>10000)return null;
+  let c;
+  try{c=JSON.parse(line.slice("BSWD_CANDIDATE_V1=".length));}catch{return null;}
+  if(!c||typeof c!=="object"||Array.isArray(c))return null;
+  const name=String(c.business_name||"").trim(),location=String(c.location||"").trim();
+  const email=String(c.contact_email||"").trim();
+  const source=url(c.source_url),emailSource=url(c.email_source_url);
+  const evidence=String(c.opportunity_evidence||"").trim();
+  const checked=Date.parse(c.checked_at);
+  if(name.length<2||name.length>200||location.length>160||!validEmail(email)||email.length>320
+    ||!source||!emailSource||!evidence||evidence.length>4000||!Number.isFinite(checked)
+    ||checked>Date.now()+3600000||Date.now()-checked>90*86400000
+    ||normalize(String(work.title).replace(/^Research candidate:\s+/i,""))!==normalize(name)
+    ||c.website_url)return null; // First-site leads only; never import an existing-site claim.
+  return {owner_id:ownerId,business_name:name,location,source_url:source,
+   opportunity_evidence:evidence,contact_channel:"email",contact_value:email,
+   email_source_url:emailSource,website_url:null,opportunity_type:null,
+   prospect_key:keyFor(name,location),stage:"researched"};
+ }
+ async function importStagedCandidates(){
+  if(!ownerId||importRunning||Date.now()-importLastRun<45000)return;
+  importRunning=true;importLastRun=Date.now();
+  const status=$("importStatus");
+  try{
+   const {data:work,error:readError}=await client.from("work_items")
+    .select("id,title,notes,status").eq("brand_id",BRAND_ID).eq("work_type","research")
+    .in("status",["open","in_progress","waiting"])
+    .order("created_at",{ascending:false}).limit(200);
+   if(readError){status.textContent="Research sync unavailable: "+readError.message;return;}
+   let imported=0,failed=0;
+   for(const item of work||[]){
+    if(imported>=10)break;
+    const candidate=stagedCandidate(item);
+    if(!candidate)continue;
+    if(records.some(p=>keyFor(p.business_name,p.location)===candidate.prospect_key
+      ||(p.contact_channel==="email"&&normalize(p.contact_value)===normalize(candidate.contact_value))))continue;
+    const {data:created,error}=await client.from("bswd_prospects")
+      .insert(candidate).select("id,business_name,location,contact_value,contact_channel,stage").single();
+    if(error){if(error.code!=="23505")failed++;continue;} // DB guard handles concurrent duplicates.
+    if(created){records.push(created);imported++;}
+   }
+   if(imported){
+    status.textContent=imported+" researched candidate(s) imported from Studio. Nothing sent.";
+    await refresh();
+    // The owner-only verifier rechecks website claims; an email draft remains unsent.
+    if(!scanRunning)void verifyDue(2);
+   }else if(failed)status.textContent="Some research could not be imported; existing records are unchanged.";
+  }catch(error){
+   status.textContent="Research sync unavailable. Refresh after signing in again.";
+   console.warn("BSWD research import error",error?.name||"unknown");
+  }finally{importRunning=false;}
+ }
+
  function targetReady(p){
   const check=siteChecks.get(p.id);
   const recent=check&&Date.now()-Date.parse(check.checked_at)<30*86400000;
@@ -199,6 +258,7 @@
   siteChecks=new Map((checks||[]).map(x=>[x.prospect_id,x]));
   outreach=drafts||[];records=data||[];events=activity||[];notice("");render();
   if(!scanStarted){scanStarted=true;void verifyDue(2);}
+  if(!importRunning)void importStagedCandidates();
  }
  async function verifySite(p,force=false){
   if(!ownerId||p.suppressed_at||p.stage==="do_not_contact")return {ok:false,message:"Not available for this prospect"};
