@@ -30,7 +30,7 @@ requirePattern(ui,/contact_channel,contact_value,stage/,"public contact value mu
 requirePattern(ui,/emailOnly/,"email-only list filter missing");
 requirePattern(html,/id="emailOnly"/,"email-only toggle missing");
 requirePattern(html,/id="contactEmail"/,"public contact email input missing");
-requirePattern(html,/prospect-desk\.js\?v=4/,"updated JS cache bust missing");
+requirePattern(html,/prospect-desk\.js\?v=5/,"updated JS cache bust missing");
 for (const name of ["prospects", "outreach", "events"]) {
  const policy = schema.split('create policy "owner access ' + name + '"')[1]?.split(';')[0] || "";
  for (const clause of ["using", "with check"]) {
@@ -59,4 +59,17 @@ requirePattern(verifier,/bswd_owner_only/,"verifier must enforce primary BSWD ow
 requirePattern(verifier,/SUPABASE_SERVICE_ROLE_KEY/,"server-only evidence write key missing");
 requirePattern(verifier,/X-Tavily-Access-Mode/,"keyless search mode missing");
 assert.doesNotMatch(verifier,/sendEmail|smtp|resend\.emails|outreach\.insert/i,"site checker must never send outreach");
+requirePattern(ui,/function stagedCandidate\(work\)/,"staged candidate parser missing");
+requirePattern(ui,/BSWD_CANDIDATE_V1=/,"machine-readable staging format missing");
+requirePattern(ui,/from\("work_items"\)/,"owner-authenticated research staging read missing");
+requirePattern(ui,/\.eq\("brand_id",BRAND_ID\)/,"staged work must be scoped to BSWD brand");
+requirePattern(ui,/\.eq\("work_type","research"\)/,"only research staging work may import");
+requirePattern(ui,/\.insert\(candidate\)/,"owner-scoped researched import missing");
+requirePattern(ui,/stage:"researched"/,"candidate import may only create researched records");
+requirePattern(ui,/opportunity_type:null/,"candidate classification must not be auto-approved");
+requirePattern(ui,/c\.website_url\)return null/,"existing website candidate must not be auto-imported");
+requirePattern(ui,/keyFor\(p\.business_name,p\.location\)===candidate\.prospect_key/,"candidate dedupe key check missing");
+requirePattern(ui,/importRunning/,"concurrent imports should be blocked");
+requirePattern(html,/id="importStatus"/,"user-visible research import status missing");
+assert.doesNotMatch(ui,/state:"sent"|send_draft|send_email|\.functions\.invoke\("bswd-prospect-sender"/i,"automated research must not send emails");
 console.log("PASS: prospect desk static security contracts (not a substitute for database integration tests)");
